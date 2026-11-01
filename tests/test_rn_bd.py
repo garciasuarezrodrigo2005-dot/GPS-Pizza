@@ -357,6 +357,11 @@ def test_rn018_tres_intentos_bloquean_la_cuenta(bd):
     bd.debe_fallar('rn018_intentos', 'UPDATE empleado SET intentos_fallidos = 4 WHERE id_empleado = :e', e=cajero)
     bd.debe_fallar('RN-018', "INSERT INTO sesion (id_empleado, token_hash) VALUES (:e, repeat('c', 64))", e=cajero)
     assert bd.valor("SELECT count(*) FROM auditoria WHERE accion = 'BLOQUEO' AND id_entidad = :e", e=cajero) == 1
+    # Al desbloquear, el contador vuelve a 0 y la cuenta queda libre (bug corregido en la Fase 2:
+    # antes el trigger la volvía a bloquear porque revisaba los 3 intentos primero).
+    bd.sql('UPDATE empleado SET bloqueado = false WHERE id_empleado = :e', e=cajero)
+    fila = bd.sql('SELECT bloqueado, intentos_fallidos FROM empleado WHERE id_empleado = :e', e=cajero).one()
+    assert (fila.bloqueado, fila.intentos_fallidos) == (False, 0)
 
 
 # ======================================================================= auditoría (RN-019)

@@ -114,3 +114,47 @@ class Bd:
 @pytest.fixture
 def bd(con):
     return Bd(con)
+
+
+# ---------------------------------------------------------------- app conectada a la BD de demo
+
+@pytest.fixture
+def app_bd(motor_demo, crear_app):
+    """App de prueba cuya sesión de BD vive dentro de una transacción que se deshace al final.
+    Los commit() de la app se vuelven SAVEPOINTs: la prueba ve sus propios cambios, pero
+    gpizza_test queda igual para la siguiente prueba (intentos, sesiones, contraseñas...)."""
+    from gpizza.extensiones import db
+    app = crear_app()
+    # Ojo: el contexto de la app NO se deja abierto durante la prueba. Si lo estuviera, Flask lo
+    # reutilizaría en cada petición del test_client y compartiría `g` entre peticiones (por ejemplo,
+    # el token CSRF), cosa que nunca pasa en la app real.
+    with app.app_context():
+        conexion = db.engine.connect()
+        transaccion = conexion.begin()
+        db.session.remove()
+        db.session.configure(bind=conexion, join_transaction_mode='create_savepoint')
+    try:
+        yield app
+    finally:
+        with app.app_context():
+            db.session.remove()
+            db.session.configure(bind=None)
+        transaccion.rollback()
+        conexion.close()
+
+
+@pytest.fixture
+def web(app_bd):
+    return app_bd.test_client()
+
+
+def token_csrf(cliente_web, ruta='/login'):
+    """Lee el token CSRF del formulario, como haría el navegador."""
+    import re
+    html = cliente_web.get(ruta).get_data(as_text=True)
+    return re.search(r'name="csrf_token" value="([^"]+)"', html).group(1)
+
+
+def iniciar_sesion(cliente_web, usuario, contrasena='Pizza2026', **kwargs):
+    return cliente_web.post('/login', data={'usuario': usuario, 'contrasena': contrasena,
+                                            'csrf_token': token_csrf(cliente_web)}, **kwargs)

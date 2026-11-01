@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block titulo %}Cambiar contraseña{% endblock %}
+{% block encabezado %}Cambiar contraseña{% endblock %}
+{% block encabezado_derecha %}{{ usuario.rol }}{% endblock %}
+
+{% block contenido %}
+{% if obligatorio %}
+  <p class="gp-aviso gp-aviso-alerta">Tu contraseña cumplió 90 días. Por seguridad, cámbiala para continuar (RN-018).</p>
+{% endif %}
+<form method="post" class="gp-tarjeta mb-3">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label for="actual" class="form-label fw-semibold">Contraseña actual</label>
+  <input id="actual" name="actual" type="password" class="form-control mb-3" autocomplete="current-password" required>
+  <label for="nueva" class="form-label fw-semibold">Nueva contraseña</label>
+  <input id="nueva" name="nueva" type="password" class="form-control mb-1" autocomplete="new-password"
+         minlength="8" required aria-describedby="ayuda-nueva">
+  <p id="ayuda-nueva" class="small gp-texto-suave mb-3">Mínimo 8 caracteres, con letras y números.</p>
+  <label for="confirmacion" class="form-label fw-semibold">Confirma la nueva contraseña</label>
+  <input id="confirmacion" name="confirmacion" type="password" class="form-control mb-3" autocomplete="new-password" required>
+  <button class="btn btn-gp-oscuro w-100">Guardar contraseña</button>
+</form>
+<form method="post" action="{{ url_for('auth.salir') }}" class="text-center">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button class="btn btn-link">Cerrar sesión</button>
+</form>
+{% endblock %}

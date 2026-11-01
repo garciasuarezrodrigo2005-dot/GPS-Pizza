@@ -1,0 +1,19 @@
+{% extends 'personal/base.html' %}
+{# Boceto, página 9: "Mis entregas". El contenido llega en las Fases 4 y 5. #}
+{% block titulo %}Mis entregas{% endblock %}
+{% block encabezado %}Mis entregas{% endblock %}
+
+{% block contenido %}
+<p class="mb-1">Hola, <strong>{{ usuario.nombre }}</strong></p>
+<p class="gp-texto-suave small mb-3">Sucursal {{ usuario.sucursal }}</p>
+<div class="gp-tarjeta gp-en-construccion">
+  Aquí verás tu interruptor de disponibilidad, tus entregas activas (máximo 2), el mapa de la ruta
+  y la confirmación de entrega con firma o código. <strong>Fases 4 y 5.</strong>
+</div>
+{% endblock %}
+
+{% block pestanas %}
+  <a class="activa" href="{{ url_for('repartidor.inicio') }}">Activas</a>
+  <span class="gp-pestana-pendiente">Historial</span>
+  <a href="{{ url_for('auth.cambiar_contrasena') }}">Perfil</a>
+{% endblock %}

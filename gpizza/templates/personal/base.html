@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{# Plantilla común del cajero y el repartidor (bocetos 7 a 9): encabezado con el rol y
+   navegación inferior fija, cómoda para el pulgar en el celular. #}
+{% block clase_body %}gp-con-navegacion{% endblock %}
+{% block encabezado_derecha %}
+  {{ usuario.rol }}
+  <form method="post" action="{{ url_for('auth.salir') }}" class="d-inline ms-2">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="gp-boton-salir" title="Cerrar sesión">Salir</button>
+  </form>
+{% endblock %}
+
+{% block navegacion %}
+<nav class="gp-navegacion" aria-label="Secciones">
+  {% block pestanas %}{% endblock %}
+</nav>
+{% endblock %}

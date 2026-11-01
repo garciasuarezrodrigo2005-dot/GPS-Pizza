@@ -594,11 +594,13 @@ CREATE TRIGGER trg_sesion_unica BEFORE INSERT ON sesion
 
 CREATE FUNCTION fn_empleado_bloqueo() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
+    -- El orden importa: primero el desbloqueo (que reinicia el contador) y después la regla
+    -- de los 3 intentos; al revés, una cuenta con 3 intentos se volvería a bloquear al instante.
+    IF OLD.bloqueado AND NOT NEW.bloqueado THEN
+        NEW.intentos_fallidos := 0;
+    END IF;
     IF NEW.intentos_fallidos >= 3 THEN
         NEW.bloqueado := true;
-    END IF;
-    IF OLD.bloqueado AND NOT NEW.bloqueado THEN
-        NEW.intentos_fallidos := 0;  -- al desbloquear, el contador vuelve a cero
     END IF;
     IF NEW.bloqueado AND NOT OLD.bloqueado THEN
         UPDATE sesion SET activa = false, fecha_fin = fn_ahora() WHERE id_empleado = NEW.id_empleado AND activa;

@@ -13,15 +13,20 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/gpizza.css') }}">
   {% block cabeza %}{% endblock %}
 </head>
-<body>
+<body class="{% block clase_body %}{% endblock %}">
+  {% block encabezado_completo %}
   <header class="gp-encabezado">
     <h1>{% block encabezado %}Yungla Pizza{% endblock %}</h1>
     <small>{% block encabezado_derecha %}{% endblock %}</small>
   </header>
+  {% endblock %}
 
+  {% block cuerpo %}
   <main class="gp-contenido">
+    {% include 'parciales/mensajes.html' %}
     {% block contenido %}{% endblock %}
   </main>
+  {% endblock %}
 
   {% block navegacion %}
   <footer class="gp-pie">GPizza v{{ version }} · Yungla Pizza S.A. de C.V.</footer>

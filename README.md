@@ -6,7 +6,7 @@ Proyecto escolar del Instituto Tecnológico de Veracruz (Ingeniería en Sistemas
 Es una **app móvil progresiva (PWA)**: en el celular se instala en la pantalla de inicio como una app y en la PC
 funciona como página web. Tiene tres interfaces: **Cliente**, **Personal** (cajero y repartidor) y **Gerente**.
 
-> Estado: **Fase 1 – Base de datos** (ver [docs/trazabilidad.md](docs/trazabilidad.md)).
+> Estado: **Fase 2 – Autenticación y roles** (ver [docs/trazabilidad.md](docs/trazabilidad.md)).
 
 ## Tecnologías
 
@@ -81,6 +81,7 @@ Códigos de descuento: `BIENVENIDA10` (10 %) y `PROMO50` ($50) están vigentes; 
 | Abrirlo desde el celular en la misma red WiFi | `python run.py 0.0.0.0` | http://IP-de-la-PC:8000 |
 | Correr las pruebas | `pytest -v` | — |
 | Generar las alertas de 45 y 90 min a mano | `flask --app gpizza alertas` | — |
+| Desbloquear una cuenta (p. ej. la de un gerente) | `flask --app gpizza desbloquear gerente.coyol` | — |
 
 Las pruebas usan la base `gpizza_test`: la borran, la recrean y cargan los datos de demo en cada corrida,
 y cada prueba deshace sus cambios al terminar. La base `gpizza` nunca se toca.
@@ -110,6 +111,23 @@ SELECT tipo_evento, mensaje FROM notificacion ORDER BY id_notificacion DESC LIMI
 
 Todas las reglas tienen su prueba automática en `tests/test_rn_bd.py` (`pytest -v tests/test_rn_bd.py`).
 
+## Cómo comprobar la Fase 2 (autenticación y roles)
+
+Abre http://localhost:5000/login (o "Entrar como empleado" desde el inicio):
+
+| Prueba | Qué debe pasar | Regla |
+|---|---|---|
+| Entrar con `cajero1.coyol`, `repartidor1.coyol` o `gerente.coyol` | Cada uno llega a su propio panel | RF-012, RN-016 |
+| Siendo cajero, abrir http://localhost:5000/gerente/ | "Acceso no permitido" (403) | RF-012 |
+| Contraseña equivocada | "Usuario o contraseña incorrectos. Intento 1 de 3." | RN-018 |
+| Tres contraseñas equivocadas | La cuenta se bloquea; ni la correcta funciona. Se desbloquea con `flask --app gpizza desbloquear <usuario>` | RN-018 |
+| Entrar con `repartidor3.coyol` | Ya está bloqueado en la demo | RN-018 |
+| Entrar con `cajero2.coyol` | Obliga a cambiar la contraseña (tiene 95 días) y valida la política | RN-018 |
+| Entrar con el mismo usuario en dos navegadores | El primero queda fuera con un aviso al siguiente clic | RN-017 |
+
+Todo queda en la bitácora: `SELECT accion, entidad, id_empleado, fecha_hora FROM auditoria ORDER BY id_log DESC LIMIT 10;`
+Las pruebas están en `tests/test_auth.py`.
+
 ## Cómo comprobar la Fase 0
 
 - **Pantalla de inicio del cliente:** abre http://localhost:5000. Muestra el horario de pedidos (RN-002).
@@ -132,10 +150,12 @@ gpizza/            código de la aplicación
   reglas.py        constantes de las reglas de negocio (RN)
   reloj.py         hora oficial (zona horaria y hora simulada)
   bd.py            aplica el esquema y le dice a los triggers quién actúa (rol, empleado, hora)
-  cli.py           comandos flask db-reset, db-seed y alertas
-  seguridad/       cifrado (Fernet) y contraseñas (Argon2id)
+  modelos.py       clases de SQLAlchemy de las 12 tablas
+  cli.py           comandos flask db-reset, db-seed, desbloquear y alertas
+  seguridad/       cifrado (Fernet), contraseñas (Argon2id) y control de acceso por rol
+  servicios/       lógica de negocio sin HTML (autenticación, ...)
   monitoreo.py     logs, medición de tiempos y cabeceras de seguridad
-  web/             rutas: sistema (salud, errores, PWA) y cliente
+  web/             rutas: sistema, cliente, auth, cajero, repartidor y gerente
   templates/       pantallas HTML (Jinja2)
   static/          CSS, JS, iconos y librerías (Bootstrap, HTMX) incluidas para funcionar sin internet
 tests/             pruebas automáticas (pytest)

@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{# Boceto, página 10: panel con menú lateral en la PC; en el celular el menú se vuelve una fila deslizable. #}
+{% block encabezado_completo %}{% endblock %}
+{% block clase_body %}gp-panel{% endblock %}
+
+{% block cuerpo %}
+<div class="gp-panel-contenedor">
+  <aside class="gp-menu-lateral">
+    <div class="gp-menu-titulo">Yungla Pizza</div>
+    <nav aria-label="Secciones del panel">
+      {% set secciones = [
+        ('Pedidos', none), ('Catálogo y precios', none), ('Clientes', none), ('Personal', none),
+        ('Descuentos y devoluciones', none), ('Reportes', none), ('Auditoría', none)] %}
+      {% for nombre, destino in secciones %}
+        {% if destino %}<a href="{{ url_for(destino) }}">{{ nombre }}</a>
+        {% else %}<span class="gp-pestana-pendiente">{{ nombre }}</span>{% endif %}
+      {% endfor %}
+    </nav>
+    <div class="gp-menu-usuario">
+      <div class="fw-semibold">{{ usuario.nombre }}</div>
+      <div class="small">Gerente · {{ usuario.sucursal }}</div>
+      <form method="post" action="{{ url_for('auth.salir') }}" class="mt-2">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="gp-boton-salir">Cerrar sesión</button>
+      </form>
+    </div>
+  </aside>
+  <main class="gp-panel-principal">
+    {% include 'parciales/mensajes.html' %}
+    {% block contenido %}{% endblock %}
+  </main>
+</div>
+{% endblock %}
+
+{% block navegacion %}{% endblock %}

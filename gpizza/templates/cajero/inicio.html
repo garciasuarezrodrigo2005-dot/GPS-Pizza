@@ -1,0 +1,20 @@
+{% extends 'personal/base.html' %}
+{# Boceto, página 7: "Por confirmar". El contenido llega en la Fase 3. #}
+{% block titulo %}Por confirmar{% endblock %}
+{% block encabezado %}Por confirmar{% endblock %}
+
+{% block contenido %}
+<p class="mb-1">Hola, <strong>{{ usuario.nombre }}</strong></p>
+<p class="gp-texto-suave small mb-3">Sucursal {{ usuario.sucursal }}</p>
+<div class="gp-tarjeta gp-en-construccion">
+  Aquí llegarán los pedidos que los clientes hacen desde la app para que los confirmes
+  (tiempo estimado y cocinero) o los rechaces. <strong>Fase 3.</strong>
+</div>
+{% endblock %}
+
+{% block pestanas %}
+  <a class="activa" href="{{ url_for('cajero.inicio') }}">Por confirmar</a>
+  <span class="gp-pestana-pendiente">Pedidos</span>
+  <span class="gp-pestana-pendiente">Nuevo</span>
+  <span class="gp-pestana-pendiente">Clientes</span>
+{% endblock %}

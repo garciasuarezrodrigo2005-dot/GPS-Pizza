@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{# Boceto, página 6: inicio de sesión del personal. #}
+{% block titulo %}Iniciar sesión{% endblock %}
+{% block encabezado_completo %}{% endblock %}
+
+{% block contenido %}
+<section class="gp-portada mt-3">
+  <img class="gp-logo" src="{{ url_for('static', filename='img/icono-512.png') }}" alt="Logotipo de Yungla Pizza">
+  <h2>Yungla Pizza</h2>
+  <p class="gp-texto-suave mb-4">Sistema de gestión de pedidos a domicilio</p>
+</section>
+
+<form method="post" class="gp-tarjeta mb-3" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label for="usuario" class="form-label fw-semibold">Usuario</label>
+  <input id="usuario" name="usuario" class="form-control mb-3" value="{{ usuario }}" autocomplete="username"
+         autocapitalize="none" spellcheck="false" required autofocus>
+  <label for="contrasena" class="form-label fw-semibold">Contraseña</label>
+  <input id="contrasena" name="contrasena" type="password" class="form-control mb-3"
+         autocomplete="current-password" required>
+  <button class="btn btn-gp-oscuro w-100">Iniciar sesión</button>
+</form>
+
+<ul class="small gp-texto-suave ps-3">
+  <li>Solo una sesión activa por usuario: al entrar desde otro dispositivo, la anterior se cierra.</li>
+  <li>El rol (Cajero, Repartidor o Gerente) define las pantallas que verás.</li>
+</ul>
+<p class="text-center mt-3"><a href="{{ url_for('cliente.inicio') }}">¿Eres cliente? Haz tu pedido aquí</a></p>
+{% endblock %}

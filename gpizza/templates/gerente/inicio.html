@@ -1,0 +1,11 @@
+{% extends 'gerente/base.html' %}
+{% block titulo %}Panel del gerente{% endblock %}
+
+{% block contenido %}
+<h2 class="h3 fw-bold mb-1">Hola, {{ usuario.nombre }}</h2>
+<p class="gp-texto-suave mb-4">Sucursal {{ usuario.sucursal }}. Solo verás la información de tu sucursal.</p>
+<div class="gp-tarjeta gp-en-construccion">
+  Las secciones del menú (pedidos, catálogo, clientes, personal, descuentos y devoluciones, reportes y auditoría)
+  se habilitan en las Fases 4 y 6.
+</div>
+{% endblock %}

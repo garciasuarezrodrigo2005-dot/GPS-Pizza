@@ -1,0 +1,6 @@
+{# Mensajes de una sola vez (flash): error, aviso o éxito, siempre en español (RNF-004). #}
+{% with mensajes = get_flashed_messages(with_categories=true) %}
+  {% for categoria, mensaje in mensajes %}
+    <div class="gp-mensaje gp-mensaje-{{ categoria }}" role="{{ 'alert' if categoria == 'error' else 'status' }}">{{ mensaje }}</div>
+  {% endfor %}
+{% endwith %}

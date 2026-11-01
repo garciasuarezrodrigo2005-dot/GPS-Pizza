@@ -25,13 +25,15 @@ def create_app(config_class: type[Config] = Config) -> Flask:
     registrar_contexto_automatico()
     registrar_comandos(app)
 
-    from gpizza.web.cliente import bp as cliente_bp
-    from gpizza.web.sistema import bp as sistema_bp
-    app.register_blueprint(sistema_bp)
-    app.register_blueprint(cliente_bp)
+    from gpizza.seguridad.acceso import cargar_usuario
+    from gpizza.web import auth, cajero, cliente, gerente, repartidor, sistema
+    for modulo in (sistema, cliente, auth, cajero, repartidor, gerente):
+        app.register_blueprint(modulo.bp)
+    app.before_request(cargar_usuario)
 
     @app.context_processor
     def _datos_globales():
-        return {'version': __version__}
+        from flask import g
+        return {'version': __version__, 'usuario': g.get('usuario')}
 
     return app

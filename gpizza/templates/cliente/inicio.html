@@ -27,5 +27,5 @@
     {{ apertura.strftime('%H:%M') }} a {{ cierre.strftime('%H:%M') }} h. Vuelve en nuestro horario.</p>
 {% endif %}
 
-<p class="text-center mt-4 mb-0">¿Eres del personal? <span class="gp-texto-suave">Entrar como empleado (Fase 2)</span></p>
+<p class="text-center mt-4 mb-0">¿Eres del personal? <a href="{{ url_for('auth.login') }}">Entrar como empleado</a></p>
 {% endblock %}
