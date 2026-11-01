@@ -1,8 +1,11 @@
 """Configuración común de las pruebas: todas usan la base gpizza_test, nunca gpizza."""
+from datetime import datetime
+
 import pytest
 from sqlalchemy import create_engine, text
 
 from gpizza import create_app
+from gpizza.bd import fijar_contexto, recrear_esquema
 from gpizza.config import ConfigPruebas
 
 
@@ -41,3 +44,73 @@ def app(crear_app):
 @pytest.fixture
 def cliente(app):
     return app.test_client()
+
+
+# ---------------------------------------------------------------- base de datos con datos de demo
+
+@pytest.fixture(scope='session')
+def motor_demo():
+    """Una vez por corrida: recrea el esquema de gpizza_test y carga los datos de demo."""
+    if not BD_PRUEBA_DISPONIBLE:
+        pytest.skip('La base gpizza_test no existe o no responde.')
+    from seed.datos_demo import cargar
+    app = create_app(ConfigPruebas)
+    with app.app_context():
+        from gpizza.extensiones import db
+        recrear_esquema(db.engine)
+        cargar(db.engine, app)
+        motor = db.engine
+        yield motor
+
+
+@pytest.fixture
+def con(motor_demo):
+    """Conexión dentro de una transacción que se deshace al terminar la prueba:
+    cada prueba ve los datos de demo intactos, haga lo que haga."""
+    conexion = motor_demo.connect()
+    transaccion = conexion.begin()
+    yield conexion
+    transaccion.rollback()
+    conexion.close()
+
+
+class Bd:
+    """Atajos para escribir las pruebas de reglas de negocio en SQL."""
+
+    def __init__(self, conexion):
+        self.c = conexion
+
+    def sql(self, consulta, **parametros):
+        return self.c.execute(text(consulta), parametros)
+
+    def valor(self, consulta, **parametros):
+        return self.sql(consulta, **parametros).scalar()
+
+    def como(self, rol=None, usuario=None, ahora: datetime | None = None):
+        id_empleado = self.empleado(usuario) if isinstance(usuario, str) else usuario
+        fijar_contexto(self.c, rol=rol, id_empleado=id_empleado, ahora=ahora)
+
+    def empleado(self, usuario):
+        return self.valor('SELECT id_empleado FROM empleado WHERE username = :u', u=usuario)
+
+    def pedido(self, estado, sucursal='Coyol (matriz)', extra=''):
+        """Un pedido de la demo en el estado indicado (el más reciente)."""
+        return self.sql(
+            'SELECT p.* FROM pedido p JOIN sucursal s USING (id_sucursal) '
+            f'WHERE p.estado = :e AND s.nombre = :s {extra} ORDER BY p.fecha_registro DESC LIMIT 1',
+            e=estado, s=sucursal).mappings().one()
+
+    def debe_fallar(self, patron, consulta, **parametros):
+        """Ejecuta la consulta dentro de un SAVEPOINT y exige que la BD la rechace con un
+        mensaje que contenga el patrón. El SAVEPOINT permite seguir usando la transacción."""
+        from sqlalchemy.exc import DBAPIError
+        punto = self.c.begin_nested()
+        with pytest.raises(DBAPIError, match=patron):
+            self.c.execute(text(consulta), parametros)
+            self.c.execute(text('SET CONSTRAINTS ALL IMMEDIATE'))  # dispara los triggers diferidos
+        punto.rollback()
+
+
+@pytest.fixture
+def bd(con):
+    return Bd(con)

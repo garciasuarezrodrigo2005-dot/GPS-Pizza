@@ -1,6 +1,8 @@
 """GPizza: Sistema de Gestión de Pedidos a Domicilio de Yungla Pizza S.A. de C.V."""
 from flask import Flask
 
+from gpizza.bd import registrar_contexto_automatico
+from gpizza.cli import registrar_comandos
 from gpizza.config import Config
 from gpizza.extensiones import csrf, db
 from gpizza.monitoreo import configurar_logs, registrar_medicion
@@ -20,6 +22,8 @@ def create_app(config_class: type[Config] = Config) -> Flask:
     csrf.init_app(app)
     configurar_logs(app)
     registrar_medicion(app)
+    registrar_contexto_automatico()
+    registrar_comandos(app)
 
     from gpizza.web.cliente import bp as cliente_bp
     from gpizza.web.sistema import bp as sistema_bp

@@ -28,15 +28,19 @@ def url_bd(nombre_bd: str) -> URL:
 
 class Config:
     SECRET_KEY = os.getenv('GPIZZA_SECRET_KEY')
+    ZONA_HORARIA = os.getenv('GPIZZA_ZONA_HORARIA', 'America/Mexico_City')
     SQLALCHEMY_DATABASE_URI = url_bd(os.getenv('GPIZZA_DB_NAME', 'gpizza'))
     SQLALCHEMY_ENGINE_OPTIONS = {
-        # Si PostgreSQL no responde en 3 s, se reporta como caído en vez de colgar la app (RNF-002).
-        'connect_args': {'connect_timeout': 3},
+        'connect_args': {
+            # Si PostgreSQL no responde en 3 s, se reporta como caído en vez de colgar la app (RNF-002).
+            'connect_timeout': 3,
+            # La BD trabaja con la hora de la sucursal (horarios, alertas, reportes por día).
+            'options': f'-c timezone={ZONA_HORARIA}',
+        },
         # Descarta conexiones muertas (p. ej. tras reiniciar PostgreSQL) antes de usarlas.
         'pool_pre_ping': True,
     }
 
-    ZONA_HORARIA = os.getenv('GPIZZA_ZONA_HORARIA', 'America/Mexico_City')
     HORA_DEMO = os.getenv('GPIZZA_HORA_DEMO') or None
 
     # Cookies de sesión: no accesibles desde JavaScript y no se envían desde otros sitios (RNF-003).
