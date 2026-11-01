@@ -172,6 +172,37 @@ Abre tres navegadores: cliente, `cajero1.coyol` y `repartidor1.coyol` (y si quie
 La revisión de alertas y reasignaciones corre sola mientras haya una pantalla del personal abierta (cada 10–15 s);
 también se puede forzar con `flask --app gpizza alertas`. Las pruebas están en `tests/test_ciclo.py`.
 
+## Cómo comprobar la Fase 5 (repartidor, mapas y firma)
+
+1. **Mapa del repartidor (boceto 9):** entra como `repartidor1.coyol`. Cada entrega en camino muestra un mapa con 🛵 y 🏠,
+   "Llamar" y "Abrir ruta" (OpenStreetMap). Los mapas necesitan internet para descargar los mosaicos.
+2. **GPS:** con HTTPS (ver abajo) el navegador pide permiso y manda la posición cada 15 s, **solo mientras hay una entrega
+   en camino** (boceto 5: "el GPS se activa solo cuando se asigna un repartidor y se apaga al entregar"). Sin GPS, el botón
+   **"Simular recorrido"** mueve al repartidor hacia el domicilio en 30 s.
+3. **Mapa del cliente (boceto 5):** con el teléfono del cliente de ese pedido, "Tu pedido" muestra el mapa en vivo, el nombre
+   del repartidor, "Llega en ~N min", "Llamar" y el código de entrega.
+4. **Entrega en dos pasos (RN-013, RF-010):** el cliente firma con el dedo en el recuadro **o** dicta su código de 4 dígitos
+   → "Registrar confirmación del cliente"; después el repartidor pulsa "Marcar como entregado". Sin el paso 1 no se puede.
+   Un código equivocado se rechaza.
+5. **Evidencia:** cajero o gerente abren "Ver detalle" del pedido entregado: aparecen la firma, la hora de cada paso y quién
+   entregó. El repartidor ve sus entregas del día en "Historial".
+
+Las pruebas están en `tests/test_entregas.py`.
+
+### Probar en el celular (HTTPS)
+
+Los navegadores solo comparten la ubicación en páginas seguras (`https://` o `localhost`). Para usar el celular en la misma
+red WiFi que la PC:
+
+```powershell
+flask --app gpizza run --cert=adhoc --host 0.0.0.0 --port 5443
+```
+
+y abre `https://IP-de-la-PC:5443` (la IP se ve con `ipconfig`). El certificado es autofirmado: el celular mostrará
+"La conexión no es privada"; toca "Configuración avanzada → Continuar". Con eso funcionan la ubicación y la firma.
+Con un certificado autofirmado Chrome no instala la app como PWA; para eso hace falta un certificado real (por ejemplo,
+publicar la app con un túnel como `cloudflared` o en un servidor con HTTPS).
+
 ## Cómo comprobar la Fase 0
 
 - **Pantalla de inicio del cliente:** abre http://localhost:5000. Muestra el horario de pedidos (RN-002).
