@@ -1,10 +1,10 @@
 """Panel administrativo del gerente (boceto 10). Siempre limitado a su sucursal (decisión 11)."""
-from flask import Blueprint, Response, abort, flash, g, redirect, render_template, request, url_for
+from flask import Blueprint, Response, abort, current_app, flash, g, redirect, render_template, request, url_for
 
 from gpizza.extensiones import db
 from gpizza.modelos import Cliente, Producto
 from gpizza.seguridad.acceso import rol_requerido
-from gpizza.servicios import administracion, asignacion, ciclo, clientes, personal, qr
+from gpizza.servicios import administracion, asignacion, auditoria, ciclo, clientes, exportar, personal, qr, reportes
 
 bp = Blueprint('gerente', __name__, url_prefix='/gerente')
 
@@ -211,6 +211,57 @@ def registrar_devolucion():
                                                    request.form.get('accion', ''))
     flash(problema or 'Devolución registrada (RN-015).', 'error' if problema else 'exito')
     return redirect(url_for('gerente.descuentos') + '#devoluciones')
+
+
+# ------------------------------------------------------------------------------ reportes (CU-004, CU-008)
+
+def _reporte():
+    filtros, aviso = reportes.leer_filtros(request.args)
+    repartidores = reportes.repartidores(g.usuario.id_sucursal)
+    if filtros.id_repartidor not in {r.id_empleado for r in repartidores}:
+        filtros.id_repartidor = None   # solo repartidores de su sucursal
+    nombre = next((r.nombre_completo for r in repartidores if r.id_empleado == filtros.id_repartidor), None)
+    return reportes.generar(g.usuario.id_sucursal, filtros), aviso, repartidores, nombre
+
+
+@bp.get('/reportes')
+@rol_requerido('Gerente')
+def reportes_vista():
+    reporte, aviso, repartidores, _ = _reporte()
+    if aviso:
+        flash(aviso, 'aviso')
+    return render_template('gerente/reportes.html', r=reporte, repartidores=repartidores, activa='reportes')
+
+
+@bp.get('/reportes/exportar/<formato>')
+@rol_requerido('Gerente')
+def exportar_reporte(formato):
+    """CU-008. Si algo falla (FA-2), se avisa y se regresa al reporte con los mismos filtros."""
+    if formato not in ('pdf', 'xlsx'):
+        abort(404)
+    reporte, _, _, nombre = _reporte()
+    try:
+        contenido = (exportar.pdf if formato == 'pdf' else exportar.excel)(reporte, g.usuario.sucursal, nombre)
+    except Exception:
+        current_app.logger.exception('Error al exportar el reporte a %s', formato)
+        flash('No se pudo generar el archivo. Inténtalo de nuevo; los filtros se conservaron (CU-004 FA-2).', 'error')
+        return redirect(url_for('gerente.reportes_vista', **request.args))
+    tipo = 'application/pdf' if formato == 'pdf' else 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    return Response(contenido, mimetype=tipo, headers={
+        'Content-Disposition': f'attachment; filename="{exportar.nombre_archivo(g.usuario.sucursal, reporte, formato)}"'})
+
+
+# ------------------------------------------------------------------------------ auditoría (RN-019)
+
+@bp.get('/auditoria')
+@rol_requerido('Gerente')
+def auditoria_vista():
+    filtros = auditoria.leer_filtros(request.args)
+    registros, total = auditoria.consultar(g.usuario.id_sucursal, filtros)
+    paginas = max(1, -(-total // auditoria.POR_PAGINA))
+    return render_template('gerente/auditoria.html', registros=registros, total=total, f=filtros, paginas=paginas,
+                           acciones=auditoria.ACCIONES, entidades=auditoria.ENTIDADES, resumen=auditoria.resumen,
+                           activa='auditoria')
 
 
 @bp.post('/pedidos/<int:id_pedido>/cancelar')

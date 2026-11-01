@@ -6,7 +6,7 @@ Proyecto escolar del Instituto Tecnológico de Veracruz (Ingeniería en Sistemas
 Es una **app móvil progresiva (PWA)**: en el celular se instala en la pantalla de inicio como una app y en la PC
 funciona como página web. Tiene tres interfaces: **Cliente**, **Personal** (cajero y repartidor) y **Gerente**.
 
-> Estado: **Fase 5 – Repartidor, mapas y firma** (ver [docs/trazabilidad.md](docs/trazabilidad.md)).
+> Estado: **Fase 6 – Panel del gerente, reportes y auditoría** (ver [docs/trazabilidad.md](docs/trazabilidad.md)).
 
 ## Tecnologías
 
@@ -188,6 +188,24 @@ también se puede forzar con `flask --app gpizza alertas`. Las pruebas están en
    entregó. El repartidor ve sus entregas del día en "Historial".
 
 Las pruebas están en `tests/test_entregas.py`.
+
+## Cómo comprobar la Fase 6 (panel del gerente)
+
+Entra como `gerente.coyol`. Todo lo que ves es solo de tu sucursal.
+
+| Sección | Qué probar | Regla |
+|---|---|---|
+| Catálogo y precios | Cambia un precio o apaga "Disponible": el menú del cliente lo refleja al instante. "Imprimir etiquetas QR" genera una hoja con el QR de cada producto | RN-007, RF-002, RF-009 |
+| Clientes | Busca por teléfono o nombre, edita la dirección y ve su historial | RF-005 |
+| Personal | Da de alta un cajero: aparece su contraseña temporal, que deberá cambiar al entrar. Desbloquea a `repartidor3.coyol`. Intenta dar de baja a un repartidor en ruta | CU-009, 009a, 009b, RN-018 |
+| Descuentos y devoluciones | Emite un código (p. ej. 15 %) y úsalo en un pedido: queda "Usado". Registra la devolución de un pedido entregado hace menos de 2 h | RN-008, RF-011, RN-015 |
+| Reportes | Cambia el período o el repartidor y pulsa "Generar"; exporta a PDF y a Excel | CU-004, CU-008 |
+| Auditoría | Filtra por acción (LOGIN, CANCELAR…) o por usuario; no hay forma de editar ni borrar | RN-019 |
+
+**Escaneo (RF-009):** en "Nuevo pedido" del cajero, escribe `YP000002` y Enter (o escanéalo con un lector USB o con la
+cámara del celular en HTTPS): la Pepperoni Mediana se suma al pedido. En el detalle de un pedido, "Imprimir comanda" genera
+el ticket con el QR del folio; escanearlo en "Buscar pedido" abre su seguimiento.
+Las pruebas están en `tests/test_gerente.py` y `tests/test_reportes.py`.
 
 ### Probar en el celular (HTTPS)
 

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Comanda {{ pedido.folio }} · GPizza</title>
+  <style>
+    /* Comanda de 80 mm para la impresora de tickets de cocina (RF-009: lleva el QR del folio). */
+    body { font-family: system-ui, sans-serif; width: 72mm; margin: 0 auto; padding: 4mm 0; color: #000; background: #fff; font-size: 12px; }
+    h1 { font-size: 20px; text-align: center; margin: 0; }
+    .centro { text-align: center; }
+    .linea { border-top: 1px dashed #000; margin: 6px 0; }
+    .renglon { display: flex; justify-content: space-between; }
+    img { width: 34mm; height: 34mm; }
+    @media print { .no-imprimir { display: none; } }
+  </style>
+</head>
+<body>
+  <p class="no-imprimir centro"><button onclick="window.print()">Imprimir comanda</button></p>
+  <h1>Yungla Pizza</h1>
+  <div class="centro">{{ pedido.sucursal.nombre }}</div>
+  <div class="linea"></div>
+  <div class="centro"><strong style="font-size:18px">{{ pedido.folio }}</strong><br>
+    {{ pedido.fecha_registro.strftime('%d/%m/%Y') }} {{ pedido.fecha_registro|hora }} · {{ {'APP': 'App', 'TELEFONO': 'Teléfono', 'SUCURSAL': 'Sucursal'}[pedido.origen] }}</div>
+  <div class="linea"></div>
+  {% for d in pedido.detalles %}
+    <div class="renglon"><span>{{ d.cantidad }} × {{ d.producto.nombre }}{{ ' ' ~ d.producto.tamano if d.producto.tamano }}</span><span>{{ d.subtotal|dinero }}</span></div>
+  {% endfor %}
+  {% if pedido.descuento > 0 %}<div class="renglon"><span>Descuento</span><span>− {{ pedido.descuento|dinero }}</span></div>{% endif %}
+  <div class="renglon"><strong>Total ({{ pedido.forma_pago }})</strong><strong>{{ pedido.total|dinero }}</strong></div>
+  {% if pedido.cambio is not none %}<div class="renglon"><span>Paga con {{ pedido.monto_recibido|dinero }}</span><span>Cambio {{ pedido.cambio|dinero }}</span></div>{% endif %}
+  <div class="linea"></div>
+  <div><strong>{{ pedido.cliente.nombre }}</strong> · {{ pedido.cliente.telefono|telefono }}</div>
+  <div>{{ pedido.direccion_entrega }}</div>
+  <div class="linea"></div>
+  <div>Cajero: {{ pedido.cajero.nombre_completo if pedido.cajero else '—' }}</div>
+  <div>Cocinero: {{ pedido.cocinero.nombre_completo if pedido.cocinero else '—' }}</div>
+  <div>Tiempo estimado: {{ {45: '45 min', 60: '1 h', 90: '1 h 30'}.get(pedido.tiempo_estimado_min, '—') }}</div>
+  <div class="linea"></div>
+  <div class="centro"><img src="{{ url_for('seguimiento.qr_folio', folio=pedido.folio) }}" alt="QR del folio {{ pedido.folio }}"><br>
+    Escanéalo en "Buscar pedido" para ver su seguimiento.</div>
+</body>
+</html>

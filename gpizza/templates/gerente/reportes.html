@@ -1,0 +1,86 @@
+{% extends 'gerente/base.html' %}
+{# Boceto, página 10: "Reportes de desempeño" (CU-004 y CU-008). La sucursal siempre es la del gerente. #}
+{% block titulo %}Reportes{% endblock %}
+
+{% block contenido %}
+{% set consulta = request.args.to_dict() %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <h2 class="h3 fw-bold mb-0">Reportes de desempeño</h2>
+  <div class="d-flex gap-2">
+    <a class="btn btn-gp-borde" href="{{ url_for('gerente.exportar_reporte', formato='pdf', **consulta) }}">Exportar PDF</a>
+    <a class="btn btn-gp-borde" href="{{ url_for('gerente.exportar_reporte', formato='xlsx', **consulta) }}">Exportar Excel</a>
+  </div>
+</div>
+
+<form method="get" class="gp-filtros mb-3">
+  <div><label class="small fw-semibold" for="desde">Desde</label>
+    <input class="form-control" type="date" id="desde" name="desde" value="{{ r.filtros.desde.isoformat() }}"></div>
+  <div><label class="small fw-semibold" for="hasta">Hasta</label>
+    <input class="form-control" type="date" id="hasta" name="hasta" value="{{ r.filtros.hasta.isoformat() }}"></div>
+  <div><label class="small fw-semibold" for="sucursal">Sucursal</label>
+    <input class="form-control" id="sucursal" value="{{ usuario.sucursal }}" disabled title="Solo tu sucursal (decisión 11)"></div>
+  <div><label class="small fw-semibold" for="id_repartidor">Repartidor</label>
+    <select class="form-select" id="id_repartidor" name="id_repartidor">
+      <option value="">Todos</option>
+      {% for rep in repartidores %}<option value="{{ rep.id_empleado }}" {% if rep.id_empleado == r.filtros.id_repartidor %}selected{% endif %}>{{ rep.nombre_completo }}</option>{% endfor %}
+    </select></div>
+  <div class="d-flex align-items-end"><button class="btn btn-gp-principal w-100">Generar</button></div>
+</form>
+
+{% if r.vacio %}
+  <div class="gp-tarjeta text-center gp-texto-suave">No hay pedidos en ese período. Prueba ampliando el rango de fechas (CU-004 FA-1).</div>
+{% else %}
+<div class="gp-indicadores mb-3">
+  {% for nombre, valor in [('Pedidos totales', r.total), ('Tiempo promedio de entrega', (r.minutos_entrega ~ ' min') if r.minutos_entrega is not none else '—'),
+                           ('Cancelaciones', r.cancelados), ('Devoluciones', r.devoluciones)] %}
+    <div class="gp-tarjeta gp-indicador"><div class="small gp-texto-suave">{{ nombre }}</div><div class="fs-3 fw-bold">{{ valor }}</div></div>
+  {% endfor %}
+</div>
+<div class="gp-indicadores mb-3">
+  {% for nombre, valor in [('Entregados', r.entregados), ('Ingresos', r.ingresos|dinero), ('Ticket promedio', r.ticket_promedio|dinero),
+                           ('Pizza más vendida', (r.pizza_mas_vendida[0] ~ ' (' ~ r.pizza_mas_vendida[1] ~ ')') if r.pizza_mas_vendida else '—')] %}
+    <div class="gp-tarjeta gp-indicador"><div class="small gp-texto-suave">{{ nombre }}</div><div class="fs-5 fw-bold">{{ valor }}</div></div>
+  {% endfor %}
+</div>
+
+<div class="gp-tarjeta mb-3">
+  <h3 class="h6 fw-bold">Pedidos por día</h3>
+  <div class="gp-grafica"><canvas id="grafica-dias" role="img" aria-label="Gráfica de pedidos por día"></canvas></div>
+  {# Los mismos datos como tabla oculta, para lectores de pantalla. #}
+  <table class="visually-hidden"><tr><th>Día</th><th>Pedidos</th></tr>
+    {% for dia, n in r.por_dia %}<tr><td>{{ dia.strftime('%d/%m') }}</td><td>{{ n }}</td></tr>{% endfor %}</table>
+</div>
+
+<div class="gp-tarjeta">
+  <h3 class="h6 fw-bold">Detalle por repartidor</h3>
+  <div class="table-responsive">
+    <table class="table table-sm mb-0">
+      <thead><tr><th>Repartidor</th><th>Entregas</th><th>Tiempo prom. en camino</th><th>Devoluciones</th></tr></thead>
+      <tbody>
+      {% for x in r.por_repartidor %}
+        <tr><td>{{ x.nombre }}</td><td>{{ x.entregas }}</td><td>{{ x.minutos ~ ' min' if x.minutos is not none else '—' }}</td><td>{{ x.devoluciones }}</td></tr>
+      {% else %}<tr><td colspan="4" class="gp-texto-suave">Sin entregas en el período.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+<p class="small gp-texto-suave mt-3">Generado en {{ '%.2f'|format(r.segundos) }} s (CU-004: menos de 5 s).</p>
+{% endblock %}
+
+{% block scripts %}
+{% if not r.vacio %}
+<script src="{{ url_for('static', filename='vendor/chart.umd.min.js') }}"></script>
+{% set etiquetas = [] %}{% for dia, _ in r.por_dia %}{% set _ = etiquetas.append(dia.strftime('%d/%m')) %}{% endfor %}
+<script>
+  new Chart(document.getElementById('grafica-dias'), {
+    type: 'bar',
+    data: {
+      labels: {{ etiquetas|tojson }},
+      datasets: [{ label: 'Pedidos', data: {{ r.por_dia|map('last')|list|tojson }}, backgroundColor: '#c2410c', borderRadius: 4 }],
+    },
+    options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } },
+  });
+</script>
+{% endif %}
+{% endblock %}

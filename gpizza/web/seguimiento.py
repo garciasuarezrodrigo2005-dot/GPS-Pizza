@@ -4,7 +4,7 @@ repartidor, solo los que le asignaron."""
 from flask import Blueprint, Response, abort, g, render_template, request
 
 from gpizza.seguridad.acceso import rol_requerido
-from gpizza.servicios import ciclo, entregas
+from gpizza.servicios import ciclo, entregas, qr
 
 bp = Blueprint('seguimiento', __name__, url_prefix='/seguimiento')
 
@@ -32,6 +32,22 @@ def _pedido_visible(folio):
 def detalle(folio):
     pedido, asignaciones = _pedido_visible(folio)
     return render_template('seguimiento/detalle.html', pedido=pedido, asignaciones=asignaciones)
+
+
+@bp.get('/<folio>/qr.png')
+@rol_requerido('Cajero', 'Gerente', 'Repartidor')
+def qr_folio(folio):
+    """RF-009: QR con el folio. Escanearlo en el buscador de pedidos abre este seguimiento."""
+    pedido, _ = _pedido_visible(folio)
+    return Response(qr.png(pedido.folio), mimetype='image/png')
+
+
+@bp.get('/<folio>/comanda')
+@rol_requerido('Cajero', 'Gerente')
+def comanda(folio):
+    """Hoja para cocina y para el repartidor, con el QR del folio (RF-009)."""
+    pedido, _ = _pedido_visible(folio)
+    return render_template('seguimiento/comanda.html', pedido=pedido)
 
 
 @bp.get('/<folio>/firma.png')

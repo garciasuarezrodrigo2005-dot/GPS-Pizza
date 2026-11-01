@@ -20,6 +20,7 @@ class Opcion:
     tamano: str | None
     precio: Decimal
     disponible: bool
+    codigo: str | None = None   # QR / código de barras (RF-009)
 
 
 @dataclass
@@ -40,7 +41,7 @@ def menu() -> dict[str, list[Tarjeta]]:
     tarjetas: dict[tuple[str, str], Tarjeta] = {}
     for p in productos:
         tarjeta = tarjetas.setdefault((p.categoria, p.nombre), Tarjeta(p.nombre, p.descripcion, p.categoria))
-        tarjeta.opciones.append(Opcion(p.id_producto, p.tamano, p.precio, p.disponible))
+        tarjeta.opciones.append(Opcion(p.id_producto, p.tamano, p.precio, p.disponible, p.codigo_qr_barras))
     for t in tarjetas.values():
         t.opciones.sort(key=lambda o: ORDEN_TAMANOS.get(o.tamano, 0))
     resultado = {'Pizza': [], 'Complemento': []}

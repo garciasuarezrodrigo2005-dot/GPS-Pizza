@@ -42,6 +42,11 @@ def telefono(numero: str | None) -> str:
     return f'{numero[:3]} {numero[3:6]} {numero[6:]}'
 
 
+def combine_pagina(argumentos: dict, pagina: int) -> dict:
+    """Los mismos filtros de la URL con otra página (paginación de la auditoría)."""
+    return argumentos | {'pagina': pagina}
+
+
 def registrar_filtros(app: Flask) -> None:
-    for funcion in (dinero, hora, hace, telefono, minutos_desde):
+    for funcion in (dinero, hora, hace, telefono, minutos_desde, combine_pagina):
         app.add_template_filter(funcion)

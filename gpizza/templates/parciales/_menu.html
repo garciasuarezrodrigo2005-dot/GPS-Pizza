@@ -27,7 +27,7 @@
       </div>
       <div class="gp-tamanos" {% if categoria != 'Pizza' %}hidden{% endif %} role="radiogroup" aria-label="Tamaño de {{ t.nombre }}">
         {% for o in t.opciones %}
-          <button type="button" class="gp-tamano" data-id="{{ o.id_producto }}" data-precio="{{ o.precio }}"
+          <button type="button" class="gp-tamano" data-id="{{ o.id_producto }}" data-precio="{{ o.precio }}" data-qr="{{ o.codigo or '' }}"
                   data-nombre="{{ t.nombre }}{{ ' ' ~ o.tamano if o.tamano }}"
                   {% if not o.disponible %}disabled title="Agotado"{% endif %}>{{ o.tamano or 'Único' }}{% if not o.disponible %} (agotado){% endif %}</button>
         {% endfor %}

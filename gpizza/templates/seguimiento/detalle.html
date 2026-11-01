@@ -6,6 +6,9 @@
 
 {% block contenido %}
 {% if usuario.rol == 'Gerente' %}<h2 class="h3 fw-bold mb-3">Pedido {{ pedido.folio }}</h2>{% endif %}
+{% if usuario.rol in ('Cajero', 'Gerente') %}
+  <p><a class="btn btn-gp-borde btn-sm" href="{{ url_for('seguimiento.comanda', folio=pedido.folio) }}" target="_blank">Imprimir comanda con QR (RF-009)</a></p>
+{% endif %}
 {% set aviso = alerta_pedido(pedido) %}
 <div class="gp-tarjeta mb-3 {{ 'gp-con-alerta' if aviso }}">
   <div class="d-flex justify-content-between"><strong>Estado</strong><span class="gp-estado">{{ pedido.estado }}</span></div>

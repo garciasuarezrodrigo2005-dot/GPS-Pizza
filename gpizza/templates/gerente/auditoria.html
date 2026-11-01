@@ -1,0 +1,49 @@
+{% extends 'gerente/base.html' %}
+{# RN-019: bitácora de solo lectura. No hay botones de editar ni borrar: la base de datos lo impide. #}
+{% block titulo %}Auditoría{% endblock %}
+
+{% block contenido %}
+<h2 class="h3 fw-bold mb-1">Auditoría</h2>
+<p class="small gp-texto-suave">Registro automático de cada acción con usuario, fecha y hora. Es de solo lectura:
+  la base de datos rechaza cualquier cambio o borrado (RN-019).</p>
+
+<form method="get" class="gp-filtros mb-3">
+  <div><label class="small fw-semibold" for="desde">Desde</label><input class="form-control" type="date" id="desde" name="desde" value="{{ f.desde.isoformat() }}"></div>
+  <div><label class="small fw-semibold" for="hasta">Hasta</label><input class="form-control" type="date" id="hasta" name="hasta" value="{{ f.hasta.isoformat() }}"></div>
+  <div><label class="small fw-semibold" for="accion">Acción</label>
+    <select class="form-select" id="accion" name="accion"><option value="">Todas</option>
+      {% for a in acciones %}<option {% if f.accion == a %}selected{% endif %}>{{ a }}</option>{% endfor %}</select></div>
+  <div><label class="small fw-semibold" for="entidad">Qué</label>
+    <select class="form-select" id="entidad" name="entidad"><option value="">Todo</option>
+      {% for e in entidades %}<option value="{{ e }}" {% if f.entidad == e %}selected{% endif %}>{{ e.replace('_', ' ') }}</option>{% endfor %}</select></div>
+  <div><label class="small fw-semibold" for="usuario">Usuario</label><input class="form-control" id="usuario" name="usuario" value="{{ f.usuario }}" placeholder="p. ej. cajero1.coyol"></div>
+  <div class="d-flex align-items-end"><button class="btn btn-gp-principal w-100">Filtrar</button></div>
+</form>
+
+<p class="small">{{ total }} registro{{ 's' if total != 1 }}{% if paginas > 1 %} · página {{ f.pagina }} de {{ paginas }}{% endif %}</p>
+<div class="table-responsive gp-tarjeta p-0">
+  <table class="table table-sm mb-0 gp-tabla-auditoria">
+    <thead><tr><th>Fecha y hora</th><th>Usuario</th><th>Acción</th><th>Qué</th><th>Detalle</th></tr></thead>
+    <tbody>
+    {% for a in registros %}
+      <tr>
+        <td class="text-nowrap">{{ a.fecha_hora.strftime('%d/%m') }} {{ a.fecha_hora|hora }}</td>
+        <td class="text-nowrap">{{ a.empleado.username if a.empleado else ('cliente' if a.entidad == 'pedido' else 'sistema') }}</td>
+        <td><span class="gp-estado">{{ a.accion }}</span></td>
+        <td class="text-nowrap">{{ a.entidad.replace('_', ' ') }} #{{ a.id_entidad }}</td>
+        <td class="small">{{ resumen(a.detalle) }}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="5" class="gp-texto-suave p-3">No hay registros con esos filtros.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if paginas > 1 %}
+<nav class="d-flex gap-2 mt-3" aria-label="Páginas">
+  {% set consulta = request.args.to_dict() %}
+  {% if f.pagina > 1 %}<a class="btn btn-gp-borde btn-sm" href="{{ url_for('gerente.auditoria_vista', **(consulta | combine_pagina(f.pagina - 1))) }}">← Anterior</a>{% endif %}
+  {% if f.pagina < paginas %}<a class="btn btn-gp-borde btn-sm" href="{{ url_for('gerente.auditoria_vista', **(consulta | combine_pagina(f.pagina + 1))) }}">Siguiente →</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}

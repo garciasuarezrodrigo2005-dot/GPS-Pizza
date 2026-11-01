@@ -259,6 +259,11 @@ body {
   .gp-rejilla-simple { grid-template-columns: repeat(2, 1fr); }
 }
 
+/* Reportes (boceto 10) */
+.gp-filtros { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+.gp-grafica { position: relative; height: 260px; }
+@media (min-width: 992px) { .gp-filtros { grid-template-columns: repeat(4, 1fr) 9rem; } }
+
 /* Panel del gerente: indicadores y rejilla de tarjetas en pantallas anchas */
 .gp-indicadores { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
 @media (min-width: 992px) {

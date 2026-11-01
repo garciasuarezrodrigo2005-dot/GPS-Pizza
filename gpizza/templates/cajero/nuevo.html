@@ -41,6 +41,16 @@
   </div>
 
   <h3 class="gp-paso">2. Productos</h3>
+  {# RF-009: escanear la etiqueta QR del producto (lector USB o cámara) lo agrega al pedido. #}
+  <div class="gp-tarjeta mb-3">
+    <div class="d-flex gap-2">
+      <input id="escaner-codigo" class="form-control" placeholder="Escanea o escribe el código (YP000001) y Enter"
+             autocomplete="off" aria-label="Código QR o de barras del producto">
+      <button type="button" id="escaner-camara" class="btn btn-gp-borde text-nowrap">Escanear con la cámara</button>
+    </div>
+    <div id="escaner-video" class="mt-2"></div>
+    <div id="escaner-mensaje" class="small gp-texto-suave mt-1" role="status"></div>
+  </div>
   {% include 'parciales/_menu.html' %}
 
   {% set paso_codigo = 3 %}{% set modo = 'cajero' %}
@@ -70,4 +80,8 @@
 {% endblock %}
 
 {% block pestanas %}{% set activa = 'nuevo' %}{% include 'cajero/_navegacion.html' %}{% endblock %}
-{% block scripts %}<script src="{{ url_for('static', filename='js/pedido.js') }}"></script>{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/pedido.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/html5-qrcode.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/escaner.js') }}"></script>
+{% endblock %}
