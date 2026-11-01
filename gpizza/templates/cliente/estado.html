@@ -1,10 +1,26 @@
 {% extends 'base.html' %}
-{# Bocetos, páginas 3 y 4: "Tu pedido". El fragmento _estado.html se actualiza solo cada 10 s. #}
+{# Bocetos, páginas 3, 4 y 5: "Tu pedido". El fragmento _estado.html se actualiza solo cada 10 s; el mapa
+   está fuera de él para no volver a dibujarse: solo se mueve el marcador del repartidor. #}
 {% block titulo %}Tu pedido {{ pedido.folio }}{% endblock %}
-{% block encabezado %}Tu pedido{% endblock %}
+{% block encabezado %}{{ 'Tu pedido va en camino' if pedido.estado == 'En Camino' else 'Tu pedido' }}{% endblock %}
 {% block encabezado_derecha %}Folio {{ pedido.folio }}{% endblock %}
+{% block cabeza %}{% if pedido.estado == 'En Camino' %}<link rel="stylesheet" href="{{ url_for('static', filename='vendor/leaflet/leaflet.css') }}">{% endif %}{% endblock %}
 
 {% block contenido %}
+  {% if pedido.estado == 'En Camino' %}
+  <section id="mapa" class="gp-tarjeta mb-3" data-url-ubicacion="{{ url_for('cliente.ubicacion', folio=pedido.folio) }}">
+    <div class="gp-mapa gp-mapa-cliente" data-mapa role="img" aria-label="Mapa en vivo con la ubicación del repartidor y tu casa"></div>
+    <div class="d-flex justify-content-between align-items-center mt-2">
+      <div>
+        <div class="fw-semibold" data-repartidor>Repartidor</div>
+        <div class="small" data-llegada>Calculando tiempo de llegada…</div>
+      </div>
+      <a class="btn btn-gp-borde" data-llamar href="#">Llamar</a>
+    </div>
+    <p class="small gp-texto-suave mt-2 mb-0">El GPS se activa solo cuando se asigna un repartidor y se apaga al entregar.</p>
+  </section>
+  {% endif %}
+
   {% include 'cliente/_estado.html' %}
   <p class="text-center mt-4"><a href="{{ url_for('cliente.pedido') }}">Hacer otro pedido</a></p>
 {% endblock %}
@@ -14,4 +30,32 @@
   // El pedido ya se envió: se borra el borrador guardado en este dispositivo.
   try { localStorage.removeItem('gpizza-borrador-cliente-{{ pedido.cliente.telefono }}'); } catch {}
 </script>
+{% if pedido.estado == 'En Camino' %}
+<script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}"></script>
+<script src="{{ url_for('static', filename='js/mapa.js') }}"></script>
+<script>
+  // Boceto 5: mapa en vivo. Cada 10 s se pide la posición del repartidor y solo se mueve su marcador.
+  (() => {
+    const seccion = document.getElementById('mapa');
+    let mapa = null;
+    async function actualizar() {
+      let d;
+      try { d = await (await fetch(seccion.dataset.urlUbicacion)).json(); } catch { return; }
+      if (d.estado !== 'En Camino') { seccion.hidden = true; return false; }   // ya se entregó: el GPS se apaga
+      seccion.querySelector('[data-repartidor]').textContent = d.repartidor;
+      seccion.querySelector('[data-llamar]').href = 'tel:' + d.telefono;
+      seccion.querySelector('[data-llegada]').textContent =
+        d.minutos ? `Llega en ~${d.minutos} min` : 'Ubicación del repartidor en camino';
+      const repartidor = GPizzaMapa.punto(d.latitud, d.longitud);
+      if (!mapa) mapa = GPizzaMapa.crear(seccion.querySelector('[data-mapa]'),
+                                         { repartidor, destino: GPizzaMapa.punto(d.destino_latitud, d.destino_longitud) });
+      else if (repartidor) mapa.moverRepartidor(...repartidor);
+      return true;
+    }
+    actualizar().then(() => {
+      const temporizador = setInterval(async () => { if (await actualizar() === false) clearInterval(temporizador); }, 10000);
+    });
+  })();
+</script>
+{% endif %}
 {% endblock %}

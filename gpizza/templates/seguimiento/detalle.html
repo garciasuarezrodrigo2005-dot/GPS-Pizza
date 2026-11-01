@@ -46,6 +46,13 @@
   <strong>Repartidores</strong>
   {% for a in asignaciones %}
     <div class="d-flex justify-content-between"><span>{{ a.repartidor.nombre_completo }} ({{ a.tipo|lower }})</span><span>{{ a.estado|lower }} · {{ a.fecha_asignacion|hora }}</span></div>
+    {% if a.estado == 'ENTREGADA' %}
+      <div class="mt-2">Entrega confirmada: cliente a las {{ a.fecha_confirmacion_cliente|hora }}
+        ({{ 'firma' if a.firma_digital else 'código ' ~ a.codigo_confirmacion }}), repartidor a las {{ a.fecha_hora_entrega|hora }} (RN-013).</div>
+      {% if a.firma_digital %}
+        <img class="gp-firma-guardada mt-2" src="{{ url_for('seguimiento.firma', folio=pedido.folio) }}" alt="Firma del cliente">
+      {% endif %}
+    {% endif %}
   {% endfor %}
 </div>
 {% endif %}

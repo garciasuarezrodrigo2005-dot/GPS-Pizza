@@ -78,7 +78,15 @@
         <div class="fs-1 fw-bold">{{ pedido.codigo_entrega }}</div>
       </div>
     {% endif %}
-    <button class="btn btn-gp-borde w-100 mt-3" disabled>Ver en el mapa (Fase 5)</button>
+    {% if pedido.estado == 'En Camino' %}
+      {# Si la pantalla se abrió antes de que saliera el repartidor, este enlace la recarga con el mapa. #}
+      <a class="btn btn-gp-oscuro w-100 mt-3" href="{{ url_for('cliente.estado', folio=pedido.folio) }}#mapa">Ver en el mapa</a>
+    {% elif pedido.estado == 'Entregado' %}
+      <p class="small mt-3 mb-0">Entregado a las {{ pedido.fecha_entrega|hora }}.</p>
+    {% else %}
+      <button class="btn btn-gp-borde w-100 mt-3" disabled>Ver en el mapa (aún no disponible)</button>
+      <p class="small gp-texto-suave text-center mt-1 mb-0">Cuando se asigne un repartidor, aparecerá el botón "Ver en el mapa".</p>
+    {% endif %}
   </div>
 {% endif %}
 

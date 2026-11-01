@@ -9,7 +9,7 @@ from flask import (Blueprint, abort, flash, g, jsonify, redirect, render_templat
 from gpizza import reglas, reloj
 from gpizza.bd import fijar_contexto
 from gpizza.extensiones import db
-from gpizza.servicios import catalogo, ciclo, clientes, notificaciones, pedidos
+from gpizza.servicios import catalogo, ciclo, clientes, entregas, notificaciones, pedidos
 
 bp = Blueprint('cliente', __name__)
 
@@ -72,7 +72,8 @@ def pedido():
             cliente=clientes.DatosCliente(
                 nombre=request.form.get('nombre', ''), telefono=telefono,
                 direccion=request.form.get('direccion', ''), colonia=request.form.get('colonia', ''),
-                codigo_postal=request.form.get('codigo_postal', '')),
+                codigo_postal=request.form.get('codigo_postal', ''),
+                latitud=request.form.get('latitud', ''), longitud=request.form.get('longitud', '')),
             renglones=pedidos.leer_renglones(request.form), forma_pago=request.form.get('forma_pago', ''),
             codigo=request.form.get('codigo', ''), monto_recibido=request.form.get('monto_recibido', ''))
         resultado = pedidos.registrar(solicitud)
@@ -127,6 +128,12 @@ def estado_parcial(folio):
     pedido = _pedido_propio(folio)
     return render_template('cliente/_estado.html', pedido=pedido,
                            avisos=notificaciones.del_pedido_para_cliente(pedido))
+
+
+@bp.get('/mi-pedido/<folio>/ubicacion')
+def ubicacion(folio):
+    """Boceto 5: dónde va el repartidor. El mapa la pide cada 10 s mientras el pedido va en camino."""
+    return jsonify(entregas.ubicacion_para_cliente(_pedido_propio(folio)))
 
 
 @bp.post('/mi-pedido/<folio>/cancelacion')

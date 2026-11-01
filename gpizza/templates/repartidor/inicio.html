@@ -2,24 +2,104 @@
 {# Boceto, página 9: "Mis entregas". #}
 {% block titulo %}Mis entregas{% endblock %}
 {% block encabezado %}Mis entregas{% endblock %}
+{% block cabeza %}<link rel="stylesheet" href="{{ url_for('static', filename='vendor/leaflet/leaflet.css') }}">{% endblock %}
 
 {% block contenido %}
 <form method="post" action="{{ url_for('repartidor.disponibilidad') }}" class="gp-tarjeta d-flex justify-content-between align-items-center mb-3">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <input type="hidden" name="disponible" value="{{ 'no' if disponible else 'si' }}">
+  <input type="hidden" name="disponible" value="{{ 'no' if yo.disponible else 'si' }}">
   <div>
-    <div class="fw-bold">{{ 'Disponible' if disponible else 'No disponible' }}</div>
+    <div class="fw-bold">{{ 'Disponible' if yo.disponible else 'No disponible' }}</div>
     <div class="small gp-texto-suave">Activos: {{ entregas|length }} de {{ maximo }} (RN-011)</div>
   </div>
-  <button class="gp-interruptor {{ 'encendido' if disponible }}" role="switch" aria-checked="{{ 'true' if disponible else 'false' }}"
-          aria-label="Cambiar disponibilidad">{{ 'Activo' if disponible else 'Inactivo' }}</button>
+  <button class="gp-interruptor {{ 'encendido' if yo.disponible }}" role="switch" aria-checked="{{ 'true' if yo.disponible else 'false' }}"
+          aria-label="Cambiar disponibilidad">{{ 'Activo' if yo.disponible else 'Inactivo' }}</button>
 </form>
 
-{% include 'repartidor/_entregas.html' %}
+<div id="entregas" data-version="{{ version }}" data-url-version="{{ url_for('repartidor.version') }}"
+     data-url-ubicacion="{{ url_for('repartidor.ubicacion') }}">
+{% for a in entregas %}
+  {% set p = a.pedido %}
+  <div class="gp-tarjeta mb-3">
+    <div class="d-flex justify-content-between align-items-start">
+      <strong>Folio {{ p.folio }}</strong>
+      <span class="gp-estado">{{ 'Por aceptar' if a.estado == 'PENDIENTE' else p.estado }}</span>
+    </div>
+
+    {% if a.estado == 'CONFIRMADA' %}
+      <div class="gp-mapa mt-2" data-mapa data-tu-lat="{{ yo.latitud_actual or '' }}" data-tu-lng="{{ yo.longitud_actual or '' }}"
+           data-destino-lat="{{ p.latitud_entrega or '' }}" data-destino-lng="{{ p.longitud_entrega or '' }}"
+           role="img" aria-label="Mapa con tu posición y el domicilio del cliente"></div>
+    {% endif %}
+
+    <div class="fw-semibold mt-2">{{ p.cliente.nombre }}</div>
+    <div class="small">{{ p.direccion_entrega }}</div>
+    <div class="small">Pago: {{ p.forma_pago }}{% if p.forma_pago == 'Efectivo' %} · Cobrar {{ p.total|dinero }} (paga con {{ p.monto_recibido|dinero }}, lleva {{ p.cambio|dinero }} de cambio){% else %} · Total {{ p.total|dinero }}{% endif %}</div>
+
+    {% if a.estado == 'PENDIENTE' %}
+      {% set restan = plazo - (a.fecha_asignacion|minutos_desde) %}
+      <p class="small mt-2 mb-2 {{ 'gp-texto-alerta' if restan <= 1 }}">Acéptalo en los próximos {{ [restan, 0]|max }} min o se asignará a otro repartidor (CU-002).</p>
+      <form method="post" action="{{ url_for('repartidor.aceptar', id_asignacion=a.id_asignacion) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-gp-principal w-100">Aceptar entrega</button>
+      </form>
+    {% else %}
+      {% set minutos = minutos_en_estado(p) %}
+      <div class="d-flex gap-2 mt-2">
+        <a class="btn btn-gp-borde flex-fill" href="tel:{{ p.cliente.telefono }}">Llamar</a>
+        {% if p.latitud_entrega %}
+          <a class="btn btn-gp-borde flex-fill" target="_blank" rel="noopener"
+             href="https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route={{ yo.latitud_actual or p.latitud_entrega }}%2C{{ yo.longitud_actual or p.longitud_entrega }}%3B{{ p.latitud_entrega }}%2C{{ p.longitud_entrega }}">Abrir ruta</a>
+        {% else %}
+          <a class="btn btn-gp-borde flex-fill" target="_blank" rel="noopener"
+             href="https://www.openstreetmap.org/search?query={{ p.direccion_entrega|urlencode }}">Abrir ruta</a>
+        {% endif %}
+      </div>
+      <p class="small mt-2 mb-1 {{ 'gp-texto-alerta fw-semibold' if minutos > 90 }}">Tiempo en camino: {{ minutos }} min · alerta a los 90 (RN-014)</p>
+      <button type="button" class="btn btn-link btn-sm p-0" data-simular>Simular recorrido (demo sin GPS)</button>
+      <span class="small gp-texto-suave ms-1" data-estado-gps></span>
+
+      {# ---------- RN-013: entrega en dos pasos ---------- #}
+      <div class="gp-confirmar-entrega mt-3">
+        <h3 class="h6 fw-bold">Confirmar entrega</h3>
+        {% if a.fecha_confirmacion_cliente is none %}
+          <form method="post" action="{{ url_for('repartidor.confirmacion_cliente', id_asignacion=a.id_asignacion) }}" data-form-firma>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="firma" value="">
+            <div class="small fw-semibold mb-1">Paso 1 · El cliente firma aquí</div>
+            <canvas class="gp-firma" width="600" height="220" data-firma aria-label="Recuadro para la firma del cliente"></canvas>
+            <button type="button" class="btn btn-link btn-sm p-0" data-borrar-firma>Borrar firma</button>
+            <div class="text-center small gp-texto-suave my-1">— o —</div>
+            <input class="form-control mb-2" name="codigo" inputmode="numeric" maxlength="4" pattern="[0-9]{4}"
+                   placeholder="Código de confirmación del cliente" aria-label="Código de confirmación del cliente">
+            <button class="btn btn-gp-oscuro w-100">Registrar confirmación del cliente</button>
+          </form>
+          <button class="btn btn-gp-principal w-100 mt-2" disabled>Marcar como entregado</button>
+        {% else %}
+          <p class="small mb-2">✔ Paso 1: el cliente confirmó {{ 'con su firma' if a.firma_digital else 'con su código' }} a las {{ a.fecha_confirmacion_cliente|hora }}.</p>
+          <form method="post" action="{{ url_for('repartidor.entregar', id_asignacion=a.id_asignacion) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-gp-principal w-100">Paso 2 · Marcar como entregado</button>
+          </form>
+        {% endif %}
+        <p class="small gp-texto-suave mt-2 mb-0">Sin firma o código no se puede marcar como entregado (RN-013). Se guarda fecha y hora.</p>
+      </div>
+    {% endif %}
+  </div>
+{% else %}
+  <div class="gp-tarjeta text-center gp-texto-suave">No tienes entregas activas. Cuando te asignen una, aparecerá aquí.</div>
+{% endfor %}
+</div>
 {% endblock %}
 
 {% block pestanas %}
   <a class="activa" href="{{ url_for('repartidor.inicio') }}">Activas</a>
-  <span class="gp-pestana-pendiente">Historial</span>
+  <a href="{{ url_for('repartidor.historial') }}">Historial</a>
   <a href="{{ url_for('auth.cambiar_contrasena') }}">Perfil</a>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}"></script>
+<script src="{{ url_for('static', filename='js/mapa.js') }}"></script>
+<script src="{{ url_for('static', filename='js/repartidor.js') }}"></script>
 {% endblock %}

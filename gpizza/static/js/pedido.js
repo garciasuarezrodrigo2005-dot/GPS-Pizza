@@ -178,6 +178,23 @@
     }
   }
 
+  // ---------------------------------------------------------------- "Usar mi ubicación" (opcional, para el mapa)
+  const botonUbicacion = document.getElementById('usar-ubicacion');
+  if (botonUbicacion) botonUbicacion.addEventListener('click', () => {
+    const estado = document.getElementById('estado-ubicacion');
+    if (!('geolocation' in navigator) || !window.isSecureContext) {
+      estado.textContent = 'Tu navegador no comparte la ubicación en esta conexión; tu dirección basta.';
+      return;
+    }
+    estado.textContent = 'Buscando tu ubicación…';
+    navigator.geolocation.getCurrentPosition((pos) => {
+      form.querySelector('[name="latitud"]').value = pos.coords.latitude.toFixed(6);
+      form.querySelector('[name="longitud"]').value = pos.coords.longitude.toFixed(6);
+      estado.textContent = 'Ubicación guardada: tu casa aparecerá en el mapa.';
+      guardarBorrador();
+    }, () => { estado.textContent = 'No pudimos leer tu ubicación; tu dirección basta.'; });
+  });
+
   // Sin conexión no se intenta enviar: el borrador ya quedó guardado (CU-001 FA-5).
   form.addEventListener('submit', (evento) => {
     if (!navigator.onLine) {

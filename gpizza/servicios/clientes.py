@@ -7,6 +7,7 @@ from sqlalchemy.exc import DBAPIError
 
 from gpizza.extensiones import db
 from gpizza.modelos import Cliente
+from gpizza.servicios import geo
 from gpizza.servicios.errores import mensaje_bd
 
 PATRON_TELEFONO = re.compile(r'^[0-9]{10}$')
@@ -43,6 +44,8 @@ class DatosCliente:
     direccion: str
     colonia: str = ''
     codigo_postal: str = ''
+    latitud: str = ''    # opcionales: "Usar mi ubicación" para que el domicilio aparezca en el mapa
+    longitud: str = ''
 
 
 def direccion_completa(cliente: Cliente) -> str:
@@ -84,6 +87,8 @@ def registrar_o_actualizar(datos: DatosCliente) -> tuple[Cliente | None, dict[st
     cliente.direccion = datos.direccion.strip()
     cliente.colonia = datos.colonia.strip() or None
     cliente.codigo_postal = datos.codigo_postal.strip() or None
+    if datos.latitud and geo.coordenadas_validas(datos.latitud, datos.longitud):
+        cliente.latitud, cliente.longitud = round(float(datos.latitud), 6), round(float(datos.longitud), 6)
     try:
         db.session.flush()
     except DBAPIError as error:

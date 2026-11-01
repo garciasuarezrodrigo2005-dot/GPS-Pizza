@@ -1,0 +1,20 @@
+{% extends 'personal/base.html' %}
+{% block titulo %}Historial{% endblock %}
+{% block encabezado %}Entregas de hoy{% endblock %}
+
+{% block contenido %}
+{% for a in entregadas %}
+  <div class="gp-tarjeta mb-2 small">
+    <div class="d-flex justify-content-between"><strong>{{ a.pedido.folio }}</strong><span>{{ a.fecha_hora_entrega|hora }}</span></div>
+    <div>{{ a.pedido.cliente.nombre }} · {{ a.pedido.total|dinero }} · {{ 'firma' if a.firma_digital else 'código' }}</div>
+  </div>
+{% else %}
+  <p class="gp-texto-suave">Todavía no entregas pedidos hoy.</p>
+{% endfor %}
+{% endblock %}
+
+{% block pestanas %}
+  <a href="{{ url_for('repartidor.inicio') }}">Activas</a>
+  <a class="activa" href="{{ url_for('repartidor.historial') }}">Historial</a>
+  <a href="{{ url_for('auth.cambiar_contrasena') }}">Perfil</a>
+{% endblock %}

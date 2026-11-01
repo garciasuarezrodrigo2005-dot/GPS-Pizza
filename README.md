@@ -6,7 +6,7 @@ Proyecto escolar del Instituto Tecnológico de Veracruz (Ingeniería en Sistemas
 Es una **app móvil progresiva (PWA)**: en el celular se instala en la pantalla de inicio como una app y en la PC
 funciona como página web. Tiene tres interfaces: **Cliente**, **Personal** (cajero y repartidor) y **Gerente**.
 
-> Estado: **Fase 4 – Ciclo del pedido y asignación** (ver [docs/trazabilidad.md](docs/trazabilidad.md)).
+> Estado: **Fase 5 – Repartidor, mapas y firma** (ver [docs/trazabilidad.md](docs/trazabilidad.md)).
 
 ## Tecnologías
 
