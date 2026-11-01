@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Etiquetas QR · GPizza</title>
+  <style>
+    /* Hoja para imprimir (RF-009): una etiqueta por producto, con su QR, nombre y precio. */
+    body { font-family: system-ui, sans-serif; margin: 1rem; color: #1f1b18; background: #fff; }
+    h1 { font-size: 1.2rem; }
+    .etiquetas { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.75rem; }
+    .etiqueta { border: 1px dashed #999; border-radius: 8px; padding: 0.5rem; text-align: center; break-inside: avoid; }
+    .etiqueta img { width: 110px; height: 110px; }
+    .nombre { font-weight: 700; font-size: 0.85rem; }
+    .codigo { font-family: monospace; font-size: 0.8rem; }
+    @media print { .no-imprimir { display: none; } body { margin: 0; } }
+  </style>
+</head>
+<body>
+  <h1>Yungla Pizza · Etiquetas QR del menú</h1>
+  <p class="no-imprimir"><button onclick="window.print()">Imprimir</button> · En caja, escanea una etiqueta en "Nuevo pedido" para agregar el producto.</p>
+  <div class="etiquetas">
+    {% for p in productos %}
+      <div class="etiqueta">
+        <img src="{{ url_for('gerente.qr_producto', id_producto=p.id_producto) }}" alt="QR de {{ p.nombre }}">
+        <div class="nombre">{{ p.nombre }}{% if p.tamano %} · {{ p.tamano }}{% endif %}</div>
+        <div>{{ p.precio|dinero }}</div>
+        <div class="codigo">{{ p.codigo_qr_barras }}</div>
+      </div>
+    {% endfor %}
+  </div>
+</body>
+</html>

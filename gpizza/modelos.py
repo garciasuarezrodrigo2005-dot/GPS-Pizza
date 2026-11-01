@@ -230,6 +230,9 @@ class Devolucion(db.Model):
     motivo: Mapped[str] = mapped_column(String(200))
     accion_correctiva: Mapped[str] = mapped_column(String(200))
 
+    pedido: Mapped[Pedido] = relationship()
+    gerente: Mapped[Empleado] = relationship()
+
 
 class Notificacion(db.Model):
     __tablename__ = 'notificacion'

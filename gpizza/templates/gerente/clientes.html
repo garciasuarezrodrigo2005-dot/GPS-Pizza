@@ -1,0 +1,21 @@
+{% extends 'gerente/base.html' %}
+{# RF-005: directorio de clientes. La dirección se descifra solo para mostrarla aquí (RNF-003). #}
+{% block titulo %}Clientes{% endblock %}
+
+{% block contenido %}
+<h2 class="h3 fw-bold mb-3">Clientes</h2>
+<form method="get" class="d-flex gap-2 mb-3" role="search">
+  <input name="q" class="form-control" placeholder="Teléfono o nombre" value="{{ q }}" aria-label="Buscar cliente">
+  <button class="btn btn-gp-oscuro px-3">Buscar</button>
+</form>
+<div class="gp-rejilla-simple">
+{% for c in clientes %}
+  <a class="gp-tarjeta d-block text-reset text-decoration-none" href="{{ url_for('gerente.cliente', id_cliente=c.id_cliente) }}">
+    <div class="fw-semibold">{{ c.nombre }}</div>
+    <div class="small gp-texto-suave">Tel. {{ c.telefono|telefono }} · {{ c.colonia or '' }}</div>
+  </a>
+{% else %}
+  <p class="gp-texto-suave">No se encontraron clientes.</p>
+{% endfor %}
+</div>
+{% endblock %}

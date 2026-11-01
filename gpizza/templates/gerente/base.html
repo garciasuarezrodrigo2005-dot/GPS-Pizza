@@ -12,8 +12,9 @@
     </div>
     <nav aria-label="Secciones del panel">
       {% set secciones = [
-        ('pedidos', 'Pedidos', 'gerente.pedidos'), ('catalogo', 'Catálogo y precios', none), ('clientes', 'Clientes', none),
-        ('personal', 'Personal', none), ('descuentos', 'Descuentos y devoluciones', none), ('reportes', 'Reportes', none),
+        ('pedidos', 'Pedidos', 'gerente.pedidos'), ('catalogo', 'Catálogo y precios', 'gerente.catalogo'),
+        ('clientes', 'Clientes', 'gerente.lista_clientes'), ('personal', 'Personal', 'gerente.personal_lista'),
+        ('descuentos', 'Descuentos y devoluciones', 'gerente.descuentos'), ('reportes', 'Reportes', none),
         ('auditoria', 'Auditoría', none)] %}
       {% for clave, nombre, destino in secciones %}
         {% if destino %}<a class="{{ 'activa' if activa == clave }}" href="{{ url_for(destino) }}">{{ nombre }}</a>

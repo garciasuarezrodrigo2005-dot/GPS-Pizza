@@ -1,0 +1,74 @@
+{% extends 'gerente/base.html' %}
+{# CU-009 Gestionar Personal; las pestañas Cajeros y Repartidores son CU-009a y CU-009b. #}
+{% block titulo %}Personal{% endblock %}
+
+{% block contenido %}
+<h2 class="h3 fw-bold mb-3">Personal · {{ usuario.sucursal }}</h2>
+<div class="gp-pestanas-estado mb-3" role="tablist">
+  {% for valor, texto in [(none, 'Todos'), ('Cajero', 'Cajeros'), ('Cocinero', 'Cocineros'), ('Repartidor', 'Repartidores')] %}
+    <a class="gp-chip {{ 'activa' if puesto == valor }}" href="{{ url_for('gerente.personal_lista', puesto=valor) }}">{{ texto }}</a>
+  {% endfor %}
+</div>
+
+<details class="gp-tarjeta mb-3" {% if errores %}open{% endif %}>
+  <summary class="fw-semibold">+ Dar de alta</summary>
+  {% if errores.get('general') %}<div class="gp-mensaje gp-mensaje-error mt-2">{{ errores.general }}</div>{% endif %}
+  <form method="post" action="{{ url_for('gerente.personal_nuevo') }}" class="row g-2 mt-1">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="col-12 col-md-3"><select class="form-select" name="puesto" aria-label="Puesto">
+      {% for p in ('Cajero', 'Cocinero', 'Repartidor') %}<option {% if valores.get('puesto') == p %}selected{% endif %}>{{ p }}</option>{% endfor %}</select>
+      <div class="gp-error-campo">{{ errores.get('puesto', '') }}</div></div>
+    <div class="col-6 col-md-3"><input class="form-control" name="nombre" placeholder="Nombre" value="{{ valores.get('nombre', '') }}" aria-label="Nombre">
+      <div class="gp-error-campo">{{ errores.get('nombre', '') }}</div></div>
+    <div class="col-6 col-md-3"><input class="form-control" name="apellidos" placeholder="Apellidos" value="{{ valores.get('apellidos', '') }}" aria-label="Apellidos">
+      <div class="gp-error-campo">{{ errores.get('apellidos', '') }}</div></div>
+    <div class="col-6 col-md-3"><input class="form-control" name="telefono" inputmode="numeric" maxlength="10" placeholder="Teléfono" value="{{ valores.get('telefono', '') }}" aria-label="Teléfono">
+      <div class="gp-error-campo">{{ errores.get('telefono', '') }}</div></div>
+    <div class="col-6 col-md-6"><input class="form-control" name="username" placeholder="Usuario (no aplica a cocineros)" value="{{ valores.get('username', '') }}" aria-label="Usuario" autocapitalize="none">
+      <div class="gp-error-campo">{{ errores.get('username', '') }}</div></div>
+    <div class="col-12 col-md-6"><button class="btn btn-gp-oscuro w-100">Dar de alta</button>
+      <div class="small gp-texto-suave mt-1">Se genera una contraseña temporal que deberá cambiar al entrar (RN-018).</div></div>
+  </form>
+</details>
+
+<div class="gp-rejilla-simple">
+{% for e in empleados %}
+  <div class="gp-tarjeta {{ 'gp-inactivo' if not e.activo }}" id="empleado-{{ e.id_empleado }}">
+    <div class="d-flex justify-content-between align-items-start gap-2">
+      <div>
+        <div class="fw-semibold">{{ e.nombre_completo }}</div>
+        <div class="small gp-texto-suave">{{ e.puesto }}{% if e.username %} · {{ e.username }}{% endif %} · Tel. {{ e.telefono|telefono }}</div>
+      </div>
+      <div class="d-flex flex-wrap gap-1 justify-content-end">
+        {% if not e.activo %}<span class="gp-estado">Baja</span>{% endif %}
+        {% if e.bloqueado %}<span class="gp-estado gp-texto-alerta">Bloqueado</span>{% endif %}
+        {% if e.puesto == 'Repartidor' and e.activo %}<span class="gp-estado">{{ 'Disponible' if e.disponible else 'No disponible' }}</span>{% endif %}
+      </div>
+    </div>
+    <details class="mt-2">
+      <summary class="small fw-semibold">Acciones</summary>
+      <form method="post" action="{{ url_for('gerente.personal_accion', id_empleado=e.id_empleado, accion='editar') }}" class="row g-2 mt-1">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="col-6"><input class="form-control form-control-sm" name="nombre" value="{{ e.nombre }}" aria-label="Nombre"></div>
+        <div class="col-6"><input class="form-control form-control-sm" name="apellidos" value="{{ e.apellidos }}" aria-label="Apellidos"></div>
+        <div class="col-6"><input class="form-control form-control-sm" name="telefono" value="{{ e.telefono }}" inputmode="numeric" maxlength="10" aria-label="Teléfono"></div>
+        <div class="col-6"><button class="btn btn-gp-oscuro btn-sm w-100">Guardar datos</button></div>
+      </form>
+      <div class="d-flex flex-wrap gap-2 mt-2">
+        {% set acciones = [] %}
+        {% if e.bloqueado %}{% set acciones = acciones + [('desbloquear', 'Desbloquear')] %}{% endif %}
+        {% if e.username and e.activo %}{% set acciones = acciones + [('contrasena', 'Reiniciar contraseña')] %}{% endif %}
+        {% set acciones = acciones + [('baja', 'Dar de baja') if e.activo else ('reactivar', 'Reactivar')] %}
+        {% for accion, texto in acciones %}
+          <form method="post" action="{{ url_for('gerente.personal_accion', id_empleado=e.id_empleado, accion=accion) }}"
+                {% if accion == 'baja' %}onsubmit="return confirm('¿Dar de baja a {{ e.nombre_completo }}?');"{% endif %}>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-gp-borde btn-sm">{{ texto }}</button>
+          </form>
+        {% endfor %}
+      </div>
+    </details>
+  </div>
+{% endfor %}
+</div>
+{% endblock %}

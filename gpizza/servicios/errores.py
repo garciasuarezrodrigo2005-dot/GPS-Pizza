@@ -16,6 +16,10 @@ MENSAJES_RESTRICCIONES = {
     'rn009_forma_pago': 'Elige una forma de pago: efectivo, tarjeta o transferencia (RN-009).',
     'rn010_cambio': 'El monto con que se paga debe cubrir el total del pedido (RN-010).',
     'ck_pedido_motivo': 'Escribe el motivo.',
+    'uq_producto_nombre_tamano': 'Ya existe ese producto con ese tamaño.',
+    'codigo_descuento_codigo_key': 'Ese código ya existe; usa otro.',
+    'devolucion_id_pedido_key': 'Ese pedido ya tiene una devolución registrada.',
+    'empleado_username_key': 'Ya existe un empleado con ese usuario; elige otro.',
 }
 GENERICO = 'No se pudo guardar. Revisa los datos e inténtalo de nuevo.'
 

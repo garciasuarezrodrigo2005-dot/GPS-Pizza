@@ -1,0 +1,32 @@
+{% extends 'gerente/base.html' %}
+{% block titulo %}{{ cliente.nombre }}{% endblock %}
+
+{% block contenido %}
+<a class="small" href="{{ url_for('gerente.lista_clientes') }}">← Clientes</a>
+<h2 class="h3 fw-bold mt-2 mb-3">{{ cliente.nombre }}</h2>
+<div class="row g-3">
+  <div class="col-12 col-lg-5">
+    <form method="post" class="gp-tarjeta">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="small gp-texto-suave mb-2">Tel. {{ cliente.telefono|telefono }} · cliente desde {{ cliente.fecha_registro.strftime('%d/%m/%Y') }}</div>
+      {% for campo, etiqueta in [('nombre', 'Nombre'), ('direccion', 'Dirección (calle y número)'), ('colonia', 'Colonia'), ('codigo_postal', 'Código postal')] %}
+        <label class="form-label small fw-semibold mb-1" for="{{ campo }}">{{ etiqueta }}</label>
+        <input class="form-control mb-1" id="{{ campo }}" name="{{ campo }}" value="{{ request.form.get(campo, (cliente|attr(campo)) or '') }}">
+        <p class="gp-error-campo">{{ errores.get(campo, '') }}</p>
+      {% endfor %}
+      <button class="btn btn-gp-oscuro w-100">Guardar cambios</button>
+    </form>
+  </div>
+  <div class="col-12 col-lg-7">
+    <div class="gp-tarjeta">
+      <strong>Pedidos en {{ usuario.sucursal }}</strong>
+      {% for p in historial %}
+        <a class="d-flex justify-content-between small py-1 border-bottom text-reset text-decoration-none" href="{{ url_for('seguimiento.detalle', folio=p.folio) }}">
+          <span>{{ p.folio }} · {{ p.fecha_registro.strftime('%d/%m') }} {{ p.fecha_registro|hora }}</span><span>{{ p.estado }} · {{ p.total|dinero }}</span></a>
+      {% else %}
+        <p class="small gp-texto-suave mb-0">Sin pedidos en esta sucursal.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

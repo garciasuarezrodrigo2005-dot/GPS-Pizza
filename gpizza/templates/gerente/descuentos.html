@@ -1,0 +1,68 @@
+{% extends 'gerente/base.html' %}
+{# RN-008: códigos de descuento del gerente. RF-011 / RN-015: devoluciones dentro de 2 h. #}
+{% block titulo %}Descuentos y devoluciones{% endblock %}
+
+{% block contenido %}
+<h2 class="h3 fw-bold mb-3">Descuentos y devoluciones</h2>
+<div class="row g-3">
+  <section class="col-12 col-xl-6">
+    <div class="gp-tarjeta mb-3">
+      <h3 class="h5 fw-bold">Emitir código de descuento</h3>
+      <p class="small gp-texto-suave">Cada código sirve para un solo pedido; no hay descuentos manuales (RN-008).</p>
+      <form method="post" action="{{ url_for('gerente.emitir_codigo') }}" class="row g-2">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="col-12 gp-segmentado" style="grid-template-columns: 1fr 1fr" role="radiogroup" aria-label="Tipo de descuento">
+          {% for valor, texto in [('PORCENTAJE', 'Porcentaje (%)'), ('MONTO', 'Monto fijo ($)')] %}
+            <input type="radio" class="btn-check" name="tipo" id="tipo-{{ valor }}" value="{{ valor }}" {% if valores.get('tipo', 'PORCENTAJE') == valor %}checked{% endif %}>
+            <label class="btn" for="tipo-{{ valor }}">{{ texto }}</label>
+          {% endfor %}
+        </div>
+        <div class="col-6"><input class="form-control" name="valor" inputmode="decimal" placeholder="Valor (10 = 10 % o $10)" value="{{ valores.get('valor', '') }}" aria-label="Valor">
+          <div class="gp-error-campo">{{ errores.get('valor', '') }}</div></div>
+        <div class="col-6"><input class="form-control" name="dias" inputmode="numeric" placeholder="Vigencia en días" value="{{ valores.get('dias', '7') }}" aria-label="Vigencia en días">
+          <div class="gp-error-campo">{{ errores.get('dias', '') }}</div></div>
+        <div class="col-12"><input class="form-control text-uppercase" name="codigo" placeholder="Código (vacío = se genera solo)" value="{{ valores.get('codigo', '') }}" aria-label="Código">
+          <div class="gp-error-campo">{{ errores.get('codigo', '') }}</div></div>
+        <div class="col-12"><button class="btn btn-gp-oscuro w-100">Emitir código</button></div>
+      </form>
+    </div>
+    <div class="gp-tarjeta">
+      <h3 class="h6 fw-bold">Códigos emitidos en esta sucursal</h3>
+      {% for c in codigos %}
+        {% set estado = estado_codigo(c) %}
+        <div class="d-flex justify-content-between small py-1 border-bottom">
+          <span><strong>{{ c.codigo }}</strong> · {{ '%g'|format(c.valor) ~ ' %' if c.tipo == 'PORCENTAJE' else c.valor|dinero }}</span>
+          <span class="{{ 'gp-texto-exito' if estado == 'Vigente' else 'gp-texto-suave' }}">{{ estado }} · hasta {{ c.vigencia_fin.strftime('%d/%m/%Y') }}</span>
+        </div>
+      {% else %}<p class="small gp-texto-suave mb-0">Todavía no hay códigos.</p>{% endfor %}
+    </div>
+  </section>
+
+  <section class="col-12 col-xl-6" id="devoluciones">
+    <div class="gp-tarjeta mb-3">
+      <h3 class="h5 fw-bold">Registrar devolución</h3>
+      <p class="small gp-texto-suave">Solo pedidos entregados en las últimas 2 horas (RN-015).</p>
+      {% if devolvibles %}
+      <form method="post" action="{{ url_for('gerente.registrar_devolucion') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <select class="form-select mb-2" name="id_pedido" required aria-label="Pedido">
+          {% for p in devolvibles %}<option value="{{ p.id_pedido }}">{{ p.folio }} · {{ p.cliente.nombre }} · entregado {{ p.fecha_entrega|hora }} · {{ p.total|dinero }}</option>{% endfor %}
+        </select>
+        <input class="form-control mb-2" name="motivo" placeholder="Motivo (p. ej. llegó fría)" required minlength="5" maxlength="200" aria-label="Motivo">
+        <input class="form-control mb-2" name="accion" placeholder="Acción correctiva (p. ej. reposición sin costo)" required minlength="5" maxlength="200" aria-label="Acción correctiva">
+        <button class="btn btn-gp-oscuro w-100">Registrar devolución</button>
+      </form>
+      {% else %}<p class="small mb-0">No hay pedidos entregados en las últimas 2 horas.</p>{% endif %}
+    </div>
+    <div class="gp-tarjeta">
+      <h3 class="h6 fw-bold">Devoluciones registradas</h3>
+      {% for d in devoluciones %}
+        <div class="small py-1 border-bottom">
+          <div class="d-flex justify-content-between"><a href="{{ url_for('seguimiento.detalle', folio=d.pedido.folio) }}">{{ d.pedido.folio }}</a><span>{{ d.fecha_hora.strftime('%d/%m') }} {{ d.fecha_hora|hora }}</span></div>
+          <div>{{ d.motivo }} → {{ d.accion_correctiva }}</div>
+        </div>
+      {% else %}<p class="small gp-texto-suave mb-0">Sin devoluciones.</p>{% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

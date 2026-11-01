@@ -1,0 +1,50 @@
+{% extends 'gerente/base.html' %}
+{# RF-002 / RN-007: el gerente fija precios y disponibilidad; el cajero y el cliente solo los ven. #}
+{% block titulo %}Catálogo y precios{% endblock %}
+
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <h2 class="h3 fw-bold mb-0">Catálogo y precios</h2>
+  <a class="btn btn-gp-borde btn-sm" href="{{ url_for('gerente.etiquetas_qr') }}" target="_blank">Imprimir etiquetas QR (RF-009)</a>
+</div>
+<p class="gp-texto-suave small">Solo el gerente cambia precios (RN-007). "Disponible" apagado = agotado (se ve en gris en el menú);
+  "Activo" apagado = ya no se vende.</p>
+
+<details class="gp-tarjeta mb-3" {% if errores %}open{% endif %}>
+  <summary class="fw-semibold">+ Agregar producto</summary>
+  {% if errores.get('general') %}<div class="gp-mensaje gp-mensaje-error mt-2">{{ errores.general }}</div>{% endif %}
+  <form method="post" action="{{ url_for('gerente.nuevo_producto') }}" class="row g-2 mt-1">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="col-12 col-md-4"><input class="form-control" name="nombre" placeholder="Nombre" value="{{ valores.get('nombre', '') }}" aria-label="Nombre">
+      <div class="gp-error-campo">{{ errores.get('nombre', '') }}</div></div>
+    <div class="col-12 col-md-8"><input class="form-control" name="descripcion" placeholder="Descripción" value="{{ valores.get('descripcion', '') }}" aria-label="Descripción"></div>
+    <div class="col-6 col-md-3"><select class="form-select" name="categoria" aria-label="Categoría">
+      {% for c in ('Pizza', 'Complemento') %}<option {% if valores.get('categoria') == c %}selected{% endif %}>{{ c }}</option>{% endfor %}</select></div>
+    <div class="col-6 col-md-3"><select class="form-select" name="tamano" aria-label="Tamaño">
+      <option value="">(sin tamaño)</option>
+      {% for t in tamanos %}<option {% if valores.get('tamano') == t %}selected{% endif %}>{{ t }}</option>{% endfor %}</select>
+      <div class="gp-error-campo">{{ errores.get('tamano', '') }}</div></div>
+    <div class="col-6 col-md-3"><input class="form-control" name="precio" inputmode="decimal" placeholder="Precio" value="{{ valores.get('precio', '') }}" aria-label="Precio">
+      <div class="gp-error-campo">{{ errores.get('precio', '') }}</div></div>
+    <div class="col-6 col-md-3"><button class="btn btn-gp-oscuro w-100">Agregar</button></div>
+  </form>
+</details>
+
+{% for p in productos %}
+<form method="post" action="{{ url_for('gerente.actualizar_producto', id_producto=p.id_producto) }}"
+      class="gp-fila-producto {{ 'gp-inactivo' if not p.activo }}" id="producto-{{ p.id_producto }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="gp-fila-nombre">
+    <strong>{{ p.nombre }}</strong>{% if p.tamano %} · {{ p.tamano }}{% endif %}
+    <div class="small gp-texto-suave">{{ p.categoria }} · <a href="{{ url_for('gerente.qr_producto', id_producto=p.id_producto) }}" target="_blank">QR {{ p.codigo_qr_barras }}</a></div>
+  </div>
+  <div class="input-group gp-fila-precio">
+    <span class="input-group-text">$</span>
+    <input class="form-control" name="precio" inputmode="decimal" value="{{ '%.2f'|format(p.precio) }}" aria-label="Precio de {{ p.nombre }} {{ p.tamano or '' }}">
+  </div>
+  <label class="small d-flex align-items-center gap-1"><input type="checkbox" name="disponible" {% if p.disponible %}checked{% endif %}> Disponible</label>
+  <label class="small d-flex align-items-center gap-1"><input type="checkbox" name="activo" {% if p.activo %}checked{% endif %}> Activo</label>
+  <button class="btn btn-gp-oscuro btn-sm">Guardar</button>
+</form>
+{% endfor %}
+{% endblock %}

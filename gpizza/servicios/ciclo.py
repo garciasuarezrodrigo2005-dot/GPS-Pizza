@@ -90,6 +90,11 @@ def buscar(id_sucursal: int, texto: str) -> list[Pedido]:
                               .order_by(Pedido.fecha_registro.desc()).limit(20)).all()
 
 
+def del_cliente_en_sucursal(id_cliente: int, id_sucursal: int, limite: int = 30) -> list[Pedido]:
+    return db.session.scalars(select(Pedido).where(Pedido.id_cliente == id_cliente, Pedido.id_sucursal == id_sucursal)
+                              .order_by(Pedido.fecha_registro.desc()).limit(limite)).all()
+
+
 def por_folio(folio: str) -> Pedido | None:
     return db.session.scalar(select(Pedido).where(Pedido.folio == folio.upper()))
 
