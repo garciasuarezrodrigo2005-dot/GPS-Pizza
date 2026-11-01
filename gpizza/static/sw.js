@@ -1,9 +1,10 @@
 // Service worker de GPizza (PWA, RNF-007).
-// - Guarda en caché los archivos fijos (estilos, scripts, iconos) para que la app abra rápido.
-// - Las páginas siempre se piden al servidor; si no hay red, muestra /offline.
-// - Nunca guarda en caché datos de pedidos ni respuestas de la API.
+// - Todo se pide primero a la red, así siempre llega la versión más nueva de la app.
+// - Los archivos fijos (estilos, scripts, iconos) se guardan en caché para que la app abra sin conexión.
+// - Las páginas sin red muestran /offline. Nunca se guardan datos de pedidos ni respuestas de la API.
+// Al cambiar esta estrategia o la lista de archivos, sube el número de CACHE para borrar la anterior.
 
-const CACHE = 'gpizza-v1';
+const CACHE = 'gpizza-v2';
 const ARCHIVOS_FIJOS = [
   '/offline',
   '/static/css/gpizza.css',
@@ -39,6 +40,15 @@ self.addEventListener('fetch', (evento) => {
     return;
   }
   if (url.pathname.startsWith('/static/')) {
-    evento.respondWith(caches.match(peticion).then((guardado) => guardado || fetch(peticion)));
+    // Primero la red (y se actualiza la copia guardada); la caché solo se usa sin conexión.
+    evento.respondWith(
+      fetch(peticion)
+        .then((respuesta) => {
+          const copia = respuesta.clone();
+          caches.open(CACHE).then((cache) => cache.put(peticion, copia));
+          return respuesta;
+        })
+        .catch(() => caches.match(peticion))
+    );
   }
 });

@@ -131,6 +131,90 @@ body {
   .gp-panel-principal { padding: 2rem 2.5rem; }
 }
 
+/* ---------- Formulario de pedido (boceto 2) ---------- */
+.gp-paso { font-size: 1.05rem; font-weight: 700; margin: 1.5rem 0 0.6rem; }
+.gp-error-campo { color: var(--gp-alerta); font-size: 0.88rem; min-height: 0.5rem; margin: 0.2rem 0 0.5rem; }
+.gp-error-campo:empty { margin: 0; min-height: 0; }
+.gp-texto-alerta { color: var(--gp-alerta); }
+.gp-texto-exito { color: #166534; }
+.gp-cp { max-width: 6.5rem; }
+
+.gp-pestanas-menu { display: flex; gap: 0.5rem; }
+.gp-chip {
+  border: 1.5px solid var(--gp-oscuro); background: #fff; color: var(--gp-oscuro);
+  border-radius: 999px; padding: 0.45rem 1.1rem; min-height: 44px; font-weight: 600;
+}
+.gp-chip.activa { background: var(--gp-oscuro); color: #fff; }
+
+/* Cuadrícula: foto + nombre arriba; tamaños a todo lo ancho; precio y cantidad abajo. */
+.gp-producto {
+  display: grid; grid-template-columns: 64px 1fr; gap: 0.5rem 0.75rem; align-items: center;
+  background: var(--gp-tarjeta); border: 1px solid var(--gp-borde); border-radius: var(--gp-radio);
+  padding: 0.75rem; margin-bottom: 0.75rem;
+}
+.gp-producto .gp-tamanos, .gp-producto-pie { grid-column: 1 / -1; }
+.gp-producto-pie { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+.gp-producto-elegido { border-color: var(--gp-acento); box-shadow: 0 0 0 1px var(--gp-acento); }
+.gp-producto-agotado { background: #e7e5e4; color: var(--gp-texto-suave); }
+.gp-producto-foto {
+  width: 64px; height: 64px; flex-shrink: 0; border: 1px dashed var(--gp-borde); border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; font-size: 2rem; background: #fafaf9;
+}
+.gp-producto-info { flex: 1; min-width: 0; }
+.gp-producto-nombre { font-weight: 800; text-transform: uppercase; font-size: 0.95rem; }
+.gp-precio { font-weight: 700; margin-top: 0.15rem; }
+.gp-tamanos { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.gp-tamano {
+  border: 1px solid var(--gp-borde); background: #fff; border-radius: 6px; font-size: 0.8rem;
+  padding: 0.3rem 0.55rem; min-height: 36px;
+}
+.gp-tamano.activa { background: var(--gp-oscuro); border-color: var(--gp-oscuro); color: #fff; }
+.gp-tamano:disabled { text-decoration: line-through; opacity: 0.55; }
+.gp-cantidad { display: flex; align-items: center; gap: 0.5rem; }
+.gp-cantidad [data-cantidad] { min-width: 1.2rem; text-align: center; font-weight: 700; font-size: 1.1rem; }
+.gp-boton-cantidad {
+  width: var(--gp-toque); height: var(--gp-toque); border: 1.5px solid var(--gp-oscuro); background: #fff;
+  border-radius: var(--gp-radio); font-size: 1.4rem; line-height: 1;
+}
+.gp-boton-cantidad:disabled { opacity: 0.35; }
+
+.gp-segmentado { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+.gp-segmentado .btn { border: 1.5px solid var(--gp-borde); background: #fff; font-weight: 600; }
+.gp-segmentado .btn-check:checked + .btn { background: var(--gp-oscuro); border-color: var(--gp-oscuro); color: #fff; }
+
+.gp-resumen {
+  background: #fff; border: 1.5px solid var(--gp-oscuro); border-radius: var(--gp-radio);
+  padding: 0.9rem 1rem; margin-top: 1rem;
+}
+
+/* ---------- Estado del pedido (bocetos 3 a 5) ---------- */
+.gp-icono-estado { font-size: 2.6rem; }
+.gp-tiempo-estimado { background: #fafaf9; border-radius: var(--gp-radio); padding: 0.75rem 1rem; text-align: center; }
+.gp-progreso { list-style: none; padding: 0; margin: 0; }
+.gp-progreso li {
+  display: flex; justify-content: space-between; align-items: center; position: relative;
+  padding: 0.5rem 0 0.5rem 1.9rem; color: var(--gp-texto-suave);
+}
+.gp-progreso li::before {
+  content: ''; position: absolute; left: 0.25rem; width: 0.95rem; height: 0.95rem;
+  border-radius: 50%; border: 2px solid var(--gp-borde); background: #fff;
+}
+.gp-progreso li.hecho { color: var(--gp-texto); }
+.gp-progreso li.hecho::before { background: var(--gp-oscuro); border-color: var(--gp-oscuro); }
+.gp-progreso li.actual { color: var(--gp-texto); font-weight: 700; }
+.gp-progreso li.actual::before { background: var(--gp-acento); border-color: var(--gp-acento); }
+.gp-codigo-entrega { border: 2px dashed var(--gp-acento); border-radius: var(--gp-radio); text-align: center; padding: 0.75rem; letter-spacing: 0.3em; }
+
+/* ---------- Tarjetas del cajero (bocetos 7 y 8) ---------- */
+.gp-tarjeta-pedido { margin-bottom: 0.9rem; }
+.gp-tarjeta-pedido summary { list-style: none; cursor: pointer; }
+.gp-tarjeta-pedido summary::-webkit-details-marker { display: none; }
+.gp-insignia {
+  display: inline-block; background: var(--gp-acento); color: #fff; border-radius: 999px;
+  font-size: 0.75rem; padding: 0.1rem 0.5rem; font-weight: 700;
+}
+.gp-aviso-nuevo { position: sticky; top: 0; z-index: 5; }
+
 /* ---------- Pie ---------- */
 .gp-pie { text-align: center; font-size: 0.8rem; color: var(--gp-texto-suave); padding: 1rem; }
 

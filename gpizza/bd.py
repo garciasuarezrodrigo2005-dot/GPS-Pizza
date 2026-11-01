@@ -57,8 +57,9 @@ def _al_iniciar(_sesion, _transaccion, conexion):
     from gpizza import reloj
     if not has_app_context():
         return
-    usuario = g.get('usuario')
+    # g.rol_bd lo fijan las pantallas del cliente ('Cliente') y manda sobre la sesión del personal.
+    usuario = None if g.get('rol_bd') else g.get('usuario')
     fijar_contexto(conexion,
-                   rol=getattr(usuario, 'rol', None) or g.get('rol_bd'),
+                   rol=g.get('rol_bd') or getattr(usuario, 'rol', None),
                    id_empleado=getattr(usuario, 'id_empleado', None),
                    ahora=reloj.ahora() if reloj.simulada() else None)

@@ -119,12 +119,16 @@ def bd(con):
 # ---------------------------------------------------------------- app conectada a la BD de demo
 
 @pytest.fixture
-def app_bd(motor_demo, crear_app):
+def app_bd(motor_demo, crear_app, request):
     """App de prueba cuya sesión de BD vive dentro de una transacción que se deshace al final.
     Los commit() de la app se vuelven SAVEPOINTs: la prueba ve sus propios cambios, pero
-    gpizza_test queda igual para la siguiente prueba (intentos, sesiones, contraseñas...)."""
+    gpizza_test queda igual para la siguiente prueba (intentos, sesiones, contraseñas...).
+
+    La hora queda fija en las 15:00 para que el resultado no dependa de cuándo se corran las pruebas;
+    una prueba puede pedir otra con @pytest.mark.hora_demo('09:00')."""
     from gpizza.extensiones import db
-    app = crear_app()
+    marca = request.node.get_closest_marker('hora_demo')
+    app = crear_app(HORA_DEMO=marca.args[0] if marca else '15:00')
     # Ojo: el contexto de la app NO se deja abierto durante la prueba. Si lo estuviera, Flask lo
     # reutilizaría en cada petición del test_client y compartiría `g` entre peticiones (por ejemplo,
     # el token CSRF), cosa que nunca pasa en la app real.

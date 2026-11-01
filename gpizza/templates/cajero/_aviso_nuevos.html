@@ -1,0 +1,4 @@
+{% if conteo > mostrados %}
+  <a class="gp-mensaje gp-mensaje-aviso d-block text-decoration-none" href="{{ url_for('cajero.inicio') }}">
+    🔔 {{ conteo - mostrados }} pedido{{ 's' if conteo - mostrados != 1 }} nuevo{{ 's' if conteo - mostrados != 1 }} por confirmar. Toca para actualizar.</a>
+{% endif %}

@@ -1,0 +1,5 @@
+{# Navegación inferior del cajero (boceto 8). "Pedidos" por estado llega en la Fase 4. #}
+<a class="{{ 'activa' if activa == 'por_confirmar' }}" href="{{ url_for('cajero.inicio') }}">Por confirmar</a>
+<span class="gp-pestana-pendiente">Pedidos</span>
+<a class="{{ 'activa' if activa == 'nuevo' }}" href="{{ url_for('cajero.nuevo') }}">Nuevo</a>
+<a class="{{ 'activa' if activa == 'clientes' }}" href="{{ url_for('cajero.lista_clientes') }}">Clientes</a>

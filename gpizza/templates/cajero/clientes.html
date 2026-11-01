@@ -1,0 +1,26 @@
+{% extends 'personal/base.html' %}
+{# RF-005 Gestión de clientes: búsqueda por teléfono o nombre. #}
+{% block titulo %}Clientes{% endblock %}
+{% block encabezado %}Clientes{% endblock %}
+
+{% block contenido %}
+<form method="get" class="d-flex gap-2 mb-3" role="search">
+  <input name="q" class="form-control" placeholder="Teléfono o nombre" value="{{ q }}" aria-label="Buscar cliente">
+  <button class="btn btn-gp-oscuro px-3">Buscar</button>
+</form>
+<a class="btn btn-gp-borde w-100 mb-3" href="{{ url_for('cajero.cliente_nuevo') }}">+ Registrar cliente</a>
+
+{% for c in clientes %}
+  <div class="gp-tarjeta mb-2 d-flex justify-content-between align-items-center">
+    <div>
+      <div class="fw-semibold">{{ c.nombre }}</div>
+      <div class="small gp-texto-suave">Tel. {{ c.telefono|telefono }} · {{ c.direccion }}</div>
+    </div>
+    <a class="btn btn-gp-oscuro btn-sm" href="{{ url_for('cajero.nuevo', telefono=c.telefono) }}">Pedido</a>
+  </div>
+{% else %}
+  <p class="gp-texto-suave">No se encontraron clientes.</p>
+{% endfor %}
+{% endblock %}
+
+{% block pestanas %}{% set activa = 'clientes' %}{% include 'cajero/_navegacion.html' %}{% endblock %}

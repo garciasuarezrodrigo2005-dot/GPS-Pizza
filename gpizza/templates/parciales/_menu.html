@@ -1,0 +1,56 @@
+{# CU-010 Consultar Menú Digital (boceto 2, sección "Elige tus productos").
+   Variables: menu (catalogo.menu()), cantidades {id_producto: cantidad}, errores.
+   Cada tamaño es un producto distinto; su cantidad viaja en el campo oculto cantidad_<id>. #}
+<div class="gp-pestanas-menu mb-3" role="tablist">
+  <button type="button" class="gp-chip activa" data-pestana="Pizza" role="tab" aria-selected="true">Pizzas</button>
+  <button type="button" class="gp-chip" data-pestana="Complemento" role="tab" aria-selected="false">Complementos</button>
+</div>
+
+{% for categoria, tarjetas in menu.items() %}
+<div class="gp-lista-productos" data-categoria="{{ categoria }}" {% if categoria != 'Pizza' %}hidden{% endif %}>
+  {% for t in tarjetas %}
+  {% if t.agotado %}
+    <div class="gp-producto gp-producto-agotado">
+      <div class="gp-producto-foto" aria-hidden="true">{{ '🍕' if categoria == 'Pizza' else '🥤' }}</div>
+      <div class="gp-producto-info">
+        <div class="gp-producto-nombre">{{ t.nombre }}</div>
+        <div class="small fw-semibold">Producto agotado</div>
+        <div class="small">No disponible por ahora</div>
+      </div>
+    </div>
+  {% else %}
+    <div class="gp-producto" data-producto>
+      <div class="gp-producto-foto" aria-hidden="true">{{ '🍕' if categoria == 'Pizza' else '🥤' }}</div>
+      <div class="gp-producto-info">
+        <div class="gp-producto-nombre">{{ t.nombre }}</div>
+        <div class="small gp-texto-suave">{{ t.descripcion }}</div>
+      </div>
+      <div class="gp-tamanos" {% if categoria != 'Pizza' %}hidden{% endif %} role="radiogroup" aria-label="Tamaño de {{ t.nombre }}">
+        {% for o in t.opciones %}
+          <button type="button" class="gp-tamano" data-id="{{ o.id_producto }}" data-precio="{{ o.precio }}"
+                  data-nombre="{{ t.nombre }}{{ ' ' ~ o.tamano if o.tamano }}"
+                  {% if not o.disponible %}disabled title="Agotado"{% endif %}>{{ o.tamano or 'Único' }}{% if not o.disponible %} (agotado){% endif %}</button>
+        {% endfor %}
+      </div>
+      <div class="gp-producto-pie">
+        <div>
+          <div class="gp-precio" data-precio-visible></div>
+          <div class="small gp-texto-suave" data-resumen-producto></div>
+        </div>
+        <div class="gp-cantidad">
+          <button type="button" class="gp-boton-cantidad" data-menos aria-label="Quitar uno de {{ t.nombre }}">−</button>
+          <span data-cantidad aria-live="polite">0</span>
+          <button type="button" class="gp-boton-cantidad" data-mas aria-label="Agregar uno de {{ t.nombre }}">+</button>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+  {% for o in t.opciones if o.disponible %}
+    <input type="hidden" name="cantidad_{{ o.id_producto }}" value="{{ cantidades.get(o.id_producto, 0) }}"
+           data-cantidad-de="{{ o.id_producto }}">
+  {% endfor %}
+  {% endfor %}
+</div>
+{% endfor %}
+<p class="small gp-texto-suave mb-1">Máx. 5 por producto y 10 productos distintos (RN-003).</p>
+<p class="gp-error-campo" id="error-productos" role="alert">{{ errores.get('productos', '') }}</p>

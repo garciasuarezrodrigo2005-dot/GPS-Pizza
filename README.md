@@ -6,7 +6,7 @@ Proyecto escolar del Instituto Tecnológico de Veracruz (Ingeniería en Sistemas
 Es una **app móvil progresiva (PWA)**: en el celular se instala en la pantalla de inicio como una app y en la PC
 funciona como página web. Tiene tres interfaces: **Cliente**, **Personal** (cajero y repartidor) y **Gerente**.
 
-> Estado: **Fase 2 – Autenticación y roles** (ver [docs/trazabilidad.md](docs/trazabilidad.md)).
+> Estado: **Fase 3 – Pedidos (cliente y cajero)** (ver [docs/trazabilidad.md](docs/trazabilidad.md)).
 
 ## Tecnologías
 
@@ -128,6 +128,28 @@ Abre http://localhost:5000/login (o "Entrar como empleado" desde el inicio):
 Todo queda en la bitácora: `SELECT accion, entidad, id_empleado, fecha_hora FROM auditoria ORDER BY id_log DESC LIMIT 10;`
 Las pruebas están en `tests/test_auth.py`.
 
+## Cómo comprobar la Fase 3 (pedidos)
+
+Usa dos navegadores (o uno normal y uno en modo incógnito): uno para el cliente y otro para el cajero.
+
+1. **Cliente** (de preferencia en tamaño celular, F12 → icono de celular): abre http://localhost:5000, escribe
+   `2297654321` y continúa. Los datos de Sofía se autocompletan (CU-005).
+2. Elige tamaños con los botones, súmalos con "+" y prueba los límites: "+" se apaga en 5 unidades (RN-003) y el
+   total avisa cuánto falta para los $100 (RN-001).
+3. Escribe `BIENVENIDA10` y pulsa "Aplicar" (RN-008). Elige "Efectivo", escribe con cuánto pagas y mira el cambio (RN-010).
+   *Ojo: cada código sirve una sola vez; si lo usas, recarga la demo para recuperarlo.*
+4. Recarga la página antes de enviar: el pedido se recupera del dispositivo (CU-001 FA-5). Envíalo: la pantalla
+   "Tu pedido" muestra el folio y "Registrado en 0.0X s" (RNF-001), y se actualiza sola.
+5. **Cajero**: entra como `cajero1.coyol`. En "Por confirmar" aparece el aviso del pedido nuevo; elige el tiempo
+   (45 min / 1 h / 1 h 30) y el cocinero y confirma, o recházalo con un motivo.
+6. Regresa al cliente: en menos de 10 s ve "Pedido confirmado" con su tiempo estimado o el motivo del rechazo.
+7. **Pedido por teléfono**: el cajero va a "Nuevo", busca un teléfono (uno nuevo crea el cliente), arma el pedido y
+   lo manda directo a cocina con su cocinero.
+
+Fuera de 11:00–22:00 los pedidos se rechazan (RN-002); para presentar a otra hora usa `GPIZZA_HORA_DEMO`.
+Las pruebas están en `tests/test_pedidos.py` y `tests/test_rendimiento.py` (`pytest -s tests/test_rendimiento.py`
+imprime los tiempos medidos).
+
 ## Cómo comprobar la Fase 0
 
 - **Pantalla de inicio del cliente:** abre http://localhost:5000. Muestra el horario de pedidos (RN-002).
@@ -153,7 +175,7 @@ gpizza/            código de la aplicación
   modelos.py       clases de SQLAlchemy de las 12 tablas
   cli.py           comandos flask db-reset, db-seed, desbloquear y alertas
   seguridad/       cifrado (Fernet), contraseñas (Argon2id) y control de acceso por rol
-  servicios/       lógica de negocio sin HTML (autenticación, ...)
+  servicios/       lógica de negocio sin HTML (autenticación, catálogo, clientes, pedidos, errores de la BD)
   monitoreo.py     logs, medición de tiempos y cabeceras de seguridad
   web/             rutas: sistema, cliente, auth, cajero, repartidor y gerente
   templates/       pantallas HTML (Jinja2)

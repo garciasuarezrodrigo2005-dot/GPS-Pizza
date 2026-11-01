@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{# Boceto, página 2: "Haz tu pedido" (CU-001 desde la app, con CU-010 y CU-005). #}
+{% block titulo %}Haz tu pedido{% endblock %}
+{% block encabezado %}Haz tu pedido{% endblock %}
+{% block encabezado_derecha %}
+  Tel. {{ telefono|telefono }}
+  <form method="post" action="{{ url_for('cliente.cambiar_telefono') }}" class="d-inline">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="gp-boton-salir ms-1" title="Usar otro teléfono">Cambiar</button>
+  </form>
+{% endblock %}
+
+{% block contenido %}
+{% if en_curso %}
+  <div class="gp-mensaje gp-mensaje-aviso">Tienes un pedido en curso ({{ en_curso.folio }}, {{ en_curso.estado }}).
+    <a href="{{ url_for('cliente.estado', folio=en_curso.folio) }}">Ver mi pedido</a></div>
+{% endif %}
+{% if errores.get('general') or errores.get('horario') or errores.get('sucursal') %}
+  <div class="gp-mensaje gp-mensaje-error" role="alert">{{ errores.get('general') or errores.get('horario') or errores.get('sucursal') }}</div>
+{% endif %}
+<div id="aviso-borrador" class="gp-mensaje gp-mensaje-aviso" hidden></div>
+
+<form method="post" id="form-pedido" data-minimo="100" data-max-distintos="10" data-max-unidades="5"
+      data-url-codigo="{{ url_for('cliente.revisar_codigo') }}" data-borrador="cliente-{{ telefono }}"
+      data-hay-valores="{{ 'si' if errores else 'no' }}" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <h3 class="gp-paso">1. Tus datos</h3>
+  <input name="nombre" class="form-control mb-1" placeholder="Nombre" value="{{ valores.get('nombre', '') }}"
+         autocomplete="name" required aria-label="Nombre">
+  <p class="gp-error-campo">{{ errores.get('nombre', '') }}</p>
+  <input name="direccion" class="form-control mb-1" placeholder="Dirección de entrega (calle y número)"
+         value="{{ valores.get('direccion', '') }}" autocomplete="street-address" required aria-label="Dirección de entrega">
+  <p class="gp-error-campo">{{ errores.get('direccion', '') }}</p>
+  <div class="d-flex gap-2 mb-2">
+    <input name="colonia" class="form-control" placeholder="Colonia" value="{{ valores.get('colonia', '') }}" aria-label="Colonia">
+    <input name="codigo_postal" class="form-control gp-cp" placeholder="C.P." inputmode="numeric" maxlength="5"
+           value="{{ valores.get('codigo_postal', '') }}" aria-label="Código postal">
+  </div>
+  <p class="gp-error-campo">{{ errores.get('codigo_postal', '') }}</p>
+  <label for="id_sucursal" class="form-label small fw-semibold mb-1">Sucursal que te atiende</label>
+  <select id="id_sucursal" name="id_sucursal" class="form-select mb-1">
+    {% for s in sucursales %}
+      <option value="{{ s.id_sucursal }}" {% if valores.get('id_sucursal')|string == s.id_sucursal|string %}selected{% endif %}>
+        {{ s.nombre }}{% if not sucursal_horario[s.id_sucursal] %} (cerrada ahora){% endif %}</option>
+    {% endfor %}
+  </select>
+  <p class="small gp-texto-suave">Pedidos de 11:00 a 22:00 h (RN-002).</p>
+
+  <h3 class="gp-paso">2. Elige tus productos</h3>
+  {% include 'parciales/_menu.html' %}
+
+  {% set paso_codigo = 3 %}{% set modo = 'cliente' %}
+  {% include 'parciales/_pago.html' %}
+
+  <button type="submit" class="btn btn-gp-principal w-100 mt-3" id="enviar-pedido">Enviar pedido</button>
+  <p class="small text-center gp-texto-suave mt-2" id="estado-conexion"></p>
+</form>
+{% endblock %}
+
+{% block scripts %}<script src="{{ url_for('static', filename='js/pedido.js') }}"></script>{% endblock %}

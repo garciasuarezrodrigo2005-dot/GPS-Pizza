@@ -1,0 +1,63 @@
+{% extends 'personal/base.html' %}
+{# Boceto, página 7: "Por confirmar". El primer pedido se muestra abierto; los demás, resumidos. #}
+{% block titulo %}Por confirmar{% endblock %}
+{% block encabezado %}Por confirmar{% endblock %}
+
+{% block contenido %}
+<div hx-get="{{ url_for('cajero.aviso_nuevos', mostrados=conteo) }}" hx-trigger="every 10s" hx-swap="innerHTML"
+     class="gp-aviso-nuevo"></div>
+
+{% for p in pedidos %}
+<details class="gp-tarjeta gp-tarjeta-pedido" {% if loop.first %}open{% endif %}>
+  <summary>
+    {% if loop.first %}<div class="small fw-semibold mb-1" style="color: var(--gp-acento)">Nuevo pedido recibido</div>{% endif %}
+    <div class="d-flex justify-content-between"><strong>Folio {{ p.folio }}</strong><span class="small gp-texto-suave">{{ p.fecha_registro|hace }}</span></div>
+    <div class="small">{{ p.cliente.nombre }} · {{ p.detalles|length }} producto{{ 's' if p.detalles|length != 1 }} · {{ p.total|dinero }}</div>
+    {% if not loop.first %}<div class="small fw-semibold mt-1">Revisar y confirmar ▾</div>{% endif %}
+  </summary>
+
+  <div class="mt-2 small">
+    <div>{{ p.cliente.nombre }} · Tel. {{ p.cliente.telefono|telefono }}</div>
+    <div>{{ p.direccion_entrega }}</div>
+    <div class="my-1">{% for d in p.detalles %}{{ d.cantidad }} × {{ d.producto.nombre }}{{ ' ' ~ d.producto.tamano if d.producto.tamano }}{{ ' · ' if not loop.last }}{% endfor %}</div>
+    <div>Pago: {{ p.forma_pago }}{% if p.monto_recibido %} (paga con {{ p.monto_recibido|dinero }}, cambio {{ p.cambio|dinero }}){% endif %} · <strong>Total {{ p.total|dinero }}</strong>
+      {% if p.descuento > 0 %}<span class="gp-texto-suave">(descuento {{ p.descuento|dinero }})</span>{% endif %}</div>
+  </div>
+
+  <form method="post" action="{{ url_for('cajero.confirmar', id_pedido=p.id_pedido) }}" class="mt-3">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="small fw-semibold mb-1">Tiempo estimado que verá el cliente</div>
+    <div class="gp-segmentado mb-2" role="radiogroup" aria-label="Tiempo estimado">
+      {% for minutos, texto in [(45, '45 min'), (60, '1 h'), (90, '1 h 30')] %}
+        <input type="radio" class="btn-check" name="tiempo" id="t{{ p.id_pedido }}-{{ minutos }}" value="{{ minutos }}" required {% if minutos == 60 %}checked{% endif %}>
+        <label class="btn" for="t{{ p.id_pedido }}-{{ minutos }}">{{ texto }}</label>
+      {% endfor %}
+    </div>
+    <label class="small fw-semibold mb-1" for="coc{{ p.id_pedido }}">Cocinero que lo prepara</label>
+    <select class="form-select mb-2" name="id_cocinero" id="coc{{ p.id_pedido }}" required>
+      <option value="">Elige un cocinero</option>
+      {% for c in cocineros %}<option value="{{ c.id_empleado }}">{{ c.nombre_completo }}</option>{% endfor %}
+    </select>
+    <button class="btn btn-gp-oscuro w-100">Confirmar pedido</button>
+  </form>
+
+  <details class="mt-2">
+    <summary class="btn btn-gp-borde w-100">Rechazar</summary>
+    <form method="post" action="{{ url_for('cajero.rechazar', id_pedido=p.id_pedido) }}" class="mt-2">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label class="small fw-semibold" for="mot{{ p.id_pedido }}">Motivo (el cliente lo verá)</label>
+      <input class="form-control mb-2" name="motivo" id="mot{{ p.id_pedido }}" list="motivos-rechazo" required minlength="5" maxlength="200">
+      <button class="btn btn-gp-borde w-100" style="border-color: var(--gp-alerta); color: var(--gp-alerta)">Confirmar rechazo</button>
+    </form>
+  </details>
+</details>
+{% else %}
+<div class="gp-tarjeta text-center gp-texto-suave">No hay pedidos por confirmar. Esta pantalla te avisará cuando llegue uno.</div>
+{% endfor %}
+
+<datalist id="motivos-rechazo">{% for m in motivos %}<option value="{{ m }}">{% endfor %}</datalist>
+<p class="small gp-texto-suave mt-3">Al confirmar, el pedido pasa a cocina y el cliente ve su barra de progreso.
+  Si se rechaza, el cliente recibe el motivo.</p>
+{% endblock %}
+
+{% block pestanas %}{% set activa = 'por_confirmar' %}{% include 'cajero/_navegacion.html' %}{% endblock %}

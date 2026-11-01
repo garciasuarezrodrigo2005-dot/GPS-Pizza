@@ -1,0 +1,81 @@
+{# Estado del pedido para el cliente (CU-003, RF-004). HTMX lo vuelve a pedir cada 10 s mientras
+   el pedido siga en curso, así la pantalla "se actualiza sola" como dice el boceto. #}
+{% set en_curso = pedido.estado in ('Por Confirmar', 'En Preparación', 'Listo para Entrega', 'En Camino') %}
+<div id="estado-pedido"
+     {% if en_curso %}hx-get="{{ url_for('cliente.estado_parcial', folio=pedido.folio) }}" hx-trigger="every 10s" hx-swap="outerHTML"{% endif %}>
+
+{% if pedido.estado == 'Por Confirmar' %}
+  <div class="gp-tarjeta text-center mb-3">
+    <div class="gp-icono-estado" aria-hidden="true">⏳</div>
+    <h2 class="h4 fw-bold">Pedido enviado</h2>
+    <p class="gp-texto-suave mb-0">Estamos esperando que el cajero confirme tu pedido. Esta pantalla se actualiza sola.</p>
+  </div>
+{% elif pedido.estado == 'Rechazado' %}
+  <div class="gp-tarjeta text-center mb-3">
+    <div class="gp-icono-estado" aria-hidden="true">⚠️</div>
+    <h2 class="h4 fw-bold">No pudimos aceptar tu pedido</h2>
+    <p class="mb-0">{{ pedido.motivo_cancelacion }}</p>
+  </div>
+{% elif pedido.estado == 'Cancelado' %}
+  <div class="gp-tarjeta text-center mb-3">
+    <h2 class="h4 fw-bold">Pedido cancelado</h2>
+    <p class="mb-0">{{ pedido.motivo_cancelacion }}</p>
+  </div>
+{% else %}
+  {% set pasos = [('Confirmado', pedido.fecha_preparacion), ('En preparación', pedido.fecha_preparacion),
+                  ('Listo para entrega', pedido.fecha_listo), ('En camino', pedido.fecha_en_camino),
+                  ('Entregado', pedido.fecha_entrega)] %}
+  {% set actual = {'En Preparación': 1, 'Listo para Entrega': 2, 'En Camino': 3, 'Entregado': 4}[pedido.estado] %}
+  {% set restante = pedido.tiempo_estimado_min - (pedido.fecha_preparacion|minutos_desde) %}
+  <div class="gp-tarjeta mb-3">
+    <h2 class="h4 fw-bold mb-1">{{ 'Pedido entregado' if pedido.estado == 'Entregado' else 'Pedido confirmado' }}</h2>
+    <p class="gp-texto-suave">{{ {'En Preparación': 'Tu pizza se está preparando.', 'Listo para Entrega': 'Tu pedido está listo y espera repartidor.',
+        'En Camino': 'Tu pedido va en camino.', 'Entregado': '¡Buen provecho!'}[pedido.estado] }}</p>
+    {% if pedido.estado != 'Entregado' %}
+    <div class="gp-tiempo-estimado mb-3">
+      <div class="small gp-texto-suave">Tiempo estimado</div>
+      <div class="fs-3 fw-bold">{{ {45: '45 min', 60: '1 h', 90: '1 h 30'}[pedido.tiempo_estimado_min] }}</div>
+      <div class="small">Confirmado a las {{ pedido.fecha_preparacion|hora }} ·
+        {% if restante > 0 %}Faltan ~{{ restante }} min{% else %}Está por llegar{% endif %}</div>
+    </div>
+    {% endif %}
+    <ol class="gp-progreso">
+      {% for nombre, momento in pasos %}
+        <li class="{{ 'hecho' if loop.index0 < actual else ('actual' if loop.index0 == actual else '') }}">
+          <span>{{ nombre }}{% if nombre == 'En camino' %} (con GPS){% endif %}</span>
+          {% if loop.index0 <= actual and momento %}<small>{{ momento|hora }}</small>{% endif %}
+        </li>
+      {% endfor %}
+    </ol>
+    {% if pedido.estado == 'En Camino' %}
+      <div class="gp-codigo-entrega mt-3">
+        <div class="small">Tu código de entrega (dáselo al repartidor)</div>
+        <div class="fs-1 fw-bold">{{ pedido.codigo_entrega }}</div>
+      </div>
+    {% endif %}
+    <button class="btn btn-gp-borde w-100 mt-3" disabled>Ver en el mapa (Fase 5)</button>
+  </div>
+{% endif %}
+
+<div class="gp-tarjeta mb-3">
+  <h3 class="h6 fw-bold">Resumen</h3>
+  {% for d in pedido.detalles %}
+    <div class="d-flex justify-content-between small"><span>{{ d.cantidad }} × {{ d.producto.nombre }}{{ ' ' ~ d.producto.tamano if d.producto.tamano }}</span><span>{{ d.subtotal|dinero }}</span></div>
+  {% endfor %}
+  {% if pedido.descuento > 0 %}<div class="d-flex justify-content-between small"><span>Descuento</span><span>− {{ pedido.descuento|dinero }}</span></div>{% endif %}
+  <hr class="my-2">
+  <div class="d-flex justify-content-between small"><span>Pago</span><span>{{ pedido.forma_pago }}{% if pedido.cambio is not none %} (paga con {{ pedido.monto_recibido|dinero }}, cambio {{ pedido.cambio|dinero }}){% endif %}</span></div>
+  <div class="d-flex justify-content-between fw-bold"><span>Total</span><span>{{ pedido.total|dinero }}</span></div>
+</div>
+
+{% if pedido.estado == 'Por Confirmar' %}
+  <p class="small gp-texto-suave">Si el cajero no puede confirmarlo, aquí verás el motivo del rechazo y podrás volver a pedir.</p>
+  <form method="post" action="{{ url_for('cliente.cancelar', folio=pedido.folio) }}"
+        onsubmit="return confirm('¿Seguro que quieres cancelar tu pedido?');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn btn-gp-borde w-100">Cancelar pedido</button>
+  </form>
+{% elif pedido.estado in ('Rechazado', 'Cancelado') %}
+  <a class="btn btn-gp-principal w-100" href="{{ url_for('cliente.pedido') }}">Volver a pedir</a>
+{% endif %}
+</div>

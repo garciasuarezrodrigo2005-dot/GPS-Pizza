@@ -1,0 +1,39 @@
+{# Boceto 2, secciones 3 y 4: código de descuento, forma de pago y resumen con total y cambio.
+   Variables: valores (lo que ya se había escrito), errores, modo ('cliente' o 'cajero'). #}
+{% set forma = valores.get('forma_pago', 'Efectivo') %}
+<h3 class="gp-paso">{{ paso_codigo }}. Código de descuento</h3>
+<div class="d-flex gap-2">
+  <input id="codigo" name="codigo" class="form-control text-uppercase" placeholder="Código (opcional)"
+         value="{{ valores.get('codigo', '') }}" autocomplete="off" autocapitalize="characters">
+  <button type="button" id="aplicar-codigo" class="btn btn-gp-borde px-3">Aplicar</button>
+</div>
+<p class="gp-error-campo" id="mensaje-codigo" role="status">{{ errores.get('codigo', '') }}</p>
+
+<h3 class="gp-paso">{{ paso_codigo + 1 }}. Forma de pago</h3>
+<div class="gp-segmentado mb-2" role="radiogroup" aria-label="Forma de pago">
+  {% for valor, texto in [('Efectivo', 'Efectivo'), ('Tarjeta', 'Tarjeta'), ('Transferencia', 'Transfer.')] %}
+    <input type="radio" class="btn-check" name="forma_pago" id="pago-{{ valor }}" value="{{ valor }}" {% if forma == valor %}checked{% endif %}>
+    <label class="btn" for="pago-{{ valor }}">{{ texto }}</label>
+  {% endfor %}
+</div>
+<div id="campo-efectivo" {% if forma != 'Efectivo' %}hidden{% endif %}>
+  <input name="monto_recibido" id="monto_recibido" class="form-control" inputmode="decimal"
+         placeholder="¿Con cuánto {{ 'pagas' if modo == 'cliente' else 'paga el cliente' }}? (para el cambio)"
+         value="{{ valores.get('monto_recibido', '') }}">
+</div>
+{% if modo == 'cajero' %}
+<div id="campo-referencia" {% if forma == 'Efectivo' %}hidden{% endif %}>
+  <input name="referencia_pago" class="form-control" placeholder="Referencia o últimos 4 dígitos (opcional)"
+         value="{{ valores.get('referencia_pago', '') }}" maxlength="40">
+</div>
+{% endif %}
+<p class="gp-error-campo" role="alert">{{ errores.get('pago', '') or errores.get('monto', '') }}</p>
+
+<div class="gp-resumen" aria-live="polite">
+  <div class="d-flex justify-content-between"><span>Subtotal</span><span id="resumen-subtotal">$ 0.00</span></div>
+  <div class="d-flex justify-content-between"><span>Descuento</span><span id="resumen-descuento">− $ 0.00</span></div>
+  <hr class="my-2">
+  <div class="d-flex justify-content-between fw-bold fs-5"><span>Total</span><span id="resumen-total">$ 0.00</span></div>
+  <div class="d-flex justify-content-between" id="fila-cambio" hidden><span>Cambio</span><span id="resumen-cambio">$ 0.00</span></div>
+  <div class="small gp-texto-alerta mt-1" id="aviso-minimo">Pedido mínimo $100 (RN-001)</div>
+</div>

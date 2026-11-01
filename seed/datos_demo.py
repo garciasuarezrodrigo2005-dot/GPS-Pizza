@@ -171,7 +171,7 @@ class Cargador:
             self.cli[tel] = {'id': self.sql(
                 'INSERT INTO cliente (nombre, telefono, direccion, colonia, codigo_postal, latitud, longitud) '
                 'VALUES (:n, :tel, :d, :col, :cp, :lat, :lon) RETURNING id_cliente',
-                n=nombre, tel=tel, d=cifrar(direccion), col=colonia, cp=cp, lat=lat, lon=lon).scalar_one(),
+                n=nombre, tel=tel, d=cifrar(calle), col=colonia, cp=cp, lat=lat, lon=lon).scalar_one(),
                 'direccion': direccion, 'lat': lat, 'lon': lon}
 
         # RN-008: códigos emitidos por el gerente.

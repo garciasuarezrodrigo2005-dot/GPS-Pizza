@@ -1,22 +1,24 @@
 {% extends 'base.html' %}
 {# Boceto, página 1: el cliente entra con su número de teléfono. #}
 {% block titulo %}Pide tu pizza{% endblock %}
+{% block encabezado_completo %}{% endblock %}
 
 {% block contenido %}
-<section class="gp-portada">
+<section class="gp-portada mt-3">
   <img class="gp-logo" src="{{ url_for('static', filename='img/icono-512.png') }}" alt="Logotipo de Yungla Pizza">
   <h2>Yungla Pizza</h2>
   <p class="gp-texto-suave mb-4">Pide tu pizza a domicilio</p>
 </section>
 
-<form class="gp-tarjeta mb-3" onsubmit="return false;">
+<form method="post" action="{{ url_for('cliente.continuar') }}" class="gp-tarjeta mb-3">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <label for="telefono" class="form-label fw-semibold">Tu número de teléfono</label>
-  {# RN-004 / decisión 14: solo 10 dígitos numéricos. #}
+  {# RN-004 / decisión 14: solo 10 dígitos numéricos (el servidor lo vuelve a validar). #}
   <input id="telefono" name="telefono" class="form-control mb-2" type="tel" inputmode="numeric"
-         pattern="[0-9]{10}" maxlength="10" placeholder="10 dígitos" autocomplete="tel" required>
+         pattern="[0-9]{10}" maxlength="10" placeholder="10 dígitos" autocomplete="tel" value="{{ telefono }}"
+         title="10 dígitos, solo números" required>
   <p class="small gp-texto-suave mb-3">Con tu teléfono te reconocemos y te avisamos de tu pedido.</p>
-  <button type="submit" class="btn btn-gp-oscuro w-100" disabled>Continuar</button>
-  <p class="small text-center gp-texto-suave mt-2 mb-0">El pedido en línea se habilita en la Fase 3.</p>
+  <button type="submit" class="btn btn-gp-oscuro w-100">Continuar</button>
 </form>
 
 {# RN-002: el horario de pedidos se le muestra al cliente. #}

@@ -1,0 +1,22 @@
+{% extends 'personal/base.html' %}
+{# CU-005 Registrar Perfil de Cliente. RN-004: nombre, teléfono (10 dígitos) y dirección obligatorios. #}
+{% block titulo %}Registrar cliente{% endblock %}
+{% block encabezado %}Registrar cliente{% endblock %}
+
+{% block contenido %}
+{% if errores.get('general') %}<div class="gp-mensaje gp-mensaje-error" role="alert">{{ errores.general }}</div>{% endif %}
+<form method="post" class="gp-tarjeta">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  {% for campo, etiqueta, extra in [('nombre', 'Nombre', 'required'),
+                                    ('telefono', 'Teléfono (10 dígitos)', 'required inputmode=numeric maxlength=10'),
+                                    ('direccion', 'Dirección (calle y número)', 'required'),
+                                    ('colonia', 'Colonia', ''), ('codigo_postal', 'Código postal', 'inputmode=numeric maxlength=5')] %}
+    <label class="form-label small fw-semibold mb-1" for="{{ campo }}">{{ etiqueta }}</label>
+    <input class="form-control mb-1" id="{{ campo }}" name="{{ campo }}" value="{{ valores.get(campo, '') }}" {{ extra }}>
+    <p class="gp-error-campo">{{ errores.get(campo, '') }}</p>
+  {% endfor %}
+  <button class="btn btn-gp-oscuro w-100 mt-2">Guardar cliente</button>
+</form>
+{% endblock %}
+
+{% block pestanas %}{% set activa = 'clientes' %}{% include 'cajero/_navegacion.html' %}{% endblock %}

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{# Bocetos, páginas 3 y 4: "Tu pedido". El fragmento _estado.html se actualiza solo cada 10 s. #}
+{% block titulo %}Tu pedido {{ pedido.folio }}{% endblock %}
+{% block encabezado %}Tu pedido{% endblock %}
+{% block encabezado_derecha %}Folio {{ pedido.folio }}{% endblock %}
+
+{% block contenido %}
+  {% include 'cliente/_estado.html' %}
+  <p class="text-center mt-4"><a href="{{ url_for('cliente.pedido') }}">Hacer otro pedido</a></p>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // El pedido ya se envió: se borra el borrador guardado en este dispositivo.
+  try { localStorage.removeItem('gpizza-borrador-cliente-{{ pedido.cliente.telefono }}'); } catch {}
+</script>
+{% endblock %}

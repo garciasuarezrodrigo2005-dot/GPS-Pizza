@@ -1,0 +1,73 @@
+{% extends 'personal/base.html' %}
+{# CU-001 por teléfono o en sucursal (flujo principal del ERS). Paso 3: se busca al cliente por teléfono;
+   si no existe, sus datos se capturan aquí mismo y queda registrado con el pedido (CU-005). #}
+{% block titulo %}Nuevo pedido{% endblock %}
+{% block encabezado %}Nuevo pedido{% endblock %}
+
+{% block contenido %}
+<form method="get" class="d-flex gap-2 mb-1" role="search">
+  <input name="telefono" class="form-control" type="tel" inputmode="numeric" maxlength="10" placeholder="Teléfono del cliente"
+         value="{{ telefono }}" aria-label="Teléfono del cliente" required>
+  <button class="btn btn-gp-oscuro px-3">Buscar</button>
+</form>
+{% if cliente %}<p class="small gp-texto-exito">Cliente registrado: datos autocompletados.</p>{% endif %}
+
+{% if telefono and telefono|length == 10 %}
+{% if errores.get('general') or errores.get('horario') or errores.get('telefono') %}
+  <div class="gp-mensaje gp-mensaje-error" role="alert">{{ errores.get('general') or errores.get('horario') or errores.get('telefono') }}</div>
+{% endif %}
+<div id="aviso-borrador" class="gp-mensaje gp-mensaje-aviso" hidden></div>
+
+<form method="post" id="form-pedido" data-minimo="100" data-max-distintos="10" data-max-unidades="5"
+      data-url-codigo="{{ url_for('cliente.revisar_codigo') }}" data-borrador="cajero-{{ usuario.id_empleado }}-{{ telefono }}"
+      data-hay-valores="{{ 'si' if errores else 'no' }}" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="telefono" value="{{ telefono }}">
+
+  <h3 class="gp-paso">1. Datos del cliente · Tel. {{ telefono|telefono }}</h3>
+  <input name="nombre" class="form-control mb-1" placeholder="Nombre" value="{{ valores.get('nombre', '') }}" aria-label="Nombre" required>
+  <p class="gp-error-campo">{{ errores.get('nombre', '') }}</p>
+  <input name="direccion" class="form-control mb-1" placeholder="Dirección de entrega" value="{{ valores.get('direccion', '') }}" aria-label="Dirección de entrega" required>
+  <p class="gp-error-campo">{{ errores.get('direccion', '') }}</p>
+  <div class="d-flex gap-2 mb-2">
+    <input name="colonia" class="form-control" placeholder="Colonia" value="{{ valores.get('colonia', '') }}" aria-label="Colonia">
+    <input name="codigo_postal" class="form-control gp-cp" placeholder="C.P." inputmode="numeric" maxlength="5" value="{{ valores.get('codigo_postal', '') }}" aria-label="Código postal">
+  </div>
+  <div class="gp-segmentado" style="grid-template-columns: 1fr 1fr" role="radiogroup" aria-label="Cómo llegó el pedido">
+    {% for valor, texto in [('TELEFONO', 'Por teléfono'), ('SUCURSAL', 'En sucursal')] %}
+      <input type="radio" class="btn-check" name="origen" id="origen-{{ valor }}" value="{{ valor }}" {% if valores.get('origen', 'TELEFONO') == valor %}checked{% endif %}>
+      <label class="btn" for="origen-{{ valor }}">{{ texto }}</label>
+    {% endfor %}
+  </div>
+
+  <h3 class="gp-paso">2. Productos</h3>
+  {% include 'parciales/_menu.html' %}
+
+  {% set paso_codigo = 3 %}{% set modo = 'cajero' %}
+  {% include 'parciales/_pago.html' %}
+
+  <h3 class="gp-paso">5. Cocina</h3>
+  <div class="small fw-semibold mb-1">Tiempo estimado</div>
+  <div class="gp-segmentado mb-1" role="radiogroup" aria-label="Tiempo estimado">
+    {% for minutos, texto in [(45, '45 min'), (60, '1 h'), (90, '1 h 30')] %}
+      <input type="radio" class="btn-check" name="tiempo" id="tiempo-{{ minutos }}" value="{{ minutos }}" {% if valores.get('tiempo', '60')|string == minutos|string %}checked{% endif %}>
+      <label class="btn" for="tiempo-{{ minutos }}">{{ texto }}</label>
+    {% endfor %}
+  </div>
+  <p class="gp-error-campo">{{ errores.get('tiempo', '') }}</p>
+  <select class="form-select mb-1" name="id_cocinero" aria-label="Cocinero">
+    <option value="">Cocinero que lo prepara</option>
+    {% for c in cocineros %}<option value="{{ c.id_empleado }}" {% if valores.get('id_cocinero')|string == c.id_empleado|string %}selected{% endif %}>{{ c.nombre_completo }}</option>{% endfor %}
+  </select>
+  <p class="gp-error-campo">{{ errores.get('cocinero', '') }}</p>
+
+  <button type="submit" class="btn btn-gp-principal w-100 mt-3">Registrar y enviar a cocina</button>
+  <p class="small text-center gp-texto-suave mt-2" id="estado-conexion"></p>
+</form>
+{% else %}
+  <p class="gp-texto-suave small">Escribe el teléfono del cliente (10 dígitos) para empezar.</p>
+{% endif %}
+{% endblock %}
+
+{% block pestanas %}{% set activa = 'nuevo' %}{% include 'cajero/_navegacion.html' %}{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/pedido.js') }}"></script>{% endblock %}

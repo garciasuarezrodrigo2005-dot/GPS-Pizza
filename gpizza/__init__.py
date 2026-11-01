@@ -30,6 +30,8 @@ def create_app(config_class: type[Config] = Config) -> Flask:
     for modulo in (sistema, cliente, auth, cajero, repartidor, gerente):
         app.register_blueprint(modulo.bp)
     app.before_request(cargar_usuario)
+    from gpizza.web.filtros import registrar_filtros
+    registrar_filtros(app)
 
     @app.context_processor
     def _datos_globales():
