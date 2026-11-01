@@ -1,0 +1,95 @@
+/* GPizza: estilos propios sobre Bootstrap 5, tomados de los bocetos (RNF-004).
+   Mobile-first: las reglas base son para celular; los @media agregan cambios para pantallas grandes. */
+
+:root {
+  --gp-oscuro: #1f1b18;       /* encabezado y botones principales del boceto */
+  --gp-acento: #c2410c;       /* naranja de "Enviar pedido" y alertas */
+  --gp-acento-hover: #9a3412;
+  --gp-fondo: #f3f2ef;
+  --gp-tarjeta: #ffffff;
+  --gp-borde: #cfcac4;
+  --gp-texto: #1f1b18;
+  --gp-texto-suave: #5f5a55;
+  --gp-alerta: #b91c1c;
+  --gp-radio: 10px;
+  --gp-toque: 48px;           /* altura mínima de botones y campos: fácil de tocar con el dedo */
+}
+
+body {
+  background: var(--gp-fondo);
+  color: var(--gp-texto);
+  font-size: 1rem;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Encabezado ---------- */
+.gp-encabezado {
+  background: var(--gp-oscuro);
+  color: #fff;
+  padding: 0.85rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.gp-encabezado h1 { font-size: 1.15rem; font-weight: 700; margin: 0; }
+.gp-encabezado small { color: #d6d3d1; }
+
+.gp-contenido {
+  flex: 1;
+  width: 100%;
+  max-width: 560px;            /* en celular ocupa todo; en PC se centra como columna */
+  margin: 0 auto;
+  padding: 1.25rem 1rem 2rem;
+}
+
+/* ---------- Tarjetas, botones y campos ---------- */
+.gp-tarjeta {
+  background: var(--gp-tarjeta);
+  border: 1px solid var(--gp-borde);
+  border-radius: var(--gp-radio);
+  padding: 1rem;
+}
+
+.btn, .form-control, .form-select { min-height: var(--gp-toque); border-radius: var(--gp-radio); }
+.form-control, .form-select { border-color: var(--gp-borde); font-size: 1.05rem; }
+
+.btn-gp-principal { background: var(--gp-acento); border-color: var(--gp-acento); color: #fff; font-weight: 700; }
+.btn-gp-principal:hover, .btn-gp-principal:focus { background: var(--gp-acento-hover); border-color: var(--gp-acento-hover); color: #fff; }
+.btn-gp-oscuro { background: var(--gp-oscuro); border-color: var(--gp-oscuro); color: #fff; font-weight: 600; }
+.btn-gp-oscuro:hover { background: #000; color: #fff; }
+.btn-gp-borde { background: #fff; border: 1.5px solid var(--gp-oscuro); color: var(--gp-oscuro); font-weight: 600; }
+
+.gp-texto-suave { color: var(--gp-texto-suave); }
+.gp-aviso {
+  border: 1px dashed var(--gp-borde);
+  border-radius: var(--gp-radio);
+  background: #fafaf9;
+  padding: 0.75rem 1rem;
+  font-size: 0.92rem;
+}
+.gp-aviso-alerta { color: var(--gp-alerta); border-color: #fca5a5; background: #fef2f2; }
+
+/* ---------- Pantalla de inicio del cliente (boceto, página 1) ---------- */
+.gp-logo {
+  width: 96px; height: 96px;
+  border-radius: 22px;
+  display: block;
+  margin: 0.5rem auto 1rem;
+}
+.gp-portada { text-align: center; }
+.gp-portada h2 { font-weight: 800; font-size: 1.9rem; margin-bottom: 0.25rem; }
+
+/* ---------- Páginas de error ---------- */
+.gp-codigo-error { font-size: 3.5rem; font-weight: 800; color: var(--gp-acento); line-height: 1; }
+
+/* ---------- Pie ---------- */
+.gp-pie { text-align: center; font-size: 0.8rem; color: var(--gp-texto-suave); padding: 1rem; }
+
+/* ---------- Pantallas grandes (PC) ---------- */
+@media (min-width: 768px) {
+  .gp-encabezado { padding: 1rem 2rem; }
+  .gp-contenido { padding-top: 2.5rem; }
+}

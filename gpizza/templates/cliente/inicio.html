@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{# Boceto, página 1: el cliente entra con su número de teléfono. #}
+{% block titulo %}Pide tu pizza{% endblock %}
+
+{% block contenido %}
+<section class="gp-portada">
+  <img class="gp-logo" src="{{ url_for('static', filename='img/icono-512.png') }}" alt="Logotipo de Yungla Pizza">
+  <h2>Yungla Pizza</h2>
+  <p class="gp-texto-suave mb-4">Pide tu pizza a domicilio</p>
+</section>
+
+<form class="gp-tarjeta mb-3" onsubmit="return false;">
+  <label for="telefono" class="form-label fw-semibold">Tu número de teléfono</label>
+  {# RN-004 / decisión 14: solo 10 dígitos numéricos. #}
+  <input id="telefono" name="telefono" class="form-control mb-2" type="tel" inputmode="numeric"
+         pattern="[0-9]{10}" maxlength="10" placeholder="10 dígitos" autocomplete="tel" required>
+  <p class="small gp-texto-suave mb-3">Con tu teléfono te reconocemos y te avisamos de tu pedido.</p>
+  <button type="submit" class="btn btn-gp-oscuro w-100" disabled>Continuar</button>
+  <p class="small text-center gp-texto-suave mt-2 mb-0">El pedido en línea se habilita en la Fase 3.</p>
+</form>
+
+{# RN-002: el horario de pedidos se le muestra al cliente. #}
+{% if en_horario %}
+  <p class="gp-aviso">Recibimos pedidos de {{ apertura.strftime('%H:%M') }} a {{ cierre.strftime('%H:%M') }} h, todos los días.</p>
+{% else %}
+  <p class="gp-aviso gp-aviso-alerta"><strong>Fuera de horario.</strong> Los pedidos se reciben de
+    {{ apertura.strftime('%H:%M') }} a {{ cierre.strftime('%H:%M') }} h. Vuelve en nuestro horario.</p>
+{% endif %}
+
+<p class="text-center mt-4 mb-0">¿Eres del personal? <span class="gp-texto-suave">Entrar como empleado (Fase 2)</span></p>
+{% endblock %}

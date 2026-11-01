@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block titulo %}{{ titulo }}{% endblock %}
+
+{% block contenido %}
+<div class="gp-tarjeta text-center py-4">
+  <div class="gp-codigo-error mb-2">{{ codigo }}</div>
+  <h2 class="h4 fw-bold">{{ titulo }}</h2>
+  <p class="gp-texto-suave">{{ mensaje }}</p>
+  <a class="btn btn-gp-oscuro px-4" href="{{ url_for('cliente.inicio') }}">Volver al inicio</a>
+</div>
+{% endblock %}

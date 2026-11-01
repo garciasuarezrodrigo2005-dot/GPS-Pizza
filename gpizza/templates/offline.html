@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block titulo %}Sin conexión{% endblock %}
+
+{% block contenido %}
+<div class="gp-tarjeta text-center py-4">
+  <h2 class="h4 fw-bold">Sin conexión a internet</h2>
+  <p class="gp-texto-suave">Revisa tu conexión. Si estabas armando un pedido, quedó guardado en este dispositivo
+    y lo podrás enviar cuando vuelva la red.</p>
+  <button class="btn btn-gp-oscuro px-4" onclick="location.reload()">Reintentar</button>
+</div>
+{% endblock %}

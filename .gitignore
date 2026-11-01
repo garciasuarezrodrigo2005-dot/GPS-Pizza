@@ -1,0 +1,26 @@
+# Entorno virtual y configuración con credenciales (RNF-008)
+.venv/
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+instance/
+
+# Registros de la aplicación
+logs/
+
+# Archivos temporales de Office y draw.io
+~$*
+*.bkp
+.$*
+
+# Configuración local de Claude Code
+.claude/
+
+# Sistema operativo y editores
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/
