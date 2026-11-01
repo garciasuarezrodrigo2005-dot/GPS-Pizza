@@ -26,12 +26,14 @@ def create_app(config_class: type[Config] = Config) -> Flask:
     registrar_comandos(app)
 
     from gpizza.seguridad.acceso import cargar_usuario
-    from gpizza.web import auth, cajero, cliente, gerente, repartidor, sistema
-    for modulo in (sistema, cliente, auth, cajero, repartidor, gerente):
+    from gpizza.web import auth, cajero, cliente, gerente, notificaciones, repartidor, seguimiento, sistema
+    for modulo in (sistema, cliente, auth, cajero, repartidor, gerente, notificaciones, seguimiento):
         app.register_blueprint(modulo.bp)
     app.before_request(cargar_usuario)
+    from gpizza.servicios import ciclo
     from gpizza.web.filtros import registrar_filtros
     registrar_filtros(app)
+    app.jinja_env.globals.update(alerta_pedido=ciclo.alerta, minutos_en_estado=ciclo.minutos_en_estado)
 
     @app.context_processor
     def _datos_globales():

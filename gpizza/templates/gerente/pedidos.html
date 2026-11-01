@@ -1,0 +1,10 @@
+{% extends 'gerente/base.html' %}
+{% block titulo %}Pedidos{% endblock %}
+
+{% block contenido %}
+<h2 class="h3 fw-bold mb-3">Pedidos · {{ usuario.sucursal }}</h2>
+{% include 'parciales/_pestanas_estado.html' %}
+<div class="gp-rejilla-tarjetas">
+  {% include 'parciales/_lista_pedidos.html' %}
+</div>
+{% endblock %}

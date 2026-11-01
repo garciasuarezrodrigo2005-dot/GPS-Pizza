@@ -48,7 +48,7 @@ def registrar_comandos(app: Flask) -> None:
 
     @app.cli.command('alertas')
     def alertas():
-        """RN-006 / RN-014: genera las alertas pendientes."""
-        nuevas = db.session.execute(text('SELECT fn_generar_alertas()')).scalar_one()
-        db.session.commit()
+        """RN-006 / RN-014 y CU-002 FA-2: alertas, asignaciones vencidas y reasignación."""
+        from gpizza.servicios import ciclo
+        nuevas = ciclo.revisar_tiempos(forzar=True)
         click.echo(f'Alertas nuevas: {nuevas}')

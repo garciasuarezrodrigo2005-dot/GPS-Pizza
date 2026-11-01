@@ -1,0 +1,27 @@
+{% extends 'gerente/base.html' if usuario.rol == 'Gerente' else 'personal/base.html' %}
+{# CU-007: avisos de las últimas 24 h dirigidos a este empleado o a su rol en su sucursal. #}
+{% block titulo %}Avisos{% endblock %}
+{% block encabezado %}Avisos{% endblock %}
+
+{% block contenido %}
+{% if usuario.rol == 'Gerente' %}<h2 class="h3 fw-bold mb-3">Avisos</h2>{% endif %}
+{% for a in avisos %}
+  <div class="gp-tarjeta mb-2 {{ 'gp-aviso-nuevo-item' if a.id_notificacion in ids_nuevos }}
+              {{ 'gp-con-alerta' if a.tipo_evento in ('ALERTA_45', 'ALERTA_90', 'SIN_REPARTIDOR') }}">
+    <div class="d-flex justify-content-between small gp-texto-suave">
+      <span>{{ {'CAMBIO_ESTADO': 'Cambio de estado', 'ALERTA_45': 'Alerta 45 min', 'ALERTA_90': 'Alerta 90 min',
+                'ASIGNACION': 'Asignación', 'SIN_REPARTIDOR': 'Sin repartidor',
+                'SOLICITUD_CANCELACION': 'Solicitud de cancelación'}[a.tipo_evento] }}{% if a.id_notificacion in ids_nuevos %} · nuevo{% endif %}</span>
+      <span>{{ a.fecha_envio|hora }}</span>
+    </div>
+    <div>{{ a.mensaje }}</div>
+  </div>
+{% else %}
+  <p class="gp-texto-suave">No hay avisos en las últimas 24 horas.</p>
+{% endfor %}
+{% endblock %}
+
+{% block pestanas %}
+  {% if usuario.rol == 'Cajero' %}{% set activa = '' %}{% include 'cajero/_navegacion.html' %}
+  {% else %}<a href="{{ url_for('repartidor.inicio') }}">Activas</a>{% endif %}
+{% endblock %}

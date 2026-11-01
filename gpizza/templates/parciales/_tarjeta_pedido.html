@@ -1,0 +1,98 @@
+{# Tarjeta de un pedido en la lista por estado (boceto 8), compartida por cajero y gerente.
+   Variables: p (Pedido), modo ('cajero' | 'gerente'), vivas {id_pedido: AsignacionEntrega},
+   candidatos (solo gerente: [(Empleado, carga)]). #}
+{% set viva = vivas.get(p.id_pedido) %}
+{% set aviso = alerta_pedido(p) %}
+<div class="gp-tarjeta gp-tarjeta-pedido {{ 'gp-con-alerta' if aviso }}">
+  <div class="d-flex justify-content-between align-items-start gap-2">
+    <strong>Folio {{ p.folio }}</strong>
+    <span class="gp-estado">{{ p.estado }}</span>
+  </div>
+  <div class="small">{{ p.cliente.nombre }} · {{ p.detalles|length }} producto{{ 's' if p.detalles|length != 1 }} · {{ p.total|dinero }}</div>
+  <div class="small gp-texto-suave">{{ p.fecha_registro|hace }} · {{ {'APP': 'App', 'TELEFONO': 'Teléfono', 'SUCURSAL': 'Sucursal'}[p.origen] }}</div>
+
+  {% if aviso %}<div class="small fw-semibold gp-texto-alerta mt-1" role="alert">{{ aviso }}</div>{% endif %}
+
+  {% if p.estado == 'Listo para Entrega' %}
+    <div class="small mt-1">
+    {% if viva %}Asignado a <strong>{{ viva.repartidor.nombre_completo }}</strong>
+      ({{ 'esperando que acepte' if viva.estado == 'PENDIENTE' else 'aceptado' }}{% if viva.tipo == 'MANUAL' %}, asignación manual{% endif %})
+    {% else %}<span class="gp-texto-alerta">Sin repartidor disponible: {{ 'asígnalo abajo' if modo == 'gerente' else 'se avisó al gerente' }}.</span>{% endif %}
+    </div>
+  {% elif p.estado == 'En Camino' %}
+    <div class="small mt-1">Repartidor: <strong>{{ viva.repartidor.nombre_completo if viva else '—' }}</strong> ·
+      Tiempo en camino: {{ minutos_en_estado(p) }} min · alerta a los 90 (RN-014)</div>
+  {% elif p.estado == 'Entregado' %}
+    <div class="small mt-1">Entregado a las {{ p.fecha_entrega|hora }}</div>
+  {% elif p.estado == 'Cancelado' %}
+    <div class="small mt-1">Motivo: {{ p.motivo_cancelacion }}</div>
+  {% endif %}
+
+  {# ---------- Cancelación de acuerdo mutuo (RN-005) ---------- #}
+  {% if p.estado == 'En Preparación' and p.cancelacion_solicitada_por == 'CLIENTE' %}
+    <div class="gp-mensaje gp-mensaje-aviso small mt-2 mb-0">El cliente pide cancelar: "{{ p.motivo_cancelacion }}"</div>
+    {% if modo == 'cajero' %}
+    <div class="d-flex gap-2 mt-2">
+      {% for accion, texto in [('aceptar', 'Aceptar cancelación'), ('rechazar', 'Rechazar')] %}
+      <form method="post" action="{{ url_for('cajero.cancelacion', id_pedido=p.id_pedido) }}" class="flex-fill">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="accion" value="{{ accion }}">
+        <button class="btn {{ 'btn-gp-oscuro' if accion == 'aceptar' else 'btn-gp-borde' }} w-100">{{ texto }}</button>
+      </form>
+      {% endfor %}
+    </div>
+    {% endif %}
+  {% elif p.estado == 'En Preparación' and p.cancelacion_solicitada_por == 'CAJERO' %}
+    <div class="small gp-texto-suave mt-2">Esperando que el cliente acepte la cancelación ("{{ p.motivo_cancelacion }}").</div>
+  {% endif %}
+
+  {# ---------- Acciones ---------- #}
+  <div class="d-flex flex-wrap gap-2 mt-2">
+    <a class="btn btn-gp-borde btn-sm" href="{{ url_for('seguimiento.detalle', folio=p.folio) }}">Ver detalle</a>
+    {% if modo == 'cajero' and p.estado == 'En Preparación' and not p.cancelacion_solicitada_por %}
+      <form method="post" action="{{ url_for('cajero.listo', id_pedido=p.id_pedido) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-gp-oscuro btn-sm">Marcar listo</button>
+      </form>
+    {% endif %}
+  </div>
+
+  {% if modo == 'cajero' and p.estado == 'En Preparación' and not p.cancelacion_solicitada_por %}
+  <details class="mt-2">
+    <summary class="small fw-semibold">Cancelar…</summary>
+    <form method="post" action="{{ url_for('cajero.cancelacion', id_pedido=p.id_pedido) }}" class="mt-2">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="accion" value="{{ 'solicitar' if p.origen == 'APP' else 'telefono' }}">
+      <input class="form-control mb-2" name="motivo" placeholder="Motivo" required minlength="5" maxlength="200" aria-label="Motivo de la cancelación">
+      {% if p.origen == 'APP' %}
+        <button class="btn btn-gp-borde w-100">Pedir al cliente que acepte la cancelación</button>
+      {% else %}
+        <label class="small d-flex gap-2 mb-2"><input type="checkbox" required> El cliente confirmó la cancelación por teléfono</label>
+        <button class="btn btn-gp-borde w-100">Cancelar pedido</button>
+      {% endif %}
+    </form>
+  </details>
+  {% elif modo == 'cajero' and p.estado in ('Listo para Entrega', 'En Camino') %}
+    <div class="small gp-texto-suave mt-1">Para cancelarlo ahora se requiere al gerente (RN-005).</div>
+  {% endif %}
+
+  {% if modo == 'gerente' and p.estado == 'Listo para Entrega' and not (viva and viva.estado == 'CONFIRMADA') %}
+    <form method="post" action="{{ url_for('gerente.asignar', id_pedido=p.id_pedido) }}" class="d-flex gap-2 mt-2">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <select name="id_repartidor" class="form-select form-select-sm" required aria-label="Repartidor">
+        <option value="">Repartidor…</option>
+        {% for r, c in candidatos %}<option value="{{ r.id_empleado }}">{{ r.nombre_completo }} ({{ c }} de 2)</option>{% endfor %}
+      </select>
+      <button class="btn btn-gp-oscuro btn-sm">{{ 'Reasignar' if viva else 'Asignar' }}</button>
+    </form>
+  {% endif %}
+  {% if modo == 'gerente' and p.estado in ('En Preparación', 'Listo para Entrega', 'En Camino') %}
+  <details class="mt-2">
+    <summary class="small fw-semibold">Cancelar…</summary>
+    <form method="post" action="{{ url_for('gerente.cancelar', id_pedido=p.id_pedido) }}" class="mt-2">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input class="form-control mb-2" name="motivo" placeholder="Motivo" required minlength="5" maxlength="200" aria-label="Motivo de la cancelación">
+      <button class="btn btn-gp-borde w-100">Cancelar pedido (gerente, RN-005)</button>
+    </form>
+  </details>
+  {% endif %}
+</div>

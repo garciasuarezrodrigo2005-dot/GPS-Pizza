@@ -1,0 +1,20 @@
+{% extends 'gerente/base.html' if usuario.rol == 'Gerente' else 'personal/base.html' %}
+{% block titulo %}Buscar pedido{% endblock %}
+{% block encabezado %}Buscar pedido{% endblock %}
+
+{% block contenido %}
+<form method="get" class="d-flex gap-2 mb-3" role="search">
+  <input name="q" class="form-control" placeholder="Folio (YP-0001 o 1) o teléfono" value="{{ q }}" aria-label="Folio o teléfono" autofocus>
+  <button class="btn btn-gp-oscuro px-3">Buscar</button>
+</form>
+{% for p in resultados %}
+  <a class="gp-tarjeta d-block mb-2 text-reset text-decoration-none" href="{{ url_for('seguimiento.detalle', folio=p.folio) }}">
+    <div class="d-flex justify-content-between"><strong>{{ p.folio }}</strong><span class="gp-estado">{{ p.estado }}</span></div>
+    <div class="small">{{ p.cliente.nombre }} · {{ p.total|dinero }} · {{ p.fecha_registro|hora }} del {{ p.fecha_registro.strftime('%d/%m') }}</div>
+  </a>
+{% else %}
+  {% if q %}<p class="gp-texto-suave">No existe un pedido con ese folio o teléfono en tu sucursal. Intenta con otro dato (CU-003 FA-1).</p>{% endif %}
+{% endfor %}
+{% endblock %}
+
+{% block pestanas %}{% set activa = 'pedidos' %}{% include 'cajero/_navegacion.html' %}{% endblock %}

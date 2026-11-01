@@ -1,0 +1,13 @@
+{% extends 'personal/base.html' %}
+{# Boceto, página 8: pedidos por estado (cajero). #}
+{% block titulo %}Pedidos{% endblock %}
+{% block encabezado %}Pedidos{% endblock %}
+
+{% block contenido %}
+{% include 'parciales/_pestanas_estado.html' %}
+{% include 'parciales/_lista_pedidos.html' %}
+<p class="small gp-texto-suave mt-3">Línea de estados: En preparación → Listo para entrega → En camino → Entregado (o Cancelado).
+  Cancelar solo en "En preparación" y de acuerdo con el cliente; después requiere al gerente (RN-005).</p>
+{% endblock %}
+
+{% block pestanas %}{% set activa = 'pedidos' %}{% include 'cajero/_navegacion.html' %}{% endblock %}

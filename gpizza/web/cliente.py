@@ -9,7 +9,7 @@ from flask import (Blueprint, abort, flash, g, jsonify, redirect, render_templat
 from gpizza import reglas, reloj
 from gpizza.bd import fijar_contexto
 from gpizza.extensiones import db
-from gpizza.servicios import catalogo, clientes, pedidos
+from gpizza.servicios import catalogo, ciclo, clientes, notificaciones, pedidos
 
 bp = Blueprint('cliente', __name__)
 
@@ -116,13 +116,32 @@ def _pedido_propio(folio):
 
 @bp.get('/mi-pedido/<folio>')
 def estado(folio):
-    return render_template('cliente/estado.html', pedido=_pedido_propio(folio))
+    pedido = _pedido_propio(folio)
+    return render_template('cliente/estado.html', pedido=pedido,
+                           avisos=notificaciones.del_pedido_para_cliente(pedido))
 
 
 @bp.get('/mi-pedido/<folio>/estado')
 def estado_parcial(folio):
     """Fragmento que la pantalla vuelve a pedir cada 10 s (HTMX): "esta pantalla se actualiza sola"."""
-    return render_template('cliente/_estado.html', pedido=_pedido_propio(folio))
+    pedido = _pedido_propio(folio)
+    return render_template('cliente/_estado.html', pedido=pedido,
+                           avisos=notificaciones.del_pedido_para_cliente(pedido))
+
+
+@bp.post('/mi-pedido/<folio>/cancelacion')
+def cancelacion(folio):
+    """RN-005 (decisión 7): el cliente pide la cancelación o responde a la que pidió la sucursal."""
+    pedido = _pedido_propio(folio)
+    accion = request.form.get('accion')
+    if accion == 'solicitar':
+        problema = ciclo.solicitar_cancelacion(pedido, 'CLIENTE', request.form.get('motivo', ''))
+        exito = 'Enviamos tu solicitud de cancelación a la sucursal.'
+    else:
+        problema = ciclo.responder_cancelacion(pedido, 'CLIENTE', aceptar=accion == 'aceptar')
+        exito = 'Tu pedido fue cancelado.' if accion == 'aceptar' else 'Tu pedido continúa.'
+    flash(problema or exito, 'error' if problema else 'exito')
+    return redirect(url_for('cliente.estado', folio=folio))
 
 
 @bp.post('/mi-pedido/<folio>/cancelar')

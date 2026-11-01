@@ -1,15 +1,21 @@
 {% extends 'personal/base.html' %}
-{# Boceto, página 9: "Mis entregas". El contenido llega en las Fases 4 y 5. #}
+{# Boceto, página 9: "Mis entregas". #}
 {% block titulo %}Mis entregas{% endblock %}
 {% block encabezado %}Mis entregas{% endblock %}
 
 {% block contenido %}
-<p class="mb-1">Hola, <strong>{{ usuario.nombre }}</strong></p>
-<p class="gp-texto-suave small mb-3">Sucursal {{ usuario.sucursal }}</p>
-<div class="gp-tarjeta gp-en-construccion">
-  Aquí verás tu interruptor de disponibilidad, tus entregas activas (máximo 2), el mapa de la ruta
-  y la confirmación de entrega con firma o código. <strong>Fases 4 y 5.</strong>
-</div>
+<form method="post" action="{{ url_for('repartidor.disponibilidad') }}" class="gp-tarjeta d-flex justify-content-between align-items-center mb-3">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="disponible" value="{{ 'no' if disponible else 'si' }}">
+  <div>
+    <div class="fw-bold">{{ 'Disponible' if disponible else 'No disponible' }}</div>
+    <div class="small gp-texto-suave">Activos: {{ entregas|length }} de {{ maximo }} (RN-011)</div>
+  </div>
+  <button class="gp-interruptor {{ 'encendido' if disponible }}" role="switch" aria-checked="{{ 'true' if disponible else 'false' }}"
+          aria-label="Cambiar disponibilidad">{{ 'Activo' if disponible else 'Inactivo' }}</button>
+</form>
+
+{% include 'repartidor/_entregas.html' %}
 {% endblock %}
 
 {% block pestanas %}

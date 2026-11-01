@@ -1,0 +1,9 @@
+{# Lista que se vuelve a pedir cada 15 s (si no se está escribiendo en ella). #}
+<div id="lista-pedidos" hx-get="{{ url_lista }}" hx-trigger="every 15s [!document.querySelector('#lista-pedidos :focus, #lista-pedidos details[open]')]"
+     hx-swap="outerHTML">
+  {% for p in pedidos %}
+    {% include 'parciales/_tarjeta_pedido.html' %}
+  {% else %}
+    <p class="gp-texto-suave">No hay pedidos en "{{ estado }}"{{ ' hoy' if estado in ('Entregado', 'Cancelado') }}.</p>
+  {% endfor %}
+</div>

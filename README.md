@@ -6,7 +6,7 @@ Proyecto escolar del Instituto Tecnológico de Veracruz (Ingeniería en Sistemas
 Es una **app móvil progresiva (PWA)**: en el celular se instala en la pantalla de inicio como una app y en la PC
 funciona como página web. Tiene tres interfaces: **Cliente**, **Personal** (cajero y repartidor) y **Gerente**.
 
-> Estado: **Fase 3 – Pedidos (cliente y cajero)** (ver [docs/trazabilidad.md](docs/trazabilidad.md)).
+> Estado: **Fase 4 – Ciclo del pedido y asignación** (ver [docs/trazabilidad.md](docs/trazabilidad.md)).
 
 ## Tecnologías
 
@@ -149,6 +149,28 @@ Usa dos navegadores (o uno normal y uno en modo incógnito): uno para el cliente
 Fuera de 11:00–22:00 los pedidos se rechazan (RN-002); para presentar a otra hora usa `GPIZZA_HORA_DEMO`.
 Las pruebas están en `tests/test_pedidos.py` y `tests/test_rendimiento.py` (`pytest -s tests/test_rendimiento.py`
 imprime los tiempos medidos).
+
+## Cómo comprobar la Fase 4 (ciclo del pedido)
+
+Abre tres navegadores: cliente, `cajero1.coyol` y `repartidor1.coyol` (y si quieres un cuarto con `gerente.coyol`).
+
+1. **Listo y asignación automática (CU-002):** el cajero va a "Pedidos" → "En preparación" y pulsa "Marcar listo".
+   El sistema elige al repartidor libre con menos carga y le avisa.
+2. **Aceptar (CU-002 paso 5):** en "Mis entregas" el repartidor ve el pedido con su plazo de 5 min y pulsa
+   "Aceptar entrega". El pedido pasa a "En camino" y el cliente ve su código de entrega. Si no acepta en 5 min, en la
+   siguiente revisión se ofrece a otro repartidor (FA-2).
+3. **Sin repartidor (FA-1) y asignación manual (FA-3):** desactiva a los repartidores con su interruptor y marca otro
+   pedido como listo: el gerente recibe el aviso en su campana 🔔 y lo asigna en "Pedidos" → "Listo".
+4. **Máximo 2 (RN-011):** con dos pedidos activos, un repartidor ya no aparece como opción.
+5. **Cancelación de acuerdo mutuo (RN-005):** en "Tu pedido" el cliente pide cancelar; el cajero acepta o rechaza
+   en su tarjeta. También al revés. Un pedido telefónico se cancela marcando "El cliente confirmó por teléfono".
+   En "Listo" o "En camino" solo el gerente puede cancelar.
+6. **Alertas (RN-006, RN-014):** las tarjetas se marcan en rojo al pasar 45 min en preparación o 90 en camino, y llega
+   el aviso a la campana. Con los datos de demo y `GPIZZA_HORA_DEMO=14:00` ya hay un pedido de cada caso.
+7. **Seguimiento (CU-003):** busca por folio (`YP-0225` o solo `225`) o por teléfono y abre "Ver detalle".
+
+La revisión de alertas y reasignaciones corre sola mientras haya una pantalla del personal abierta (cada 10–15 s);
+también se puede forzar con `flask --app gpizza alertas`. Las pruebas están en `tests/test_ciclo.py`.
 
 ## Cómo comprobar la Fase 0
 

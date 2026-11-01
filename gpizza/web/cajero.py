@@ -2,7 +2,7 @@
 from flask import Blueprint, flash, g, redirect, render_template, request, url_for
 
 from gpizza.seguridad.acceso import rol_requerido
-from gpizza.servicios import catalogo, clientes, pedidos
+from gpizza.servicios import catalogo, ciclo, clientes, pedidos
 
 bp = Blueprint('cajero', __name__, url_prefix='/cajero')
 
@@ -47,6 +47,64 @@ def rechazar(id_pedido):
                                 request.form.get('motivo', ''))
     flash(problema or 'Pedido rechazado: el cliente verá el motivo.', 'error' if problema else 'exito')
     return redirect(url_for('cajero.inicio'))
+
+
+ESTADOS_CAJERO = [('En Preparación', 'En preparación'), ('Listo para Entrega', 'Listo'),
+                  ('En Camino', 'En camino'), ('Entregado', 'Entregado')]
+
+
+def _datos_lista(estado):
+    estado = estado if estado in dict(ESTADOS_CAJERO) else 'En Preparación'
+    lista = ciclo.por_estado(g.usuario.id_sucursal, estado)
+    return {'estado': estado, 'pedidos': lista, 'vivas': ciclo.asignaciones_vivas(lista), 'modo': 'cajero',
+            'url_lista': url_for('cajero.lista_pedidos', estado=estado)}
+
+
+@bp.get('/pedidos')
+@rol_requerido('Cajero')
+def pedidos_por_estado():
+    """Boceto 8: pedidos por estado, con alertas de tiempo (RN-006, RN-014)."""
+    datos = _datos_lista(request.args.get('estado'))
+    return render_template('cajero/pedidos.html', estados=ESTADOS_CAJERO, endpoint='cajero.pedidos_por_estado',
+                           conteos=ciclo.conteos(g.usuario.id_sucursal), **datos)
+
+
+@bp.get('/pedidos/lista')
+@rol_requerido('Cajero')
+def lista_pedidos():
+    return render_template('parciales/_lista_pedidos.html', **_datos_lista(request.args.get('estado')))
+
+
+@bp.post('/pedidos/<int:id_pedido>/listo')
+@rol_requerido('Cajero')
+def listo(id_pedido):
+    mensaje = ciclo.marcar_listo(id_pedido, g.usuario.id_sucursal)
+    flash(mensaje, 'exito' if mensaje.startswith('Pedido') else 'error')
+    return redirect(url_for('cajero.pedidos_por_estado', estado='En Preparación'))
+
+
+@bp.post('/pedidos/<int:id_pedido>/cancelacion')
+@rol_requerido('Cajero')
+def cancelacion(id_pedido):
+    """RN-005: el cajero pide la cancelación (pedido de la app), responde a la del cliente, o cancela
+    un pedido telefónico con la confirmación del cliente."""
+    accion, motivo = request.form.get('accion'), request.form.get('motivo', '')
+    if accion == 'telefono':
+        problema = ciclo.cancelar_por_telefono(id_pedido, g.usuario.id_sucursal, motivo)
+        exito = 'Pedido cancelado; quedó registrado que el cliente lo confirmó por teléfono.'
+    else:
+        pedido = pedidos.del_sucursal(id_pedido, g.usuario.id_sucursal)
+        if pedido is None:
+            problema = 'Ese pedido no existe en tu sucursal.'
+        elif accion == 'solicitar':
+            problema = ciclo.solicitar_cancelacion(pedido, 'CAJERO', motivo)
+        else:
+            problema = ciclo.responder_cancelacion(pedido, 'CAJERO', aceptar=accion == 'aceptar')
+        exito = {'solicitar': 'Se le pidió al cliente que acepte la cancelación.',
+                 'aceptar': 'Pedido cancelado de común acuerdo con el cliente.',
+                 'rechazar': 'Rechazaste la solicitud; el pedido continúa.'}.get(accion, 'Listo.')
+    flash(problema or exito, 'error' if problema else 'exito')
+    return redirect(url_for('cajero.pedidos_por_estado', estado='En Preparación'))
 
 
 @bp.route('/nuevo', methods=['GET', 'POST'])

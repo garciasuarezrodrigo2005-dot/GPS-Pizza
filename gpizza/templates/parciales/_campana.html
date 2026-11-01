@@ -1,0 +1,6 @@
+{# Campana de avisos (CU-007). La primera vez se pinta sin número y se actualiza enseguida. #}
+<a id="campana" class="gp-campana" href="{{ url_for('notificaciones.lista') }}"
+   hx-get="{{ url_for('notificaciones.campana') }}" hx-trigger="{{ 'every 10s' if no_leidas is defined else 'load, every 10s' }}"
+   hx-swap="outerHTML" aria-label="Avisos{% if no_leidas %}: {{ no_leidas }} sin leer{% endif %}">
+  <span aria-hidden="true">🔔</span>{% if no_leidas %}<span class="gp-insignia">{{ no_leidas }}</span>{% endif %}
+</a>

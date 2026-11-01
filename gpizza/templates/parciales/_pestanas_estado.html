@@ -1,0 +1,11 @@
+{# Pestañas por estado (boceto 8) con su conteo, y búsqueda por folio o teléfono (CU-003). #}
+<form method="get" action="{{ url_for('seguimiento.buscar') }}" class="d-flex gap-2 mb-3" role="search">
+  <input name="q" class="form-control" placeholder="Folio o teléfono del cliente" aria-label="Buscar pedido">
+  <button class="btn btn-gp-oscuro px-3">Buscar</button>
+</form>
+<div class="gp-pestanas-estado mb-3" role="tablist">
+  {% for valor, texto in estados %}
+    <a class="gp-chip {{ 'activa' if valor == estado }}" role="tab" href="{{ url_for(endpoint, estado=valor) }}"
+       aria-selected="{{ 'true' if valor == estado else 'false' }}">{{ texto }}{% if conteos.get(valor) %} <span class="gp-insignia">{{ conteos[valor] }}</span>{% endif %}</a>
+  {% endfor %}
+</div>

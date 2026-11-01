@@ -1,0 +1,57 @@
+{% extends 'gerente/base.html' if usuario.rol == 'Gerente' else 'personal/base.html' %}
+{# CU-003 paso 4: folio, cliente, pizzas, estado, cajero, cocinero, repartidor y tiempos; paso 5:
+   tiempo transcurrido en camino. FA-2: si se canceló o rechazó, el motivo. #}
+{% block titulo %}Pedido {{ pedido.folio }}{% endblock %}
+{% block encabezado %}Pedido {{ pedido.folio }}{% endblock %}
+
+{% block contenido %}
+{% if usuario.rol == 'Gerente' %}<h2 class="h3 fw-bold mb-3">Pedido {{ pedido.folio }}</h2>{% endif %}
+{% set aviso = alerta_pedido(pedido) %}
+<div class="gp-tarjeta mb-3 {{ 'gp-con-alerta' if aviso }}">
+  <div class="d-flex justify-content-between"><strong>Estado</strong><span class="gp-estado">{{ pedido.estado }}</span></div>
+  {% if aviso %}<div class="small fw-semibold gp-texto-alerta mt-1">{{ aviso }}</div>{% endif %}
+  {% if pedido.estado == 'En Camino' %}<div class="small mt-1">En camino desde hace {{ minutos_en_estado(pedido) }} min.</div>{% endif %}
+  {% if pedido.estado in ('Cancelado', 'Rechazado') %}<div class="small mt-1">Motivo: {{ pedido.motivo_cancelacion }}</div>{% endif %}
+  {% if pedido.cancelacion_solicitada_por %}<div class="small mt-1">Solicitud de cancelación de {{ pedido.cancelacion_solicitada_por|lower }}: {{ pedido.motivo_cancelacion }}</div>{% endif %}
+</div>
+
+<div class="gp-tarjeta mb-3 small">
+  <div><strong>Cliente:</strong> {{ pedido.cliente.nombre }} · Tel. {{ pedido.cliente.telefono|telefono }}</div>
+  <div><strong>Entrega:</strong> {{ pedido.direccion_entrega }}</div>
+  <div><strong>Origen:</strong> {{ {'APP': 'App', 'TELEFONO': 'Teléfono', 'SUCURSAL': 'Sucursal'}[pedido.origen] }}</div>
+  <div><strong>Cajero:</strong> {{ pedido.cajero.nombre_completo if pedido.cajero else '—' }}</div>
+  <div><strong>Cocinero:</strong> {{ pedido.cocinero.nombre_completo if pedido.cocinero else '—' }}</div>
+  <div><strong>Tiempo estimado:</strong> {{ {45: '45 min', 60: '1 h', 90: '1 h 30'}.get(pedido.tiempo_estimado_min, '—') }}</div>
+</div>
+
+<div class="gp-tarjeta mb-3 small">
+  <strong>Productos</strong>
+  {% for d in pedido.detalles %}
+    <div class="d-flex justify-content-between"><span>{{ d.cantidad }} × {{ d.producto.nombre }}{{ ' ' ~ d.producto.tamano if d.producto.tamano }}</span><span>{{ d.subtotal|dinero }}</span></div>
+  {% endfor %}
+  {% if pedido.descuento > 0 %}<div class="d-flex justify-content-between"><span>Descuento</span><span>− {{ pedido.descuento|dinero }}</span></div>{% endif %}
+  <div class="d-flex justify-content-between fw-bold"><span>Total ({{ pedido.forma_pago }})</span><span>{{ pedido.total|dinero }}</span></div>
+</div>
+
+<div class="gp-tarjeta mb-3 small">
+  <strong>Tiempos</strong>
+  {% for texto, momento in [('Registrado', pedido.fecha_registro), ('En preparación', pedido.fecha_preparacion),
+                             ('Listo', pedido.fecha_listo), ('En camino', pedido.fecha_en_camino), ('Entregado', pedido.fecha_entrega)] %}
+    <div class="d-flex justify-content-between"><span>{{ texto }}</span><span>{{ momento|hora if momento else '—' }}</span></div>
+  {% endfor %}
+</div>
+
+{% if asignaciones %}
+<div class="gp-tarjeta mb-3 small">
+  <strong>Repartidores</strong>
+  {% for a in asignaciones %}
+    <div class="d-flex justify-content-between"><span>{{ a.repartidor.nombre_completo }} ({{ a.tipo|lower }})</span><span>{{ a.estado|lower }} · {{ a.fecha_asignacion|hora }}</span></div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block pestanas %}
+  {% if usuario.rol == 'Cajero' %}{% set activa = 'pedidos' %}{% include 'cajero/_navegacion.html' %}
+  {% else %}<a href="{{ url_for('repartidor.inicio') }}">Activas</a>{% endif %}
+{% endblock %}

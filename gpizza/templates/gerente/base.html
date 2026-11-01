@@ -6,13 +6,17 @@
 {% block cuerpo %}
 <div class="gp-panel-contenedor">
   <aside class="gp-menu-lateral">
-    <div class="gp-menu-titulo">Yungla Pizza</div>
+    <div class="d-flex justify-content-between align-items-center">
+      <a class="gp-menu-titulo text-reset text-decoration-none" href="{{ url_for('gerente.inicio') }}">Yungla Pizza</a>
+      {% include 'parciales/_campana.html' %}
+    </div>
     <nav aria-label="Secciones del panel">
       {% set secciones = [
-        ('Pedidos', none), ('Catálogo y precios', none), ('Clientes', none), ('Personal', none),
-        ('Descuentos y devoluciones', none), ('Reportes', none), ('Auditoría', none)] %}
-      {% for nombre, destino in secciones %}
-        {% if destino %}<a href="{{ url_for(destino) }}">{{ nombre }}</a>
+        ('pedidos', 'Pedidos', 'gerente.pedidos'), ('catalogo', 'Catálogo y precios', none), ('clientes', 'Clientes', none),
+        ('personal', 'Personal', none), ('descuentos', 'Descuentos y devoluciones', none), ('reportes', 'Reportes', none),
+        ('auditoria', 'Auditoría', none)] %}
+      {% for clave, nombre, destino in secciones %}
+        {% if destino %}<a class="{{ 'activa' if activa == clave }}" href="{{ url_for(destino) }}">{{ nombre }}</a>
         {% else %}<span class="gp-pestana-pendiente">{{ nombre }}</span>{% endif %}
       {% endfor %}
     </nav>

@@ -4,8 +4,17 @@
 {% block contenido %}
 <h2 class="h3 fw-bold mb-1">Hola, {{ usuario.nombre }}</h2>
 <p class="gp-texto-suave mb-4">Sucursal {{ usuario.sucursal }}. Solo verás la información de tu sucursal.</p>
+
+<div class="gp-indicadores mb-4">
+  {% for estado, texto in [('En Preparación', 'En preparación'), ('Listo para Entrega', 'Listos'), ('En Camino', 'En camino'), ('Entregado', 'Entregados hoy')] %}
+    <a class="gp-tarjeta gp-indicador text-reset text-decoration-none" href="{{ url_for('gerente.pedidos', estado=estado) }}">
+      <div class="small gp-texto-suave">{{ texto }}</div>
+      <div class="fs-2 fw-bold">{{ conteos.get(estado, 0) }}</div>
+    </a>
+  {% endfor %}
+</div>
+
 <div class="gp-tarjeta gp-en-construccion">
-  Las secciones del menú (pedidos, catálogo, clientes, personal, descuentos y devoluciones, reportes y auditoría)
-  se habilitan en las Fases 4 y 6.
+  Catálogo, clientes, personal, descuentos y devoluciones, reportes y auditoría se habilitan en la Fase 6.
 </div>
 {% endblock %}

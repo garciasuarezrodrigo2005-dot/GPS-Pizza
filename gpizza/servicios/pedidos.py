@@ -56,6 +56,12 @@ def contar_por_confirmar(id_sucursal: int) -> int:
         Pedido.id_sucursal == id_sucursal, Pedido.estado == 'Por Confirmar'))
 
 
+def del_sucursal(id_pedido: int, id_sucursal: int) -> Pedido | None:
+    """El personal solo trabaja con pedidos de su sucursal."""
+    pedido = db.session.get(Pedido, id_pedido)
+    return pedido if pedido is not None and pedido.id_sucursal == id_sucursal else None
+
+
 def del_cliente(folio: str, telefono: str) -> Pedido | None:
     """Un cliente solo puede ver sus propios pedidos."""
     pedido = db.session.scalar(select(Pedido).where(Pedido.folio == folio))

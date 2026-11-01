@@ -2,7 +2,32 @@
    el pedido siga en curso, así la pantalla "se actualiza sola" como dice el boceto. #}
 {% set en_curso = pedido.estado in ('Por Confirmar', 'En Preparación', 'Listo para Entrega', 'En Camino') %}
 <div id="estado-pedido"
-     {% if en_curso %}hx-get="{{ url_for('cliente.estado_parcial', folio=pedido.folio) }}" hx-trigger="every 10s" hx-swap="outerHTML"{% endif %}>
+     {% if en_curso %}hx-get="{{ url_for('cliente.estado_parcial', folio=pedido.folio) }}"
+     hx-trigger="every 10s [!document.querySelector('#estado-pedido :focus, #estado-pedido details[open]')]" hx-swap="outerHTML"{% endif %}>
+
+{# ---------- Cancelación de acuerdo mutuo (RN-005) ---------- #}
+{% if pedido.estado == 'En Preparación' and pedido.cancelacion_solicitada_por == 'CAJERO' %}
+  <div class="gp-mensaje gp-mensaje-aviso">
+    La sucursal pide cancelar tu pedido: "{{ pedido.motivo_cancelacion }}". ¿Estás de acuerdo?
+    <div class="d-flex gap-2 mt-2">
+      {% for accion, texto in [('aceptar', 'Sí, cancelar'), ('rechazar', 'No, continuar')] %}
+      <form method="post" action="{{ url_for('cliente.cancelacion', folio=pedido.folio) }}" class="flex-fill">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="accion" value="{{ accion }}">
+        <button class="btn {{ 'btn-gp-oscuro' if accion == 'aceptar' else 'btn-gp-borde' }} w-100">{{ texto }}</button>
+      </form>
+      {% endfor %}
+    </div>
+  </div>
+{% elif pedido.estado == 'En Preparación' and pedido.cancelacion_solicitada_por == 'CLIENTE' %}
+  <div class="gp-mensaje gp-mensaje-aviso">Pediste cancelar este pedido. Esperamos la respuesta de la sucursal.</div>
+{% endif %}
+
+{% if avisos %}
+  <div class="gp-tarjeta mb-3 small" aria-live="polite">
+    <strong>Avisos</strong>
+    {% for a in avisos %}<div class="mt-1">{{ a.fecha_envio|hora }} · {{ a.mensaje }}</div>{% endfor %}
+  </div>
+{% endif %}
 
 {% if pedido.estado == 'Por Confirmar' %}
   <div class="gp-tarjeta text-center mb-3">
@@ -75,6 +100,16 @@
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <button class="btn btn-gp-borde w-100">Cancelar pedido</button>
   </form>
+{% elif pedido.estado == 'En Preparación' and not pedido.cancelacion_solicitada_por %}
+  <details>
+    <summary class="small">¿Necesitas cancelar?</summary>
+    <form method="post" action="{{ url_for('cliente.cancelacion', folio=pedido.folio) }}" class="mt-2">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="accion" value="solicitar">
+      <input class="form-control mb-2" name="motivo" placeholder="¿Por qué quieres cancelar?" required minlength="5" maxlength="200" aria-label="Motivo">
+      <button class="btn btn-gp-borde w-100">Pedir la cancelación</button>
+      <p class="small gp-texto-suave mt-1 mb-0">Tu pizza ya se está preparando: la sucursal debe aceptar la cancelación (RN-005).</p>
+    </form>
+  </details>
 {% elif pedido.estado in ('Rechazado', 'Cancelado') %}
   <a class="btn btn-gp-principal w-100" href="{{ url_for('cliente.pedido') }}">Volver a pedir</a>
 {% endif %}
