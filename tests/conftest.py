@@ -55,12 +55,14 @@ def motor_demo():
         pytest.skip('La base gpizza_test no existe o no responde.')
     from seed.datos_demo import cargar
     app = create_app(ConfigPruebas)
+    # El contexto se abre solo para preparar la base: si quedara abierto toda la corrida, los comandos
+    # de consola (test_cli_runner) lo reutilizarían junto con sesiones viejas de otras pruebas.
     with app.app_context():
         from gpizza.extensiones import db
         recrear_esquema(db.engine)
         cargar(db.engine, app)
         motor = db.engine
-        yield motor
+    yield motor
 
 
 @pytest.fixture

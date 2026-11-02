@@ -203,7 +203,8 @@ body {
 .gp-progreso li.hecho::before { background: var(--gp-oscuro); border-color: var(--gp-oscuro); }
 .gp-progreso li.actual { color: var(--gp-texto); font-weight: 700; }
 .gp-progreso li.actual::before { background: var(--gp-acento); border-color: var(--gp-acento); }
-.gp-codigo-entrega { border: 2px dashed var(--gp-acento); border-radius: var(--gp-radio); text-align: center; padding: 0.75rem; letter-spacing: 0.3em; }
+.gp-codigo-entrega { border: 2px dashed var(--gp-acento); border-radius: var(--gp-radio); text-align: center; padding: 0.75rem; }
+.gp-codigo-entrega .fs-1 { letter-spacing: 0.3em; }  /* solo el número, para dictarlo dígito por dígito */
 
 /* ---------- Tarjetas del cajero (bocetos 7 y 8) ---------- */
 .gp-tarjeta-pedido { margin-bottom: 0.9rem; }

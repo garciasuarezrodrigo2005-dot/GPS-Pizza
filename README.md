@@ -6,7 +6,7 @@ Proyecto escolar del Instituto Tecnológico de Veracruz (Ingeniería en Sistemas
 Es una **app móvil progresiva (PWA)**: en el celular se instala en la pantalla de inicio como una app y en la PC
 funciona como página web. Tiene tres interfaces: **Cliente**, **Personal** (cajero y repartidor) y **Gerente**.
 
-> Estado: **Fase 6 – Panel del gerente, reportes y auditoría** (ver [docs/trazabilidad.md](docs/trazabilidad.md)).
+> Estado: **completo (Fases 0 a 7)**. Guion de la presentación: [docs/guion_demo.md](docs/guion_demo.md) (ver [docs/trazabilidad.md](docs/trazabilidad.md)).
 
 ## Tecnologías
 
@@ -206,6 +206,18 @@ Entra como `gerente.coyol`. Todo lo que ves es solo de tu sucursal.
 cámara del celular en HTTPS): la Pepperoni Mediana se suma al pedido. En el detalle de un pedido, "Imprimir comanda" genera
 el ticket con el QR del folio; escanearlo en "Buscar pedido" abre su seguimiento.
 Las pruebas están en `tests/test_gerente.py` y `tests/test_reportes.py`.
+
+## Requisitos no funcionales (Fase 7)
+
+| RNF | Cómo se demuestra |
+|---|---|
+| RNF-001 Rendimiento | `pytest -s tests/test_rendimiento.py` (20 pedidos, máximo ~0.03 s; límite 3 s). Cada respuesta trae `Server-Timing` y queda en `logs/rendimiento.log`. Los reportes muestran "Generado en X s" |
+| RNF-002 Disponibilidad | `/salud`. Con PowerShell como administrador: `Stop-Service postgresql-x64-18` → `/salud` responde 503 y el inicio sigue abriendo; `Start-Service postgresql-x64-18` → se recupera sola. Ninguna ruta responde 500 (`tests/test_rnf.py`) |
+| RNF-003 Seguridad | `pytest -v tests/test_rnf.py tests/test_auth.py`: 50 rutas × 4 perfiles; Argon2id, Fernet, CSRF, sesión única, inyección SQL, auditoría inmutable |
+| RNF-004 Usabilidad / RNF-007 Compatibilidad | [docs/evidencias/](docs/evidencias/README.md): capturas en Chrome y Edge a 375 px y 1366 px, sin desborde horizontal |
+| RNF-005 Escalabilidad | `flask --app gpizza nueva-sucursal --nombre "Boca del Río" --direccion "…" --ciudad "Boca del Río" --gerente gerente.bocadelrio --gerente-nombre Laura --gerente-apellidos "Mendoza Ruiz" --gerente-telefono 2291234500`, o `db/ejemplo_nueva_sucursal.sql` |
+| RNF-006 Mantenibilidad | Estructura por capas (abajo), cada módulo documentado (`test_rnf006_*`), reglas centralizadas en `gpizza/reglas.py` |
+| RNF-008 Portabilidad | Esta guía se probó clonando el repositorio en una carpeta vacía: venv, `pip install`, `.env`, `db-reset`, `db-seed`, waitress y `pytest` |
 
 ### Probar en el celular (HTTPS)
 
