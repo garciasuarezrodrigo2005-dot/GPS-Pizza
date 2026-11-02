@@ -464,7 +464,7 @@ def cargar(motor: Engine, app: Flask) -> list[str]:
             'SELECT (SELECT count(*) FROM pedido), (SELECT count(*) FROM devolucion), '
             '(SELECT count(*) FROM notificacion), (SELECT count(*) FROM auditoria)')).one()
     resumen = [
-        f'Sucursales: {len(SUCURSALES)} · Empleados: {len(PERSONAL)} · Productos: {len(cargador.prod)} · '
+        f'Sucursales: {len(SUCURSALES)} · Empleados: {len(PERSONAL) + 1} (con el administrador) · Productos: {len(cargador.prod)} · '
         f'Clientes: {len(CLIENTES)} · Códigos de descuento: {len(cargador.codigos)}',
         f'Pedidos: {conteos[0]} ({historicos} de los últimos {DIAS_DE_HISTORIA} días) · Devoluciones: {conteos[1]} · '
         f'Notificaciones: {conteos[2]} · Registros de auditoría: {conteos[3]}',
