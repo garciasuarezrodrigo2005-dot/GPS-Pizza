@@ -5,7 +5,9 @@
 
 {% block contenido %}
 {% include 'parciales/_pestanas_estado.html' %}
+<div class="gp-rejilla-tarjetas">
 {% include 'parciales/_lista_pedidos.html' %}
+</div>
 <p class="small gp-texto-suave mt-3">Línea de estados: En preparación → Listo para entrega → En camino → Entregado (o Cancelado).
   Cancelar solo en "En preparación" y de acuerdo con el cliente; después requiere al gerente (RN-005).</p>
 {% endblock %}

@@ -6,7 +6,10 @@
 {% block encabezado_derecha %}Folio {{ pedido.folio }}{% endblock %}
 {% block cabeza %}{% if pedido.estado == 'En Camino' %}<link rel="stylesheet" href="{{ url_for('static', filename='vendor/leaflet/leaflet.css') }}">{% endif %}{% endblock %}
 
+{% block clase_contenido %}{{ 'gp-contenido-ancho' if pedido.estado == 'En Camino' else 'gp-contenido-medio' }}{% endblock %}
+
 {% block contenido %}
+<div class="gp-estado-rejilla">
   {% if pedido.estado == 'En Camino' %}
   <section id="mapa" class="gp-tarjeta mb-3" data-url-ubicacion="{{ url_for('cliente.ubicacion', folio=pedido.folio) }}">
     <div class="gp-mapa gp-mapa-cliente" data-mapa role="img" aria-label="Mapa en vivo con la ubicación del repartidor y tu casa"></div>
@@ -21,8 +24,11 @@
   </section>
   {% endif %}
 
+  <div>
   {% include 'cliente/_estado.html' %}
   <p class="text-center mt-4"><a href="{{ url_for('cliente.pedido') }}">Hacer otro pedido</a></p>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}

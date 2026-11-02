@@ -2,13 +2,25 @@
 {# Boceto, página 1: el cliente entra con su número de teléfono. #}
 {% block titulo %}Pide tu pizza{% endblock %}
 {% block encabezado_completo %}{% endblock %}
+{% block clase_contenido %}gp-contenido-portada{% endblock %}
 
 {% block contenido %}
-<section class="gp-portada mt-3">
+{# En el celular se ve como el boceto (logo arriba y formulario abajo); en la PC, dos paneles. #}
+<div class="gp-portada-rejilla">
+<section class="gp-portada">
   <img class="gp-logo" src="{{ url_for('static', filename='img/icono-512.png') }}" alt="Logotipo de Yungla Pizza">
   <h2>Yungla Pizza</h2>
-  <p class="gp-texto-suave mb-4">Pide tu pizza a domicilio</p>
+  <p class="gp-portada-lema mb-4">Pide tu pizza a domicilio</p>
+  <ul class="gp-portada-lista">
+    <li><strong>Hecha al momento</strong> en la sucursal más cercana a ti.</li>
+    <li><strong>Sigue tu pedido</strong> en vivo, desde la cocina hasta tu puerta.</li>
+    <li><strong>Paga como prefieras:</strong> efectivo, tarjeta o transferencia.</li>
+  </ul>
 </section>
+
+<div class="gp-portada-formulario">
+<h3 class="gp-portada-titulo">Bienvenido</h3>
+<p class="gp-texto-suave gp-portada-subtitulo">Escribe tu teléfono para empezar tu pedido.</p>
 
 <form method="post" action="{{ url_for('cliente.continuar') }}" class="gp-tarjeta mb-3">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -30,4 +42,6 @@
 {% endif %}
 
 <p class="text-center mt-4 mb-0">¿Eres del personal? <a href="{{ url_for('auth.login') }}">Entrar como empleado</a></p>
+</div>
+</div>
 {% endblock %}

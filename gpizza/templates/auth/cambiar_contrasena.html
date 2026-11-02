@@ -3,6 +3,8 @@
 {% block encabezado %}Cambiar contraseña{% endblock %}
 {% block encabezado_derecha %}{{ usuario.rol }}{% endblock %}
 
+{% block clase_contenido %}gp-contenido-medio{% endblock %}
+
 {% block contenido %}
 {% if obligatorio %}
   <p class="gp-aviso gp-aviso-alerta">Tu contraseña cumplió 90 días. Por seguridad, cámbiala para continuar (RN-018).</p>

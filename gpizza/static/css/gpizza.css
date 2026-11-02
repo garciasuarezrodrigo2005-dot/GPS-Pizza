@@ -5,9 +5,12 @@
   --gp-oscuro: #1f1b18;       /* encabezado y botones principales del boceto */
   --gp-acento: #c2410c;       /* naranja de "Enviar pedido" y alertas */
   --gp-acento-hover: #9a3412;
-  --gp-fondo: #f3f2ef;
+  --gp-fondo: #f5f0e8;        /* crema: base de todas las pantallas; cada una le pone su propio dibujo */
   --gp-tarjeta: #ffffff;
-  --gp-borde: #cfcac4;
+  --gp-borde: #d9d2c8;
+  --gp-dorado: #b8893b;       /* detalles finos: líneas y rótulos */
+  --gp-sombra: 0 1px 2px rgba(31, 27, 24, 0.06), 0 10px 28px -14px rgba(31, 27, 24, 0.28);
+  --gp-letra-titulos: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
   --gp-texto: #1f1b18;
   --gp-texto-suave: #5f5a55;
   --gp-alerta: #b91c1c;
@@ -26,16 +29,23 @@ body {
 
 /* ---------- Encabezado ---------- */
 .gp-encabezado {
-  background: var(--gp-oscuro);
+  background: linear-gradient(180deg, #2a2420, var(--gp-oscuro));
   color: #fff;
-  padding: 0.85rem 1rem;
+  padding: 0.7rem 1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  border-bottom: 3px solid var(--gp-acento);
+  box-shadow: inset 0 -1px 0 var(--gp-dorado);
 }
-.gp-encabezado h1 { font-size: 1.15rem; font-weight: 700; margin: 0; }
-.gp-encabezado small { color: #d6d3d1; }
+.gp-encabezado-marca { display: flex; align-items: center; gap: 0.65rem; min-width: 0; }
+.gp-encabezado-logo { width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0; }
+.gp-encabezado-empresa {
+  font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gp-dorado); line-height: 1.1;
+}
+.gp-encabezado h1 { font-family: var(--gp-letra-titulos); font-size: 1.2rem; font-weight: 700; margin: 0; }
+.gp-encabezado small { color: #d6d3d1; text-align: right; }
 
 .gp-contenido {
   flex: 1;
@@ -51,6 +61,7 @@ body {
   border: 1px solid var(--gp-borde);
   border-radius: var(--gp-radio);
   padding: 1rem;
+  box-shadow: var(--gp-sombra);
 }
 
 .btn, .form-control, .form-select { min-height: var(--gp-toque); border-radius: var(--gp-radio); }
@@ -114,7 +125,15 @@ body {
 /* ---------- Panel del gerente (boceto 10) ---------- */
 .gp-panel-contenedor { display: flex; flex-direction: column; min-height: 100vh; }
 .gp-menu-lateral { background: var(--gp-oscuro); color: #fff; padding: 1rem; }
-.gp-menu-titulo { font-weight: 800; font-size: 1.15rem; margin-bottom: 0.75rem; }
+.gp-menu-titulo {
+  font-family: var(--gp-letra-titulos); font-weight: 700; font-size: 1.2rem; margin-bottom: 0.75rem;
+  display: flex; align-items: center; gap: 0.6rem; line-height: 1.15;
+}
+.gp-menu-titulo small {
+  display: block; font-family: system-ui, sans-serif; font-size: 0.68rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--gp-dorado); font-weight: 600;
+}
+.gp-menu-seccion { display: none; }
 .gp-menu-lateral nav { display: flex; gap: 0.25rem; overflow-x: auto; }
 .gp-menu-lateral nav > a, .gp-menu-lateral nav > span {
   color: #e7e5e4; text-decoration: none; white-space: nowrap; padding: 0.6rem 0.8rem; border-radius: 8px;
@@ -280,4 +299,185 @@ body {
 @media (min-width: 768px) {
   .gp-encabezado { padding: 1rem 2rem; }
   .gp-contenido { padding-top: 2.5rem; }
+}
+
+/* =====================================================================================================
+   Diseño formal para la PC y fondos propios de cada pantalla
+   - En el celular se conserva la columna de los bocetos; desde 992 px cada zona usa su propia distribución:
+     portadas en dos paneles, pedido en dos columnas con el resumen fijo, menú lateral para el personal.
+   - Los fondos son dibujos SVG o degradados en el propio CSS (no hay imágenes que descargar: funcionan sin internet).
+   ===================================================================================================== */
+
+h2, h3, .gp-paso, .gp-portada-titulo { font-family: var(--gp-letra-titulos); }
+.gp-pie { letter-spacing: 0.02em; }
+
+/* ---------- Fondos por zona (blueprint) y por pantalla ---------- */
+/* Cliente: rebanadas, pepperoni y albahaca en trazo muy tenue. */
+.gp-zona-cliente {
+  background-color: #f6efe5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' fill='none' stroke='%23c2410c' stroke-opacity='.10' stroke-width='2'%3E%3Cpath d='M18 22q26-12 52 0L44 80z'/%3E%3Ccircle cx='38' cy='33' r='4'/%3E%3Ccircle cx='50' cy='46' r='3.5'/%3E%3Cpath d='M94 104q15-17 32 0q-17 15-32 0zM94 104h32'/%3E%3Ccircle cx='116' cy='36' r='6'/%3E%3Ccircle cx='28' cy='120' r='5'/%3E%3C/svg%3E");
+}
+/* Seguimiento del pedido y repartidor: un plano de calles, porque el pedido va en camino. */
+.gp-vista-cliente-estado, .gp-zona-repartidor {
+  background-color: #f1efe9;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' fill='none' stroke='%231f1b18' stroke-opacity='.06'%3E%3Cpath stroke-width='7' d='M0 48h180M118 0v180'/%3E%3Cpath stroke-width='2' d='M0 132h180M40 0v180M0 0l180 180'/%3E%3C/svg%3E");
+}
+.gp-zona-repartidor { background-color: #edf0ea; }   /* el mismo plano, en verde salvia */
+/* Cajero: mantel a cuadros de pizzería, casi transparente. */
+.gp-zona-cajero, .gp-zona-seguimiento, .gp-zona-notificaciones {
+  background-color: #f7f2ec;
+  background-image: linear-gradient(90deg, rgba(194, 65, 12, 0.045) 50%, transparent 50%),
+                    linear-gradient(rgba(194, 65, 12, 0.045) 50%, transparent 50%);
+  background-size: 46px 46px;
+}
+/* Gerente: papel de oficina con retícula de puntos; algunas secciones tienen su propio papel. */
+.gp-zona-gerente {
+  background-color: #f3f1ec;
+  background-image: radial-gradient(rgba(31, 27, 24, 0.13) 1px, transparent 1.3px);
+  background-size: 22px 22px;
+}
+.gp-vista-gerente-reportes_vista {            /* papel milimétrico, como una hoja de gráficas */
+  background-color: #f2f4f3;
+  background-image: linear-gradient(rgba(22, 101, 52, 0.07) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(22, 101, 52, 0.07) 1px, transparent 1px);
+  background-size: 26px 26px;
+}
+.gp-vista-gerente-auditoria_vista {           /* hoja de libro contable */
+  background-color: #f1f3f6;
+  background-image: repeating-linear-gradient(transparent 0 31px, rgba(37, 99, 235, 0.08) 31px 32px);
+  background-size: auto;
+}
+.gp-vista-gerente-catalogo, .gp-vista-gerente-etiquetas_qr {
+  background-color: #f6efe5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' fill='none' stroke='%231f1b18' stroke-opacity='.07' stroke-width='2'%3E%3Cpath d='M18 22q26-12 52 0L44 80z'/%3E%3Ccircle cx='38' cy='33' r='4'/%3E%3Ccircle cx='50' cy='46' r='3.5'/%3E%3Cpath d='M94 104q15-17 32 0q-17 15-32 0zM94 104h32'/%3E%3C/svg%3E");
+  background-size: auto;
+}
+/* Acceso y cambio de contraseña: tono pizarra, más serio. */
+.gp-zona-auth {
+  background-color: #ece9e4;
+  background-image: repeating-linear-gradient(135deg, rgba(31, 27, 24, 0.035) 0 2px, transparent 2px 14px);
+}
+.gp-zona-publico {
+  background-color: #f1ebe3;
+  background-image: radial-gradient(circle at 50% 0, rgba(194, 65, 12, 0.10), transparent 60%);
+}
+
+/* ---------- Portadas: inicio del cliente y acceso del personal ---------- */
+.gp-portada { margin-top: 1rem; }
+.gp-portada-lema { color: var(--gp-texto-suave); }
+.gp-portada-lista, .gp-portada-titulo, .gp-portada-subtitulo { display: none; }
+
+/* ---------- Pedido (cliente y cajero) ---------- */
+.gp-seccion > .gp-paso:first-child { margin-top: 0.5rem; }
+
+@media (min-width: 992px) {
+  .gp-zona-cliente, .gp-zona-cajero, .gp-zona-gerente, .gp-zona-repartidor, .gp-zona-auth,
+  .gp-zona-seguimiento, .gp-zona-notificaciones { background-attachment: fixed; }
+
+  .gp-encabezado { padding: 0.8rem 2rem; }
+  .gp-encabezado-logo { width: 40px; height: 40px; }
+  .gp-encabezado h1 { font-size: 1.35rem; }
+
+  .gp-contenido-medio { max-width: 760px; }
+  .gp-contenido-ancho { max-width: 1240px; }
+
+  /* Portadas en dos paneles: presentación de la marca a la izquierda y el formulario a la derecha. */
+  .gp-contenido-portada { max-width: 1080px; display: flex; align-items: center; padding: 3rem 1.5rem; }
+  .gp-portada-rejilla {
+    display: grid; grid-template-columns: 1.05fr 1fr; width: 100%; background: #fff;
+    border-radius: 20px; overflow: hidden; box-shadow: 0 40px 80px -30px rgba(31, 27, 24, 0.55);
+  }
+  .gp-portada {
+    margin: 0; text-align: left; color: #fff; padding: 3.5rem 3rem;
+    display: flex; flex-direction: column; justify-content: center;
+    background:
+      radial-gradient(circle at 90% 10%, rgba(194, 65, 12, 0.55), transparent 55%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' fill='none' stroke='%23ffffff' stroke-opacity='.07' stroke-width='2'%3E%3Cpath d='M18 22q26-12 52 0L44 80z'/%3E%3Ccircle cx='38' cy='33' r='4'/%3E%3Ccircle cx='50' cy='46' r='3.5'/%3E%3Cpath d='M94 104q15-17 32 0q-17 15-32 0zM94 104h32'/%3E%3Ccircle cx='116' cy='36' r='6'/%3E%3Ccircle cx='28' cy='120' r='5'/%3E%3C/svg%3E"),
+      linear-gradient(160deg, #2c241f, #15120f);
+  }
+  .gp-portada .gp-logo { margin: 0 0 1.5rem; width: 84px; height: 84px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); }
+  .gp-portada h2 { font-family: var(--gp-letra-titulos); font-size: 2.8rem; font-weight: 700; }
+  .gp-portada-lema { color: #ead9c4; font-size: 1.15rem; border-bottom: 1px solid rgba(184, 137, 59, 0.5); padding-bottom: 1.25rem; }
+  .gp-portada-lista { display: block; list-style: none; padding: 0; margin: 0; color: #e7e5e4; }
+  .gp-portada-lista li { position: relative; padding-left: 1.4rem; margin-bottom: 0.8rem; }
+  .gp-portada-lista li::before { content: ""; position: absolute; left: 0; top: 0.65em; width: 0.7rem; height: 2px; background: var(--gp-dorado); }
+  .gp-portada-lista strong { color: #fff; }
+  .gp-portada-formulario { padding: 3.5rem 3rem 2.5rem; display: flex; flex-direction: column; justify-content: center; }
+  .gp-portada-titulo { display: block; font-size: 1.9rem; font-weight: 700; margin-bottom: 0.25rem; }
+  .gp-portada-subtitulo { display: block; margin-bottom: 1.75rem; }
+  .gp-portada-formulario .gp-tarjeta { border: 0; padding: 0; box-shadow: none; background: transparent; }
+
+  /* El cliente entra con un fondo cálido; el personal, con fondo oscuro y el panel en terracota. */
+  .gp-vista-cliente-inicio {
+    background-color: #efe4d6;
+    background-image: radial-gradient(circle at 15% 20%, rgba(194, 65, 12, 0.18), transparent 45%),
+                      radial-gradient(circle at 85% 90%, rgba(184, 137, 59, 0.22), transparent 45%);
+  }
+  .gp-vista-auth-login {
+    background-color: #1c1815;
+    background-image: radial-gradient(circle at 80% 10%, rgba(194, 65, 12, 0.35), transparent 50%),
+                      repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.025) 0 2px, transparent 2px 16px);
+  }
+  .gp-vista-auth-login .gp-pie { color: #a8a29e; }
+  .gp-vista-auth-login .gp-portada {
+    background:
+      radial-gradient(circle at 10% 90%, rgba(0, 0, 0, 0.35), transparent 60%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' fill='none' stroke='%23ffffff' stroke-opacity='.08' stroke-width='2'%3E%3Cpath d='M18 22q26-12 52 0L44 80z'/%3E%3Ccircle cx='38' cy='33' r='4'/%3E%3Ccircle cx='50' cy='46' r='3.5'/%3E%3C/svg%3E"),
+      linear-gradient(155deg, #c2410c, #7c2d12);
+  }
+
+  /* Pedido en dos columnas: datos y menú | pago y resumen, que se queda a la vista al bajar. */
+  .gp-pedido-rejilla { display: grid; grid-template-columns: minmax(0, 1fr) 390px; gap: 1.5rem; align-items: start; }
+  .gp-seccion {
+    background: var(--gp-tarjeta); border: 1px solid var(--gp-borde); border-radius: 14px;
+    padding: 1.25rem 1.5rem 1.5rem; box-shadow: var(--gp-sombra); margin-bottom: 1.5rem;
+  }
+  .gp-pedido-pegajoso { position: sticky; top: 1rem; margin-bottom: 0; }
+  .gp-seccion .gp-paso { font-size: 1.2rem; border-bottom: 1px solid #eee8df; padding-bottom: 0.5rem; }
+  .gp-lista-productos:not([hidden]) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.85rem; margin-bottom: 0.75rem; }
+  .gp-lista-productos .gp-producto { margin-bottom: 0; align-content: start; }
+  .gp-producto { transition: box-shadow 0.15s, border-color 0.15s; }
+  .gp-producto[data-producto]:hover { border-color: var(--gp-oscuro); box-shadow: var(--gp-sombra); }
+
+  /* Seguimiento: mapa grande a la izquierda y el estado a la derecha. */
+  .gp-estado-rejilla:has(#mapa) { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+  .gp-estado-rejilla #mapa { position: sticky; top: 1rem; }
+  .gp-mapa-cliente { height: 460px; }
+
+  /* Personal (cajero y repartidor): la barra inferior del celular se vuelve un menú lateral. */
+  body.gp-con-navegacion {
+    display: grid; grid-template-columns: 240px minmax(0, 1fr); grid-template-rows: auto 1fr;
+    grid-template-areas: "encabezado encabezado" "menu contenido";
+  }
+  .gp-con-navegacion .gp-encabezado { grid-area: encabezado; }
+  .gp-con-navegacion .gp-contenido { grid-area: contenido; max-width: 1200px; padding: 2rem 2.25rem; }
+  .gp-con-navegacion .gp-navegacion {
+    grid-area: menu; position: static; flex-direction: column; gap: 0.25rem; padding: 1.25rem 0.85rem;
+    background: linear-gradient(180deg, #2a2420, #15120f); border: 0;
+  }
+  .gp-navegacion > a {
+    flex: 0 0 auto; justify-content: flex-start; min-height: 46px; padding: 0 1rem; border-radius: 8px;
+    color: #e7e5e4; font-size: 0.95rem;
+  }
+  .gp-navegacion > a:hover { background: rgba(255, 255, 255, 0.07); color: #fff; }
+  .gp-navegacion > a.activa { border-top: 0; background: var(--gp-acento); color: #fff; }
+  .gp-menu-seccion {
+    display: block; font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--gp-dorado); padding: 0 1rem 0.6rem; margin-bottom: 0.4rem; border-bottom: 1px solid rgba(184, 137, 59, 0.3);
+  }
+  .gp-rejilla-pedidos, #entregas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; align-items: start; }
+  .gp-rejilla-pedidos .gp-tarjeta-pedido, #entregas > .gp-tarjeta { margin-bottom: 0 !important; }
+  .gp-rejilla-pedidos > :only-child, #entregas > :only-child { grid-column: 1 / -1; }
+
+  /* Panel del gerente */
+  .gp-menu-lateral { width: 260px; background: linear-gradient(180deg, #2a2420, #15120f); padding: 1.5rem 1rem; }
+  .gp-menu-lateral .gp-encabezado-logo { width: 40px; height: 40px; }
+  .gp-menu-lateral nav > a { padding: 0.65rem 0.9rem; }
+  .gp-menu-lateral nav > a:hover { background: rgba(255, 255, 255, 0.07); color: #fff; }
+  .gp-menu-lateral .gp-menu-seccion { margin: 1rem 0 0.5rem; padding: 0 0.9rem 0.6rem; }
+  .gp-menu-usuario { border-top: 1px solid rgba(184, 137, 59, 0.3); padding-top: 1rem; }
+  .gp-panel-principal { padding: 2.25rem 3rem; max-width: 1320px; }
+  .gp-panel-principal > h2:first-of-type {
+    padding-bottom: 0.6rem; border-bottom: 2px solid var(--gp-dorado); display: inline-block;
+  }
 }

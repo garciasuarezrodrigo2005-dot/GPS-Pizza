@@ -13,23 +13,30 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/gpizza.css') }}">
   {% block cabeza %}{% endblock %}
 </head>
-<body class="{% block clase_body %}{% endblock %}">
+{# Las clases gp-zona-* (por blueprint) y gp-vista-* (por pantalla) eligen el fondo y la distribución en gpizza.css. #}
+<body class="gp-zona-{{ request.blueprint or 'publico' }} gp-vista-{{ (request.endpoint or 'error')|replace('.', '-') }} {% block clase_body %}{% endblock %}">
   {% block encabezado_completo %}
   <header class="gp-encabezado">
-    <h1>{% block encabezado %}Yungla Pizza{% endblock %}</h1>
-    <small>{% block encabezado_derecha %}{% endblock %}</small>
+    <div class="gp-encabezado-marca">
+      <img class="gp-encabezado-logo" src="{{ url_for('static', filename='img/icono-192.png') }}" alt="">
+      <div>
+        <div class="gp-encabezado-empresa">Yungla Pizza</div>
+        <h1>{% block encabezado %}Pedidos a domicilio{% endblock %}</h1>
+      </div>
+    </div>
+    <small class="gp-encabezado-derecha">{% block encabezado_derecha %}{% endblock %}</small>
   </header>
   {% endblock %}
 
   {% block cuerpo %}
-  <main class="gp-contenido">
+  <main class="gp-contenido {% block clase_contenido %}{% endblock %}">
     {% include 'parciales/mensajes.html' %}
     {% block contenido %}{% endblock %}
   </main>
   {% endblock %}
 
   {% block navegacion %}
-  <footer class="gp-pie">GPizza v{{ version }} · Yungla Pizza S.A. de C.V.</footer>
+  <footer class="gp-pie">© 2026 Yungla Pizza S.A. de C.V. · Veracruz, México · GPizza v{{ version }}</footer>
   {% endblock %}
 
   <script src="{{ url_for('static', filename='vendor/bootstrap.bundle.min.js') }}"></script>

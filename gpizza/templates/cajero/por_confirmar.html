@@ -7,6 +7,7 @@
 <div hx-get="{{ url_for('cajero.aviso_nuevos', mostrados=conteo) }}" hx-trigger="every 10s" hx-swap="innerHTML"
      class="gp-aviso-nuevo"></div>
 
+<div class="gp-rejilla-pedidos">
 {% for p in pedidos %}
 <details class="gp-tarjeta gp-tarjeta-pedido" {% if loop.first %}open{% endif %}>
   <summary>
@@ -54,6 +55,7 @@
 {% else %}
 <div class="gp-tarjeta text-center gp-texto-suave">No hay pedidos por confirmar. Esta pantalla te avisará cuando llegue uno.</div>
 {% endfor %}
+</div>
 
 <datalist id="motivos-rechazo">{% for m in motivos %}<option value="{{ m }}">{% endfor %}</datalist>
 <p class="small gp-texto-suave mt-3">Al confirmar, el pedido pasa a cocina y el cliente ve su barra de progreso.

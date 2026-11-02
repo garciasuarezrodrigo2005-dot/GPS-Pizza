@@ -13,6 +13,7 @@
 
 {% block navegacion %}
 <nav class="gp-navegacion" aria-label="Secciones">
+  <div class="gp-menu-seccion">{{ usuario.rol }} · {{ usuario.sucursal }}</div>
   {% block pestanas %}{% endblock %}
 </nav>
 {% endblock %}

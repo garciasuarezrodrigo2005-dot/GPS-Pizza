@@ -2,13 +2,24 @@
 {# Boceto, página 6: inicio de sesión del personal. #}
 {% block titulo %}Iniciar sesión{% endblock %}
 {% block encabezado_completo %}{% endblock %}
+{% block clase_contenido %}gp-contenido-portada{% endblock %}
 
 {% block contenido %}
-<section class="gp-portada mt-3">
+<div class="gp-portada-rejilla">
+<section class="gp-portada">
   <img class="gp-logo" src="{{ url_for('static', filename='img/icono-512.png') }}" alt="Logotipo de Yungla Pizza">
   <h2>Yungla Pizza</h2>
-  <p class="gp-texto-suave mb-4">Sistema de gestión de pedidos a domicilio</p>
+  <p class="gp-portada-lema mb-4">Sistema de gestión de pedidos a domicilio</p>
+  <ul class="gp-portada-lista">
+    <li><strong>Cajero:</strong> confirma pedidos y los envía a cocina.</li>
+    <li><strong>Repartidor:</strong> acepta entregas y registra la firma del cliente.</li>
+    <li><strong>Gerente:</strong> administra la sucursal y consulta reportes.</li>
+  </ul>
 </section>
+
+<div class="gp-portada-formulario">
+<h3 class="gp-portada-titulo">Acceso del personal</h3>
+<p class="gp-texto-suave gp-portada-subtitulo">Ingresa con el usuario que te asignó tu gerente.</p>
 
 <form method="post" class="gp-tarjeta mb-3" novalidate>
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -26,4 +37,6 @@
   <li>El rol (Cajero, Repartidor o Gerente) define las pantallas que verás.</li>
 </ul>
 <p class="text-center mt-3"><a href="{{ url_for('cliente.inicio') }}">¿Eres cliente? Haz tu pedido aquí</a></p>
+</div>
+</div>
 {% endblock %}

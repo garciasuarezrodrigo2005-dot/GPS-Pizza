@@ -10,6 +10,8 @@
   </form>
 {% endblock %}
 
+{% block clase_contenido %}gp-contenido-ancho{% endblock %}
+
 {% block contenido %}
 {% if en_curso %}
   <div class="gp-mensaje gp-mensaje-aviso">Tienes un pedido en curso ({{ en_curso.folio }}, {{ en_curso.estado }}).
@@ -25,6 +27,9 @@
       data-hay-valores="{{ 'si' if errores else 'no' }}" novalidate>
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
+  <div class="gp-pedido-rejilla">
+  <div class="gp-pedido-principal">
+  <section class="gp-seccion">
   <h3 class="gp-paso">1. Tus datos</h3>
   <input name="nombre" class="form-control mb-1" placeholder="Nombre" value="{{ valores.get('nombre', '') }}"
          autocomplete="name" required aria-label="Nombre">
@@ -43,23 +48,31 @@
   <input type="hidden" name="longitud" value="{{ valores.get('longitud', '') }}">
   <button type="button" class="btn btn-link btn-sm p-0 mb-2" id="usar-ubicacion">📍 Usar mi ubicación (para el mapa)</button>
   <span class="small gp-texto-suave" id="estado-ubicacion">{% if cliente and cliente.latitud %}Ya tenemos tu ubicación.{% endif %}</span>
-  <label for="id_sucursal" class="form-label small fw-semibold mb-1">Sucursal que te atiende</label>
+  <label for="id_sucursal" class="form-label d-block small fw-semibold mt-2 mb-1">Sucursal que te atiende</label>
   <select id="id_sucursal" name="id_sucursal" class="form-select mb-1">
     {% for s in sucursales %}
       <option value="{{ s.id_sucursal }}" {% if valores.get('id_sucursal')|string == s.id_sucursal|string %}selected{% endif %}>
         {{ s.nombre }}{% if not sucursal_horario[s.id_sucursal] %} (cerrada ahora){% endif %}</option>
     {% endfor %}
   </select>
-  <p class="small gp-texto-suave">Pedidos de 11:00 a 22:00 h (RN-002).</p>
+  <p class="small gp-texto-suave mb-0">Pedidos de 11:00 a 22:00 h (RN-002).</p>
+  </section>
 
+  <section class="gp-seccion">
   <h3 class="gp-paso">2. Elige tus productos</h3>
   {% include 'parciales/_menu.html' %}
+  </section>
+  </div>
+
+  <aside class="gp-pedido-lateral"><div class="gp-seccion gp-pedido-pegajoso">
 
   {% set paso_codigo = 3 %}{% set modo = 'cliente' %}
   {% include 'parciales/_pago.html' %}
 
   <button type="submit" class="btn btn-gp-principal w-100 mt-3" id="enviar-pedido">Enviar pedido</button>
-  <p class="small text-center gp-texto-suave mt-2" id="estado-conexion"></p>
+  <p class="small text-center gp-texto-suave mt-2 mb-0" id="estado-conexion"></p>
+  </div></aside>
+  </div>
 </form>
 {% endblock %}
 
