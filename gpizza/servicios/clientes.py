@@ -48,35 +48,40 @@ class DatosCliente:
     longitud: str = ''
 
 
-def direccion_completa(cliente: Cliente) -> str:
-    """'Calle Laurel 33, Col. Floresta, C.P. 91940': lo que se copia al pedido y ve el repartidor."""
-    partes = [cliente.direccion]
-    if cliente.colonia:
-        partes.append(f'Col. {cliente.colonia}')
-    if cliente.codigo_postal:
-        partes.append(f'C.P. {cliente.codigo_postal}')
+def direccion_completa(cliente) -> str:
+    """'Calle Laurel 33, Col. Floresta, C.P. 91940': lo que se copia al pedido y ve el repartidor.
+    Sirve para un Cliente o para unos DatosCliente (la dirección de destino que se escribió en el pedido)."""
+    if not (cliente.direccion or '').strip():
+        return ''
+    partes = [cliente.direccion.strip()]
+    if (cliente.colonia or '').strip():
+        partes.append(f'Col. {cliente.colonia.strip()}')
+    if (cliente.codigo_postal or '').strip():
+        partes.append(f'C.P. {cliente.codigo_postal.strip()}')
     return ', '.join(partes)
 
 
-def validar(datos: DatosCliente) -> dict[str, str]:
-    """RN-004: nombre, teléfono (10 dígitos) y dirección son obligatorios."""
+def validar(datos: DatosCliente, exigir_direccion: bool = True) -> dict[str, str]:
+    """RN-004: nombre y teléfono (10 dígitos) son obligatorios; la dirección, en cada pedido (decisión 21:
+    al crear la cuenta no se pide, se guarda con el primer pedido)."""
     errores = {}
     if not datos.nombre.strip():
         errores['nombre'] = 'Escribe el nombre del cliente.'
     if not telefono_valido(datos.telefono):
         errores['telefono'] = 'El teléfono debe tener 10 dígitos, solo números.'
-    if not datos.direccion.strip():
+    if exigir_direccion and not datos.direccion.strip():
         errores['direccion'] = 'Escribe la dirección de entrega.'
     if datos.codigo_postal and not PATRON_CP.match(datos.codigo_postal):
         errores['codigo_postal'] = 'El código postal tiene 5 dígitos.'
     return errores
 
 
-def registrar_o_actualizar(datos: DatosCliente) -> tuple[Cliente | None, dict[str, str]]:
-    """Crea el perfil si el teléfono es nuevo (CU-005) o actualiza nombre y dirección si ya existía.
-    No hace commit: el pedido y el cliente se guardan juntos en la misma transacción."""
+def registrar_o_actualizar(datos: DatosCliente, guardar_direccion: bool = True,
+                           exigir_direccion: bool = True) -> tuple[Cliente | None, dict[str, str]]:
+    """Crea el perfil si el teléfono es nuevo (CU-005) o actualiza su nombre y, si se pide (o aún no tiene),
+    su dirección. No hace commit: el pedido y el cliente se guardan juntos en la misma transacción."""
     datos.telefono = normalizar_telefono(datos.telefono)
-    errores = validar(datos)
+    errores = validar(datos, exigir_direccion)
     if errores:
         return None, errores
     cliente = por_telefono(datos.telefono)
@@ -84,11 +89,12 @@ def registrar_o_actualizar(datos: DatosCliente) -> tuple[Cliente | None, dict[st
         cliente = Cliente(telefono=datos.telefono)
         db.session.add(cliente)
     cliente.nombre = datos.nombre.strip()
-    cliente.direccion = datos.direccion.strip()
-    cliente.colonia = datos.colonia.strip() or None
-    cliente.codigo_postal = datos.codigo_postal.strip() or None
-    if datos.latitud and geo.coordenadas_validas(datos.latitud, datos.longitud):
-        cliente.latitud, cliente.longitud = round(float(datos.latitud), 6), round(float(datos.longitud), 6)
+    if datos.direccion.strip() and (guardar_direccion or not cliente.direccion):
+        cliente.direccion = datos.direccion.strip()
+        cliente.colonia = datos.colonia.strip() or None
+        cliente.codigo_postal = datos.codigo_postal.strip() or None
+        if datos.latitud and geo.coordenadas_validas(datos.latitud, datos.longitud):
+            cliente.latitud, cliente.longitud = round(float(datos.latitud), 6), round(float(datos.longitud), 6)
     try:
         db.session.flush()
     except DBAPIError as error:

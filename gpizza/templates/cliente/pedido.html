@@ -24,18 +24,22 @@
 
 <form method="post" id="form-pedido" data-minimo="100" data-max-distintos="10" data-max-unidades="5"
       data-url-codigo="{{ url_for('cliente.revisar_codigo') }}" data-borrador="cliente-{{ telefono }}"
-      data-hay-valores="{{ 'si' if errores else 'no' }}" novalidate>
+      data-hay-valores="{{ 'si' if errores or editando else 'no' }}" novalidate>
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
   <div class="gp-pedido-rejilla">
   <div class="gp-pedido-principal">
   <section class="gp-seccion">
-  <h3 class="gp-paso">1. Tus datos</h3>
-  <input name="nombre" class="form-control mb-1" placeholder="Nombre" value="{{ valores.get('nombre', '') }}"
-         autocomplete="name" required aria-label="Nombre">
+  {# Decisión 21: cada pedido tiene su propio destino. La primera vez se guarda en la cuenta; después aparece
+     ya escrito y se puede cambiar (por ejemplo, para mandarlo a la oficina) sin tocar la dirección guardada. #}
+  <h3 class="gp-paso">1. ¿A dónde lo llevamos?</h3>
+  <label class="form-label small fw-semibold mb-1" for="nombre">Quién recibe</label>
+  <input id="nombre" name="nombre" class="form-control mb-1" placeholder="Nombre" value="{{ valores.get('nombre', '') }}"
+         autocomplete="name" required>
   <p class="gp-error-campo">{{ errores.get('nombre', '') }}</p>
-  <input name="direccion" class="form-control mb-1" placeholder="Dirección de entrega (calle y número)"
-         value="{{ valores.get('direccion', '') }}" autocomplete="street-address" required aria-label="Dirección de entrega">
+  <label class="form-label small fw-semibold mb-1" for="direccion">Dirección de destino</label>
+  <input id="direccion" name="direccion" class="form-control mb-1" placeholder="Calle y número"
+         value="{{ valores.get('direccion', '') }}" autocomplete="street-address" required>
   <p class="gp-error-campo">{{ errores.get('direccion', '') }}</p>
   <div class="d-flex gap-2 mb-2">
     <input name="colonia" class="form-control" placeholder="Colonia" value="{{ valores.get('colonia', '') }}" aria-label="Colonia">
@@ -43,6 +47,15 @@
            value="{{ valores.get('codigo_postal', '') }}" aria-label="Código postal">
   </div>
   <p class="gp-error-campo">{{ errores.get('codigo_postal', '') }}</p>
+  {% if cliente.direccion %}
+    <div class="form-check mb-2">
+      <input class="form-check-input" type="checkbox" name="guardar_direccion" value="si" id="guardar_direccion"
+             {% if valores.get('guardar_direccion', 'si' if not editando else '') == 'si' %}checked{% endif %}>
+      <label class="form-check-label small" for="guardar_direccion">Guardar como mi dirección para próximos pedidos</label>
+    </div>
+  {% else %}
+    <p class="small gp-texto-suave mb-2">Es tu primer pedido: esta dirección se guardará en tu cuenta para la próxima vez.</p>
+  {% endif %}
   {# Opcional: con la ubicación del navegador, el domicilio aparece en el mapa del repartidor y en el tuyo. #}
   <input type="hidden" name="latitud" value="{{ valores.get('latitud', '') }}">
   <input type="hidden" name="longitud" value="{{ valores.get('longitud', '') }}">
@@ -71,7 +84,8 @@
   {% set paso_codigo = 3 %}{% set modo = 'cliente' %}
   {% include 'parciales/_pago.html' %}
 
-  <button type="submit" class="btn btn-gp-principal w-100 mt-3" id="enviar-pedido">Enviar pedido</button>
+  <button type="submit" name="paso" value="revisar" class="btn btn-gp-principal w-100 mt-3" id="enviar-pedido">Revisar pedido</button>
+  <p class="small text-center gp-texto-suave mt-1 mb-0">Antes de enviarlo verás la confirmación con todos los datos.</p>
   <p class="small text-center gp-texto-suave mt-2 mb-0" id="estado-conexion"></p>
   </div></aside>
   </div>

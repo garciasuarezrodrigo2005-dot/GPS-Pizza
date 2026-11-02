@@ -121,6 +121,7 @@ Convenciones: todas las fechas son `TIMESTAMPTZ DEFAULT now()`; todos los textos
 
 ### cliente
 `id_cliente` PK · `nombre` · `telefono` VARCHAR(10) UNIQUE **`CHECK ~ '^[0-9]{10}$'`** · `direccion` BYTEA cifrado · `colonia` · `codigo_postal` CHAR(5) `CHECK ~ '^[0-9]{5}$'` · `latitud`, `longitud` NULL · `fecha_registro` · **[F8]** `password_hash` NULL · `fecha_alta_cuenta` NULL · `intentos_fallidos` `CHECK 0..3` · `bloqueado`.
+- **[F8, decisión 21]** `direccion` es opcional: la cuenta se crea sin ella y se guarda con el primer pedido.
 - Sin contraseña = lo registró la sucursal por teléfono y aún no crea su cuenta (`ck_cliente_cuenta`: contraseña y fecha de alta van juntas).
 - `trg_cliente_bloqueo`: RN-018 también para el cliente (3 intentos).
 
@@ -243,6 +244,7 @@ Por Confirmar ──► En Preparación ──► Listo para Entrega ──► E
 | 17 | BD de pruebas | `gpizza_test`, separada de `gpizza`. |
 | 18 | Cuenta del cliente (2026-11-02) | El cliente crea su cuenta con su **teléfono (único) y una contraseña** (RN-018: 8+ con letras y números, bloqueo a los 3 intentos; sin vencimiento a 90 días). Sin cuenta no pide por la app; los pedidos por teléfono y en sucursal siguen sin cuenta. Si la sucursal ya lo había registrado, al crear su cuenta la "activa" y conserva su historial. El gerente desbloquea la cuenta o quita la contraseña olvidada. Sin SMS no se verifica que el teléfono sea suyo: mejora futura. |
 | 19 | Administrador (2026-11-02) | Nuevo actor y rol **Administrador**, de toda la cadena (sin sucursal). Nuevo **CU-011 Administrar Sucursales y Gerentes**: alta y edición de sucursales y alta, baja, desbloqueo y contraseña temporal de gerentes. El gerente sigue dando de alta a su propio personal (CU-009). Los empleados no se dan de alta solos. El primer administrador se crea por consola (`flask crear-admin`); no hay botón en la web. La BD lo garantiza con `trg_empleado_permisos` y `trg_sucursal_permisos`. |
+| 21 | Destino y confirmación del pedido (2026-11-02) | La cuenta del cliente se crea **sin dirección** (teléfono, nombre y contraseña). Cada pedido tiene su apartado **"¿A dónde lo llevamos?"**: el primer pedido guarda esa dirección en la cuenta; en los siguientes aparece escrita y se puede cambiar, con la opción "Guardar como mi dirección". Antes de enviarlo, el cliente ve **"Confirma tu pedido"**, una confirmación de envío con destino, sucursal, productos, totales, pago y cambio (calculados en el servidor, sin guardar nada) y puede modificarlo o confirmarlo. Ya enviado, "Tu pedido" muestra el **comprobante** con folio y fecha. `cliente.direccion` pasa a ser opcional; RN-004 se cumple con `pedido.direccion_entrega` (obligatoria). |
 | 20 | Auditoría (2026-11-02) | La consulta **solo el Administrador**, de toda la cadena o por sucursal (separación de funciones: el gerente autoriza precios, devoluciones y altas, así que no revisa su propia bitácora). RN-019 no cambia: la bitácora sigue siendo inmutable. |
 
 ## 8. Cambios a la documentación (2026-11-01; Fase 8: 2026-11-02)

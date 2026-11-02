@@ -106,7 +106,9 @@ CREATE TABLE cliente (
     nombre         VARCHAR(100) NOT NULL CHECK (btrim(nombre) <> ''),
     -- RN-004 y decisión 14: teléfono obligatorio, numérico de 10 dígitos.
     telefono       VARCHAR(10) NOT NULL UNIQUE CONSTRAINT rn004_cliente_telefono CHECK (telefono ~ '^[0-9]{10}$'),
-    direccion      BYTEA NOT NULL CHECK (octet_length(direccion) > 0),  -- cifrada (RNF-003)
+    -- Cifrada (RNF-003). Decisión 21: opcional; se guarda con el primer pedido (la cuenta se crea sin ella).
+    -- Cada pedido lleva su propia dirección de destino (pedido.direccion_entrega, obligatoria).
+    direccion      BYTEA CHECK (octet_length(direccion) > 0),
     colonia        VARCHAR(80),
     codigo_postal  CHAR(5) CHECK (codigo_postal ~ '^[0-9]{5}$'),
     latitud        NUMERIC(9,6) CHECK (latitud BETWEEN -90 AND 90),

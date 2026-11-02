@@ -112,7 +112,7 @@ class Cliente(db.Model):
     id_cliente: Mapped[int] = _pk()
     nombre: Mapped[str] = mapped_column(String(100))
     telefono: Mapped[str] = mapped_column(String(10))
-    direccion: Mapped[str] = mapped_column(TextoCifrado)
+    direccion: Mapped[str | None] = mapped_column(TextoCifrado)   # decisión 21: se guarda con el primer pedido
     colonia: Mapped[str | None] = mapped_column(String(80))
     codigo_postal: Mapped[str | None] = mapped_column(String(5))
     latitud: Mapped[Decimal | None] = mapped_column(Numeric(9, 6))
@@ -193,6 +193,7 @@ class Pedido(db.Model):
     cliente: Mapped[Cliente] = relationship()
     cajero: Mapped[Empleado | None] = relationship(foreign_keys=[id_cajero])
     cocinero: Mapped[Empleado | None] = relationship(foreign_keys=[id_cocinero])
+    codigo_descuento: Mapped[CodigoDescuento | None] = relationship()
     detalles: Mapped[list['DetallePedido']] = relationship(back_populates='pedido', order_by='DetallePedido.id_detalle')
 
 

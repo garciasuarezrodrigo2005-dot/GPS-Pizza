@@ -135,7 +135,7 @@ def nuevo():
             return redirect(url_for('cajero.inicio'))
         errores = resultado.errores
     elif cliente:
-        valores |= {'nombre': cliente.nombre, 'direccion': cliente.direccion, 'colonia': cliente.colonia or '',
+        valores |= {'nombre': cliente.nombre, 'direccion': cliente.direccion or '', 'colonia': cliente.colonia or '',
                     'codigo_postal': cliente.codigo_postal or ''}
     elif telefono:
         flash('Cliente nuevo: captura sus datos y quedará registrado con el pedido (CU-005).', 'aviso')

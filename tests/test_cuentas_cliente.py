@@ -16,8 +16,8 @@ def entrar(web, telefono, contrasena='Pizza2026'):
 
 
 def crear(web, telefono, contrasena='Pizza2026', **cambios):
-    datos = {'telefono': telefono, 'nombre': 'Laura Prueba', 'direccion': 'Calle Prueba 1', 'colonia': 'Centro',
-             'codigo_postal': '91700', 'contrasena': contrasena, 'confirmacion': contrasena,
+    """Decisión 21: la cuenta solo pide teléfono, nombre y contraseña."""
+    datos = {'telefono': telefono, 'nombre': 'Laura Prueba', 'contrasena': contrasena, 'confirmacion': contrasena,
              'csrf_token': token_csrf(web, '/crear-cuenta')}
     return web.post('/crear-cuenta', data=datos | cambios)
 
@@ -45,7 +45,7 @@ def test_el_telefono_es_unico_una_cuenta_por_telefono(web):
     ({'contrasena': 'corta1', 'confirmacion': 'corta1'}, 'al menos 8'),
     ({'contrasena': 'sinnumeros', 'confirmacion': 'sinnumeros'}, 'letras y números'),
     ({'telefono': '229-123'}, '10 dígitos'),
-    ({'direccion': ''}, 'dirección'),
+    ({'nombre': ''}, 'Escribe el nombre'),
 ])
 def test_crear_cuenta_valida_los_datos(web, cambios, mensaje):
     r = crear(web, cambios.pop('telefono', '2290003333'), **cambios)

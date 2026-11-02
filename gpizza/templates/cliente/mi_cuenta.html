@@ -14,8 +14,12 @@
 <div class="gp-tarjeta mb-3">
   <div class="fw-semibold">{{ cliente.nombre }}</div>
   <div class="small gp-texto-suave">Tel. {{ cliente.telefono|telefono }} · cliente desde {{ cliente.fecha_registro.strftime('%d/%m/%Y') }}</div>
-  <div class="small">{{ cliente.direccion }}{% if cliente.colonia %}, Col. {{ cliente.colonia }}{% endif %}</div>
-  <p class="small gp-texto-suave mb-0 mt-2">Tu nombre y dirección se actualizan cuando los cambias al hacer un pedido.</p>
+  {% if cliente.direccion %}
+    <div class="small">Dirección guardada: {{ cliente.direccion }}{% if cliente.colonia %}, Col. {{ cliente.colonia }}{% endif %}</div>
+    <p class="small gp-texto-suave mb-0 mt-2">Aparece ya escrita en cada pedido; si llevas el pedido a otro lugar, puedes cambiarla ahí.</p>
+  {% else %}
+    <p class="small gp-texto-suave mb-0 mt-2">Aún no tienes dirección guardada: se guarda con tu primer pedido.</p>
+  {% endif %}
 </div>
 
 <form method="post" class="gp-tarjeta mb-3" novalidate>

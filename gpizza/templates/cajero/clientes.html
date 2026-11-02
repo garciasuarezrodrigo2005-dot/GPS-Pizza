@@ -14,7 +14,7 @@
   <div class="gp-tarjeta mb-2 d-flex justify-content-between align-items-center">
     <div>
       <div class="fw-semibold">{{ c.nombre }}</div>
-      <div class="small gp-texto-suave">Tel. {{ c.telefono|telefono }} · {{ c.direccion }}</div>
+      <div class="small gp-texto-suave">Tel. {{ c.telefono|telefono }} · {{ c.direccion or 'sin dirección guardada' }}</div>
     </div>
     <a class="btn btn-gp-oscuro btn-sm" href="{{ url_for('cajero.nuevo', telefono=c.telefono) }}">Pedido</a>
   </div>

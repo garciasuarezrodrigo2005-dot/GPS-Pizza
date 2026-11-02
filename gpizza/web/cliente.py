@@ -122,10 +122,13 @@ def pedido():
         return redirect(url_for('cliente.inicio'))
     telefono = cliente.telefono
     sucursales = pedidos.sucursales_activas()
-    errores, valores = {}, {}
+    errores, valores, editando = {}, {}, False
 
     if request.method == 'POST':
-        valores = request.form.to_dict()
+        # Decisión 21: "revisar" muestra la confirmación sin guardar; "editar" vuelve al formulario con lo
+        # capturado; "enviar" (el botón de la confirmación) registra el pedido.
+        paso = request.form.get('paso', 'enviar')
+        valores = {k: v for k, v in request.form.to_dict().items() if k not in ('paso', 'csrf_token')}
         solicitud = pedidos.SolicitudPedido(
             id_sucursal=request.form.get('id_sucursal', type=int) or 0,
             cliente=clientes.DatosCliente(
@@ -134,19 +137,26 @@ def pedido():
                 codigo_postal=request.form.get('codigo_postal', ''),
                 latitud=request.form.get('latitud', ''), longitud=request.form.get('longitud', '')),
             renglones=pedidos.leer_renglones(request.form), forma_pago=request.form.get('forma_pago', ''),
-            codigo=request.form.get('codigo', ''), monto_recibido=request.form.get('monto_recibido', ''))
-        resultado = pedidos.registrar(solicitud)
-        if resultado.pedido:
-            flash(f'Pedido {resultado.pedido.folio} enviado. Registrado en {resultado.segundos:.2f} s.', 'exito')
-            return redirect(url_for('cliente.estado', folio=resultado.pedido.folio))
-        errores = resultado.errores
-    elif cliente:
-        valores = {'nombre': cliente.nombre, 'direccion': cliente.direccion, 'colonia': cliente.colonia or '',
+            codigo=request.form.get('codigo', ''), monto_recibido=request.form.get('monto_recibido', ''),
+            guardar_direccion=request.form.get('guardar_direccion') == 'si' or not cliente.direccion)
+        if paso == 'editar':
+            editando = True
+        else:
+            resultado = pedidos.registrar(solicitud, solo_revisar=paso == 'revisar')
+            if resultado.pedido:
+                flash(f'Pedido {resultado.pedido.folio} enviado. Registrado en {resultado.segundos:.2f} s.', 'exito')
+                return redirect(url_for('cliente.estado', folio=resultado.pedido.folio))
+            errores = resultado.errores
+            if not errores:   # paso "revisar" sin problemas: pantalla de confirmación
+                return render_template('cliente/confirmar.html', valores=valores, cliente=cliente,
+                                       c=pedidos.comprobante_de_solicitud(solicitud, resultado.cotizacion))
+    else:
+        valores = {'nombre': cliente.nombre, 'direccion': cliente.direccion or '', 'colonia': cliente.colonia or '',
                    'codigo_postal': cliente.codigo_postal or ''}
 
     return render_template(
         'cliente/pedido.html', telefono=telefono, cliente=cliente, sucursales=sucursales,
-        menu=catalogo.menu(), errores=errores, valores=valores,
+        menu=catalogo.menu(), errores=errores, valores=valores, editando=editando,
         cantidades=pedidos.leer_renglones(valores), en_curso=pedidos.en_curso_del_cliente(telefono),
         sucursal_horario={s.id_sucursal: pedidos.en_horario(s) for s in sucursales}), 422 if errores else 200
 
@@ -177,7 +187,7 @@ def _pedido_propio(folio):
 @bp.get('/mi-pedido/<folio>')
 def estado(folio):
     pedido = _pedido_propio(folio)
-    return render_template('cliente/estado.html', pedido=pedido,
+    return render_template('cliente/estado.html', pedido=pedido, c=pedidos.comprobante_de_pedido(pedido),
                            avisos=notificaciones.del_pedido_para_cliente(pedido))
 
 
@@ -185,7 +195,7 @@ def estado(folio):
 def estado_parcial(folio):
     """Fragmento que la pantalla vuelve a pedir cada 10 s (HTMX): "esta pantalla se actualiza sola"."""
     pedido = _pedido_propio(folio)
-    return render_template('cliente/_estado.html', pedido=pedido,
+    return render_template('cliente/_estado.html', pedido=pedido, c=pedidos.comprobante_de_pedido(pedido),
                            avisos=notificaciones.del_pedido_para_cliente(pedido))
 
 

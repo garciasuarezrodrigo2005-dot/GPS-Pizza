@@ -16,7 +16,7 @@ Contraseña de todos los usuarios de demo, también de los clientes: **`Pizza202
 | 2 | En `.env`: `GPIZZA_HORA_DEMO=14:00` (o la hora que diga el seed) | Los pedidos de "hoy" coinciden con el reloj; los pedidos se aceptan aunque se presente antes de las 11:00 |
 | 3 | `flask --app gpizza run --debug` (o `python run.py`) | Servidor |
 | 4 | Abrir 5 ventanas: **Cliente** (Chrome, modo celular con F12), **Cajero** (Edge), **Repartidor** (Chrome incógnito, modo celular), **Gerente** (Edge InPrivate) y **Administrador** (Firefox o un perfil nuevo de Chrome) | Cada actor con su sesión |
-| 5 | `pytest -q` en una terminal visible | Mostrar las 198 pruebas en verde al inicio |
+| 5 | `pytest -q` en una terminal visible | Mostrar las 206 pruebas en verde al inicio |
 | 6 | Tener abierto `psql -U gpizza_user -d gpizza` | Demostrar las reglas en la base de datos |
 
 **Plan B:** si no hay internet, los mapas no cargan sus mosaicos (todo lo demás funciona: Bootstrap, HTMX y Chart.js
@@ -40,7 +40,9 @@ Ventana **Cliente** (tamaño celular):
 4. Código `BIENVENIDA10` → "Aplicar" (**RN-008**). Probar `VENCIDO20` → "no está vigente".
 5. Efectivo, "¿Con cuánto pagas?" 500 → el cambio se calcula solo (**RN-009, RN-010**).
 6. Recargar la página: el pedido se recupera del dispositivo (CU-001 FA-5).
-7. "Enviar pedido" → "Registrado en 0.0X s" (**RNF-001**) y la pantalla "Tu pedido" (boceto 3), que se actualiza sola.
+7. "Revisar pedido" → **Confirma tu pedido**: la confirmación de envío con destino, sucursal, productos, descuento, total y
+   cambio (decisión 21). "Modificar pedido" regresa con todo capturado; "Confirmar y enviar" → "Registrado en 0.0X s"
+   (**RNF-001**) y "Tu pedido" (boceto 3), que se actualiza solo y muestra el comprobante con folio y fecha.
 
 ## 3. El cajero confirma (CU-001 pasos 10–11, CU-007) — 3 min
 

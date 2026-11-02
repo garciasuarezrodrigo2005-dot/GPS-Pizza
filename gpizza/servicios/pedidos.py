@@ -16,7 +16,7 @@ from sqlalchemy.exc import DBAPIError
 from gpizza import reglas, reloj
 from gpizza.extensiones import db
 from gpizza.modelos import CodigoDescuento, DetallePedido, Empleado, Pedido, Producto, Sucursal
-from gpizza.servicios import catalogo, clientes
+from gpizza.servicios import catalogo, clientes, geo
 from gpizza.servicios.errores import mensaje_bd
 
 log_rendimiento = logging.getLogger('gpizza.rendimiento')
@@ -200,6 +200,7 @@ class SolicitudPedido:
     origen: str = 'APP'
     id_cocinero: int | None = None
     tiempo_estimado_min: int | None = None
+    guardar_direccion: bool = True   # decisión 21: el destino también queda como dirección del cliente
 
 
 @dataclass
@@ -210,9 +211,12 @@ class Resultado:
     cotizacion: Cotizacion | None = None
 
 
-def registrar(solicitud: SolicitudPedido, id_cajero: int | None = None) -> Resultado:
+def registrar(solicitud: SolicitudPedido, id_cajero: int | None = None, solo_revisar: bool = False) -> Resultado:
     """Registra el pedido. Por la app queda "Por Confirmar"; por teléfono o en sucursal, el cajero
-    lo confirma en el mismo paso ("En Preparación"). Mide su duración (RNF-001: < 3 s)."""
+    lo confirma en el mismo paso ("En Preparación"). Mide su duración (RNF-001: < 3 s).
+
+    Con solo_revisar=True hace todas las validaciones y la cotización, pero no guarda nada: es la pantalla
+    "Confirma tu pedido" que el cliente revisa antes de enviarlo (decisión 21)."""
     inicio = time.perf_counter()
     errores: dict[str, str] = {}
 
@@ -230,16 +234,18 @@ def registrar(solicitud: SolicitudPedido, id_cajero: int | None = None) -> Resul
             errores['cocinero'] = 'Elige el cocinero que preparará el pedido.'
         if solicitud.tiempo_estimado_min not in reglas.TIEMPOS_ESTIMADOS_MIN:
             errores['tiempo'] = 'Elige el tiempo estimado: 45 min, 1 h o 1 h 30.'
-    if errores:
+    if errores or solo_revisar:
         return Resultado(errores=errores, cotizacion=cot)
 
-    cliente, errores_cliente = clientes.registrar_o_actualizar(solicitud.cliente)
+    destino = solicitud.cliente
+    cliente, errores_cliente = clientes.registrar_o_actualizar(destino, guardar_direccion=solicitud.guardar_direccion)
     if errores_cliente:
         return Resultado(errores=errores_cliente, cotizacion=cot)
+    latitud, longitud = _coordenadas_destino(destino, cliente)
     pedido = Pedido(
         id_sucursal=sucursal.id_sucursal, id_cliente=cliente.id_cliente, origen=solicitud.origen,
-        direccion_entrega=clientes.direccion_completa(cliente),  # copia al momento del pedido
-        latitud_entrega=cliente.latitud, longitud_entrega=cliente.longitud,
+        direccion_entrega=clientes.direccion_completa(destino),  # el destino que se escribió en este pedido
+        latitud_entrega=latitud, longitud_entrega=longitud,
         subtotal=cot.subtotal, descuento=cot.descuento, total=cot.total, forma_pago=solicitud.forma_pago,
         monto_recibido=cot.monto_recibido, cambio=cot.cambio,
         referencia_pago=solicitud.referencia_pago.strip() or None,
@@ -260,6 +266,56 @@ def registrar(solicitud: SolicitudPedido, id_cajero: int | None = None) -> Resul
     segundos = time.perf_counter() - inicio
     log_rendimiento.info('Pedido %s registrado en %.3f s (RNF-001: límite 3 s)', pedido.folio, segundos)
     return Resultado(pedido=pedido, segundos=segundos, cotizacion=cot)
+
+
+def _coordenadas_destino(destino: clientes.DatosCliente, cliente) -> tuple:
+    """Ubicación para el mapa: la del navegador si se envió; si el destino es la dirección guardada, la suya."""
+    if destino.latitud and geo.coordenadas_validas(destino.latitud, destino.longitud):
+        return round(float(destino.latitud), 6), round(float(destino.longitud), 6)
+    if clientes.direccion_completa(destino) == clientes.direccion_completa(cliente):
+        return cliente.latitud, cliente.longitud
+    return None, None
+
+
+# ------------------------------------------------------------------------------ comprobante (decisión 21)
+
+@dataclass
+class Comprobante:
+    """Todo lo que el cliente ve en "Confirma tu pedido" (antes de enviarlo) y en el comprobante de "Tu pedido"."""
+    nombre: str
+    telefono: str
+    destino: str
+    sucursal: Sucursal
+    lineas: list[tuple[int, str, Decimal, Decimal]]   # (cantidad, producto, precio unitario, importe)
+    subtotal: Decimal
+    descuento: Decimal
+    codigo: str | None
+    total: Decimal
+    forma_pago: str
+    monto_recibido: Decimal | None
+    cambio: Decimal | None
+    folio: str | None = None
+    fecha: object = None
+
+
+def comprobante_de_solicitud(solicitud: SolicitudPedido, cot: Cotizacion) -> Comprobante:
+    return Comprobante(
+        nombre=solicitud.cliente.nombre.strip(), telefono=solicitud.cliente.telefono,
+        destino=clientes.direccion_completa(solicitud.cliente), sucursal=db.session.get(Sucursal, solicitud.id_sucursal),
+        lineas=[(l.cantidad, l.nombre, l.producto.precio, l.importe) for l in cot.lineas],
+        subtotal=cot.subtotal, descuento=cot.descuento, codigo=cot.codigo.codigo if cot.codigo else None,
+        total=cot.total, forma_pago=solicitud.forma_pago, monto_recibido=cot.monto_recibido, cambio=cot.cambio)
+
+
+def comprobante_de_pedido(pedido: Pedido) -> Comprobante:
+    return Comprobante(
+        nombre=pedido.cliente.nombre, telefono=pedido.cliente.telefono, destino=pedido.direccion_entrega,
+        sucursal=pedido.sucursal,
+        lineas=[(d.cantidad, catalogo.nombre_producto(d.producto), d.precio_unitario, d.subtotal) for d in pedido.detalles],
+        subtotal=pedido.subtotal, descuento=pedido.descuento,
+        codigo=pedido.codigo_descuento.codigo if pedido.codigo_descuento else None, total=pedido.total,
+        forma_pago=pedido.forma_pago, monto_recibido=pedido.monto_recibido, cambio=pedido.cambio,
+        folio=pedido.folio, fecha=pedido.fecha_registro)
 
 
 def _cliente_normalizado(datos: clientes.DatosCliente) -> clientes.DatosCliente:

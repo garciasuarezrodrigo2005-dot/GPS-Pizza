@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {# Decisión 18 (CU-005): el cliente crea su cuenta. El teléfono es único; si el cajero ya lo había
-   registrado por un pedido telefónico, aquí elige su contraseña y conserva su historial. #}
+   registrado por un pedido telefónico, aquí elige su contraseña y conserva su historial.
+   Decisión 21: la dirección no se pide aquí; se escribe en cada pedido y la del primero se guarda. #}
 {% block titulo %}Crear cuenta{% endblock %}
 {% block encabezado %}Crear cuenta{% endblock %}
 {% block clase_contenido %}gp-contenido-medio{% endblock %}
@@ -16,19 +17,11 @@
   <p class="gp-error-campo">{{ errores.get('telefono', '') }}</p>
   <p class="small gp-texto-suave">Es tu usuario: con él entras y te avisamos de tus pedidos. Solo puede haber una cuenta por teléfono.</p>
 
-  <h3 class="gp-paso">2. Tus datos de entrega</h3>
+  <h3 class="gp-paso">2. Tu nombre</h3>
   <input name="nombre" class="form-control mb-1" placeholder="Nombre completo" value="{{ valores.get('nombre', '') }}"
          autocomplete="name" aria-label="Nombre completo" required>
   <p class="gp-error-campo">{{ errores.get('nombre', '') }}</p>
-  <input name="direccion" class="form-control mb-1" placeholder="Dirección (calle y número)" value="{{ valores.get('direccion', '') }}"
-         autocomplete="street-address" aria-label="Dirección" required>
-  <p class="gp-error-campo">{{ errores.get('direccion', '') }}</p>
-  <div class="d-flex gap-2 mb-1">
-    <input name="colonia" class="form-control" placeholder="Colonia" value="{{ valores.get('colonia', '') }}" aria-label="Colonia">
-    <input name="codigo_postal" class="form-control gp-cp" placeholder="C.P." inputmode="numeric" maxlength="5"
-           value="{{ valores.get('codigo_postal', '') }}" aria-label="Código postal">
-  </div>
-  <p class="gp-error-campo">{{ errores.get('codigo_postal', '') }}</p>
+  <p class="small gp-texto-suave">Tu dirección la escribes en tu primer pedido y se guarda para los siguientes.</p>
 
   <h3 class="gp-paso">3. Tu contraseña</h3>
   <input name="contrasena" type="password" class="form-control mb-1" autocomplete="new-password" minlength="8"

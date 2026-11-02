@@ -592,3 +592,56 @@ h2, h3, .gp-paso, .gp-portada-titulo { font-family: var(--gp-letra-titulos); }
   .gp-menu-lateral { width: 220px; }
   .gp-panel-principal { padding: 2rem 2rem; }
 }
+
+/* =====================================================================================================
+   Comprobante del pedido (decisión 21): "Confirma tu pedido" y "Tu pedido", como una confirmación de envío.
+   ===================================================================================================== */
+.gp-comprobante {
+  background: #fff; border: 1px solid var(--gp-borde); border-radius: var(--gp-radio); box-shadow: var(--gp-sombra);
+  overflow: hidden; position: relative;
+}
+.gp-comprobante::after {            /* orilla dentada de ticket */
+  content: ""; display: block; height: 10px;
+  background: radial-gradient(circle at 8px 10px, var(--gp-fondo) 6px, transparent 6.5px) repeat-x;
+  background-size: 16px 10px;
+}
+.gp-comprobante-cabeza {
+  display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+  background: linear-gradient(180deg, #2a2420, var(--gp-oscuro)); color: #fff; padding: 0.85rem 1rem;
+  border-bottom: 3px solid var(--gp-acento);
+}
+.gp-comprobante-rotulo { font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gp-dorado); }
+.gp-comprobante-folio { font-family: var(--gp-letra-titulos); font-size: 1.35rem; font-weight: 700; }
+.gp-comprobante-envio { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.75rem 1.25rem; padding: 1rem; }
+.gp-comprobante-envio section { border-left: 3px solid var(--gp-acento); padding-left: 0.75rem; font-size: 0.92rem; overflow-wrap: anywhere; }
+.gp-comprobante-envio h4 {
+  font-family: system-ui, sans-serif; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--gp-texto-suave); margin-bottom: 0.25rem;
+}
+.gp-comprobante-productos { width: calc(100% - 2rem); margin: 0 1rem; font-size: 0.92rem; border-collapse: collapse; }
+.gp-comprobante-productos th {
+  font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gp-texto-suave);
+  border-bottom: 1px solid var(--gp-borde); padding: 0.35rem 0.25rem;
+}
+.gp-comprobante-productos td { border-bottom: 1px dashed #e7e1d8; padding: 0.4rem 0.25rem; vertical-align: top; }
+.gp-comprobante-productos td:first-child { width: 2.5rem; font-weight: 700; }
+.gp-comprobante-totales {
+  display: grid; grid-template-columns: 1fr auto; gap: 0.2rem 0; margin: 0.75rem 1rem 0; font-size: 0.95rem;
+}
+.gp-comprobante-cabeza > div:first-child { min-width: 0; }
+.gp-comprobante-cabeza > div:last-child { flex-shrink: 0; font-size: 0.8rem; color: #e7e5e4; }
+.gp-comprobante-totales dt { font-weight: 400; color: var(--gp-texto-suave); }
+.gp-comprobante-totales dd { margin: 0; padding-left: 1rem; text-align: right; }
+.gp-comprobante-totales .gp-comprobante-total {
+  font-size: 1.15rem; font-weight: 800; color: var(--gp-texto); border-top: 2px solid var(--gp-oscuro);
+  padding-top: 0.35rem; margin-top: 0.2rem;
+}
+.gp-comprobante-nota { font-size: 0.82rem; color: var(--gp-texto-suave); margin: 0.75rem 1rem 0.75rem; }
+.gp-confirmar-acciones { display: grid; gap: 0.6rem; }
+@media (min-width: 768px) {
+  .gp-confirmar-acciones { grid-template-columns: 2fr 1fr; }
+}
+@media (max-width: 575.98px) {
+  .gp-comprobante-folio { font-size: 1.1rem; }
+  .gp-comprobante-cabeza > div:last-child { max-width: 42%; }
+}

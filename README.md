@@ -239,8 +239,12 @@ publicar la app con un túnel como `cloudflared` o en un servidor con HTTPS).
 
 ## Cómo comprobar la Fase 8 (cuentas de cliente y Administración)
 
-1. **Cuenta del cliente:** en el inicio toca **Crear cuenta** con un teléfono nuevo (10 dígitos) y una contraseña con
-   letras y números. Entras directo a "Haz tu pedido". Intenta crear otra con el mismo teléfono: "Ya existe una cuenta".
+1. **Cuenta del cliente:** en el inicio toca **Crear cuenta** con un teléfono nuevo (10 dígitos), tu nombre y una
+   contraseña con letras y números (sin dirección). Entras directo a "Haz tu pedido". Intenta crear otra con el mismo
+   teléfono: "Ya existe una cuenta".
+1. **Destino y confirmación:** en "¿A dónde lo llevamos?" escribe la dirección (la del primer pedido se guarda en tu
+   cuenta). "Revisar pedido" muestra **Confirma tu pedido** con todos los datos; confírmalo y en "Tu pedido" verás el
+   comprobante con folio y fecha.
 2. **Activar una cuenta:** entra con `2295678901` → "todavía no tiene cuenta"; créala con ese teléfono: conserva su perfil.
 3. **Bloqueo (RN-018):** escribe mal la contraseña de `2291234567` tres veces → bloqueada. Como `gerente.coyol`, en
    Clientes → ese cliente → **Desbloquear** (o **Olvidó su contraseña**, que le permite crearla de nuevo).

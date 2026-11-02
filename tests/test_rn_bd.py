@@ -101,7 +101,12 @@ def test_rn004_telefono_no_numerico_y_datos_vacios_son_rechazados(bd):
                    "INSERT INTO cliente (nombre, telefono, direccion) VALUES ('Ana', '229-ABC', :d)", d=cifrar('x'))
     bd.debe_fallar('cliente_nombre_check',
                    "INSERT INTO cliente (nombre, telefono, direccion) VALUES ('  ', '2290000000', :d)", d=cifrar('x'))
-    bd.debe_fallar('direccion', "INSERT INTO cliente (nombre, telefono, direccion) VALUES ('Ana', '2290000000', NULL)")
+    # Decisión 21: la cuenta se crea sin dirección; la dirección obligatoria es la de destino de cada pedido.
+    bd.sql("INSERT INTO cliente (nombre, telefono, direccion) VALUES ('Ana', '2290000000', NULL)")
+    assert bd.valor("SELECT is_nullable FROM information_schema.columns "
+                    "WHERE table_name = 'pedido' AND column_name = 'direccion_entrega'") == 'NO'
+    bd.debe_fallar('cliente_direccion_check',
+                   "INSERT INTO cliente (nombre, telefono, direccion) VALUES ('Eva', '2290000009', ''::bytea)")
 
 
 def test_producto_agotado_no_se_puede_pedir(bd):

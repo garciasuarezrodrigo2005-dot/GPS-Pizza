@@ -1,0 +1,52 @@
+{# Decisión 21: comprobante del pedido, como una confirmación de envío. Se usa en "Confirma tu pedido"
+   (antes de enviarlo, sin folio) y en "Tu pedido" (ya registrado, con folio y fecha).
+   Variable: c (servicios.pedidos.Comprobante). #}
+<article class="gp-comprobante mb-3" aria-label="Comprobante del pedido">
+  <header class="gp-comprobante-cabeza">
+    <div>
+      <div class="gp-comprobante-rotulo">{{ 'Comprobante de pedido' if c.folio else 'Confirmación de envío' }}</div>
+      <div class="gp-comprobante-folio">{{ c.folio or 'Tu pedido' }}</div>
+    </div>
+    <div class="text-end small">
+      {% if c.fecha %}{{ c.fecha.strftime('%d/%m/%Y') }}<br>{{ c.fecha|hora }} h{% else %}Por confirmar{% endif %}
+    </div>
+  </header>
+
+  <div class="gp-comprobante-envio">
+    <section>
+      <h4>Enviar a</h4>
+      <div class="fw-semibold">{{ c.nombre }}</div>
+      <div>{{ c.destino }}</div>
+      <div class="gp-texto-suave">Tel. {{ c.telefono|telefono }}</div>
+    </section>
+    <section>
+      <h4>Desde</h4>
+      <div class="fw-semibold">Yungla Pizza · {{ c.sucursal.nombre }}</div>
+      <div>{{ c.sucursal.direccion }}, {{ c.sucursal.ciudad }}</div>
+      <div class="gp-texto-suave">Pedidos de {{ c.sucursal.hora_apertura.strftime('%H:%M') }} a {{ c.sucursal.hora_cierre.strftime('%H:%M') }} h</div>
+    </section>
+  </div>
+
+  <table class="gp-comprobante-productos">
+    <thead><tr><th>Cant.</th><th>Producto</th><th class="text-end">Precio</th><th class="text-end">Importe</th></tr></thead>
+    <tbody>
+    {% for cantidad, nombre, precio, importe in c.lineas %}
+      <tr><td>{{ cantidad }}</td><td>{{ nombre }}</td><td class="text-end">{{ precio|dinero }}</td><td class="text-end">{{ importe|dinero }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+  <dl class="gp-comprobante-totales">
+    <dt>Subtotal</dt><dd>{{ c.subtotal|dinero }}</dd>
+    {% if c.descuento > 0 %}<dt>Descuento{% if c.codigo %} ({{ c.codigo }}){% endif %}</dt><dd>− {{ c.descuento|dinero }}</dd>{% endif %}
+    <dt>Envío</dt><dd>Sin costo</dd>
+    <dt class="gp-comprobante-total">Total</dt><dd class="gp-comprobante-total">{{ c.total|dinero }}</dd>
+    <dt>Forma de pago</dt><dd>{{ c.forma_pago }}</dd>
+    {% if c.monto_recibido is not none %}
+      <dt>Pagas con</dt><dd>{{ c.monto_recibido|dinero }}</dd>
+      <dt>Tu cambio</dt><dd>{{ c.cambio|dinero }}</dd>
+    {% endif %}
+  </dl>
+  <p class="gp-comprobante-nota">El pago se hace al recibir tu pedido{% if c.forma_pago == 'Efectivo' %}; el repartidor lleva tu cambio{% endif %}.
+    {% if not c.folio %}El tiempo estimado te lo confirma la sucursal al aceptar tu pedido.{% endif %}</p>
+</article>

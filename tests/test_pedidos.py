@@ -33,8 +33,7 @@ def entrar_como_cliente(web, telefono=TEL_ANA, contrasena='Pizza2026'):
                                           'csrf_token': token_csrf(web, '/crear-cuenta')})
     if respuesta.status_code != 302:
         web.post('/crear-cuenta', data={
-            'telefono': telefono, 'nombre': 'Cliente Prueba', 'direccion': 'Calle Prueba 1', 'colonia': 'Centro',
-            'codigo_postal': '91700', 'contrasena': contrasena, 'confirmacion': contrasena,
+            'telefono': telefono, 'nombre': 'Cliente Prueba', 'contrasena': contrasena, 'confirmacion': contrasena,
             'csrf_token': token_csrf(web, '/crear-cuenta')})
 
 

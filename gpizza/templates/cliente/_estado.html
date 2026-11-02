@@ -90,15 +90,8 @@
   </div>
 {% endif %}
 
-<div class="gp-tarjeta mb-3">
-  <h3 class="h6 fw-bold">Resumen</h3>
-  {% for d in pedido.detalles %}
-    <div class="d-flex justify-content-between small"><span>{{ d.cantidad }} × {{ d.producto.nombre }}{{ ' ' ~ d.producto.tamano if d.producto.tamano }}</span><span>{{ d.subtotal|dinero }}</span></div>
-  {% endfor %}
-  {% if pedido.descuento > 0 %}<div class="d-flex justify-content-between small"><span>Descuento</span><span>− {{ pedido.descuento|dinero }}</span></div>{% endif %}
-  <hr class="my-2">
-  <div class="d-flex justify-content-between small"><span>Pago</span><span>{{ pedido.forma_pago }}{% if pedido.cambio is not none %} (paga con {{ pedido.monto_recibido|dinero }}, cambio {{ pedido.cambio|dinero }}){% endif %}</span></div>
-  <div class="d-flex justify-content-between fw-bold"><span>Total</span><span>{{ pedido.total|dinero }}</span></div>
+{# Decisión 21: comprobante completo del pedido, como una confirmación de envío. #}
+{% include 'parciales/_comprobante.html' %}
 </div>
 
 {% if pedido.estado == 'Por Confirmar' %}

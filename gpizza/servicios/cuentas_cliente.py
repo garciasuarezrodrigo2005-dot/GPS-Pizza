@@ -42,7 +42,7 @@ def de_la_sesion(id_cliente: int | None, huella_guardada: str | None) -> Cliente
 
 def crear_cuenta(datos: clientes.DatosCliente, contrasena: str, confirmacion: str) -> tuple[Cliente | None, dict[str, str]]:
     datos.telefono = clientes.normalizar_telefono(datos.telefono)
-    errores = clientes.validar(datos)
+    errores = clientes.validar(datos, exigir_direccion=False)   # decisión 21: se pide en el primer pedido
     if contrasena != confirmacion:
         errores['confirmacion'] = 'La contraseña y su confirmación no coinciden.'
     problema = contrasenas.politica(contrasena or '')
@@ -54,7 +54,7 @@ def crear_cuenta(datos: clientes.DatosCliente, contrasena: str, confirmacion: st
     if errores:
         return None, errores
 
-    cliente, errores = clientes.registrar_o_actualizar(datos)
+    cliente, errores = clientes.registrar_o_actualizar(datos, guardar_direccion=False, exigir_direccion=False)
     if errores:
         return None, errores
     cliente.password_hash = contrasenas.generar_hash(contrasena)
