@@ -48,5 +48,7 @@ def registrar_medicion(app: Flask) -> None:
                                      request.method, request.path, respuesta.status_code, ms)
         respuesta.headers.setdefault('X-Content-Type-Options', 'nosniff')
         respuesta.headers.setdefault('X-Frame-Options', 'DENY')
-        respuesta.headers.setdefault('Referrer-Policy', 'same-origin')
+        # A otros sitios solo se les dice el origen (http://localhost:5000/), nunca la ruta (folios, búsquedas).
+        # OpenStreetMap exige ese dato para entregar los mosaicos del mapa; con 'same-origin' los bloquea (403).
+        respuesta.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
         return respuesta

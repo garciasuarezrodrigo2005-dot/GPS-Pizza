@@ -81,6 +81,8 @@ def test_cabeceras_de_seguridad(cliente):
     cabeceras = cliente.get('/').headers
     assert cabeceras['X-Content-Type-Options'] == 'nosniff'
     assert cabeceras['X-Frame-Options'] == 'DENY'
+    # Solo el origen a otros sitios: suficiente para que OpenStreetMap entregue los mosaicos, sin filtrar rutas.
+    assert cabeceras['Referrer-Policy'] == 'strict-origin-when-cross-origin'
 
 
 # ---------- RNF-001: cada respuesta trae su tiempo ----------

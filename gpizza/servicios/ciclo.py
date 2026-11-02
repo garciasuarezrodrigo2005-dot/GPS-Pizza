@@ -59,11 +59,13 @@ def asignaciones_vivas(pedidos: list[Pedido]) -> dict[int, AsignacionEntrega]:
 
 
 def minutos_en_estado(pedido: Pedido) -> int | None:
-    """Minutos en preparación (RN-006) o en camino (RN-014); None en otros estados."""
+    """Minutos en preparación (RN-006) o en camino (RN-014); None en otros estados.
+    Nunca es negativo: si el reloj de la app va antes que la hora del pedido (p. ej. datos de demo cargados
+    "a las 14:00" sin GPIZZA_HORA_DEMO), se muestra 0 en vez de "-675 min"."""
     inicio = {'En Preparación': pedido.fecha_preparacion, 'En Camino': pedido.fecha_en_camino}.get(pedido.estado)
     if inicio is None:
         return None
-    return int((reloj.ahora() - inicio).total_seconds() // 60)
+    return max(0, int((reloj.ahora() - inicio).total_seconds() // 60))
 
 
 def alerta(pedido: Pedido) -> str | None:

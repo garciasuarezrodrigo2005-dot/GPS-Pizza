@@ -11,6 +11,8 @@ window.GPizzaMapa = (() => {
     const mapa = L.map(elemento, { zoomControl: true, attributionControl: true });
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19, attribution: '&copy; colaboradores de OpenStreetMap',
+      // Política de uso de OpenStreetMap: cada mosaico debe indicar el sitio que lo pide (solo el origen).
+      referrerPolicy: 'strict-origin-when-cross-origin',
     }).addTo(mapa);
 
     let marcaRepartidor = repartidor ? L.marker(repartidor, { icon: icono('🛵'), title: 'Repartidor' }).addTo(mapa) : null;
