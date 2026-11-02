@@ -17,8 +17,7 @@
       {% set secciones = [
         ('pedidos', 'Pedidos', 'gerente.pedidos'), ('catalogo', 'Catálogo y precios', 'gerente.catalogo'),
         ('clientes', 'Clientes', 'gerente.lista_clientes'), ('personal', 'Personal', 'gerente.personal_lista'),
-        ('descuentos', 'Descuentos y devoluciones', 'gerente.descuentos'), ('reportes', 'Reportes', 'gerente.reportes_vista'),
-        ('auditoria', 'Auditoría', 'gerente.auditoria_vista')] %}
+        ('descuentos', 'Descuentos y devoluciones', 'gerente.descuentos'), ('reportes', 'Reportes', 'gerente.reportes_vista')] %}
       {% for clave, nombre, destino in secciones %}
         {% if destino %}<a class="{{ 'activa' if activa == clave }}" href="{{ url_for(destino) }}">{{ nombre }}</a>
         {% else %}<span class="gp-pestana-pendiente">{{ nombre }}</span>{% endif %}

@@ -16,6 +16,26 @@
       {% endfor %}
       <button class="btn btn-gp-oscuro w-100">Guardar cambios</button>
     </form>
+    {# Decisión 18: estado de la cuenta del cliente y atención cuando la olvida o se bloquea. #}
+    <div class="gp-tarjeta mt-3">
+      <strong>Cuenta en la app</strong>
+      {% if not cliente.tiene_cuenta %}
+        <p class="small gp-texto-suave mb-0 mt-1">Sin cuenta: lo registró la sucursal. Puede crear su cuenta en la app con su teléfono.</p>
+      {% else %}
+        <p class="small mb-2 mt-1">
+          {% if cliente.bloqueado %}<span class="gp-estado gp-texto-alerta">Bloqueada</span> tras 3 intentos fallidos (RN-018).
+          {% else %}Activa desde {{ cliente.fecha_alta_cuenta.strftime('%d/%m/%Y') }}.{% endif %}</p>
+        <div class="d-flex flex-wrap gap-2">
+          {% if cliente.bloqueado %}
+          <form method="post" action="{{ url_for('gerente.cuenta_cliente', id_cliente=cliente.id_cliente, accion='desbloquear') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-gp-borde btn-sm">Desbloquear</button></form>
+          {% endif %}
+          <form method="post" action="{{ url_for('gerente.cuenta_cliente', id_cliente=cliente.id_cliente, accion='quitar-contrasena') }}"
+                onsubmit="return confirm('¿Quitar la contraseña? El cliente deberá crear su cuenta de nuevo con su teléfono.');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-gp-borde btn-sm">Olvidó su contraseña</button></form>
+        </div>
+      {% endif %}
+    </div>
   </div>
   <div class="col-12 col-lg-7">
     <div class="gp-tarjeta">

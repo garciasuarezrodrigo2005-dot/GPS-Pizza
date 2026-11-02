@@ -16,7 +16,9 @@ from gpizza.extensiones import db
 from gpizza.servicios import autenticacion
 
 # Pantalla principal de cada rol, a donde llega después del login.
-INICIO_POR_ROL = {'Cajero': 'cajero.inicio', 'Repartidor': 'repartidor.inicio', 'Gerente': 'gerente.inicio'}
+INICIO_POR_ROL = {'Cajero': 'cajero.inicio', 'Repartidor': 'repartidor.inicio', 'Gerente': 'gerente.inicio',
+                  'Administrador': 'admin.inicio'}
+TODA_LA_CADENA = 'Toda la cadena'  # "sucursal" del Administrador (decisión 19)
 
 
 @dataclass(frozen=True)
@@ -25,7 +27,7 @@ class UsuarioActual:
     id_sesion: int
     nombre: str
     rol: str
-    id_sucursal: int
+    id_sucursal: int | None   # None: el Administrador, que es de toda la cadena
     sucursal: str
     debe_cambiar_contrasena: bool
 
@@ -47,7 +49,7 @@ def cargar_usuario() -> None:
     e = sesion.empleado
     g.usuario = UsuarioActual(
         id_empleado=e.id_empleado, id_sesion=sesion.id_sesion, nombre=e.nombre_completo, rol=e.puesto,
-        id_sucursal=e.id_sucursal, sucursal=e.sucursal.nombre,
+        id_sucursal=e.id_sucursal, sucursal=e.sucursal.nombre if e.sucursal else TODA_LA_CADENA,
         debe_cambiar_contrasena=autenticacion.contrasena_vencida(e))
     # La transacción ya había empezado (para buscar la sesión) sin usuario: se le avisa a la BD
     # quién es, para que los triggers y la auditoría lo sepan (RN-019).

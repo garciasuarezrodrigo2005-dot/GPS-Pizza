@@ -3,10 +3,10 @@
 {% block titulo %}Haz tu pedido{% endblock %}
 {% block encabezado %}Haz tu pedido{% endblock %}
 {% block encabezado_derecha %}
-  Tel. {{ telefono|telefono }}
-  <form method="post" action="{{ url_for('cliente.cambiar_telefono') }}" class="d-inline">
+  <a class="text-reset text-decoration-none" href="{{ url_for('cliente.mi_cuenta') }}" title="Mi cuenta">{{ cliente.nombre.split()[0] }}</a>
+  <form method="post" action="{{ url_for('cliente.salir') }}" class="d-inline">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <button class="gp-boton-salir ms-1" title="Usar otro teléfono">Cambiar</button>
+    <button class="gp-boton-salir" title="Cerrar sesión">Salir</button>
   </form>
 {% endblock %}
 

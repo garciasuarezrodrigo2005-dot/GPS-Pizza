@@ -26,8 +26,8 @@ def create_app(config_class: type[Config] = Config) -> Flask:
     registrar_comandos(app)
 
     from gpizza.seguridad.acceso import cargar_usuario
-    from gpizza.web import auth, cajero, cliente, gerente, notificaciones, repartidor, seguimiento, sistema
-    for modulo in (sistema, cliente, auth, cajero, repartidor, gerente, notificaciones, seguimiento):
+    from gpizza.web import admin, auth, cajero, cliente, gerente, notificaciones, repartidor, seguimiento, sistema
+    for modulo in (sistema, cliente, auth, cajero, repartidor, gerente, admin, notificaciones, seguimiento):
         app.register_blueprint(modulo.bp)
     app.before_request(cargar_usuario)
     from gpizza.servicios import ciclo

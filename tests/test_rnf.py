@@ -24,12 +24,14 @@ PERMISOS = [
     (r'^/cajero/', {'Cajero'}),
     (r'^/repartidor/', {'Repartidor'}),
     (r'^/gerente/', {'Gerente'}),
+    (r'^/admin/', {'Administrador'}),
     (r'^/notificaciones/', {'Cajero', 'Repartidor', 'Gerente'}),
     (r'^/seguimiento/<folio>/comanda$', {'Cajero', 'Gerente'}),
     (r'^/seguimiento/<folio>', {'Cajero', 'Repartidor', 'Gerente'}),
     (r'^/seguimiento/$', {'Cajero', 'Gerente'}),
 ]
-USUARIOS = {'Cajero': 'cajero1.coyol', 'Repartidor': 'repartidor1.coyol', 'Gerente': 'gerente.coyol'}
+USUARIOS = {'Cajero': 'cajero1.coyol', 'Repartidor': 'repartidor1.coyol', 'Gerente': 'gerente.coyol',
+            'Administrador': 'admin.yungla'}
 VALORES = {'int': '1', 'default': 'YP-0001'}
 
 
@@ -60,7 +62,7 @@ def test_rnf003_sin_sesion_ninguna_ruta_del_personal_responde(app_bd):
         assert respuesta.status_code == 302 and '/login' in respuesta.headers['Location'], f'{metodo} {url}'
 
 
-@pytest.mark.parametrize('rol', ['Cajero', 'Repartidor', 'Gerente'])
+@pytest.mark.parametrize('rol', ['Cajero', 'Repartidor', 'Gerente', 'Administrador'])
 def test_rnf003_cada_rol_solo_entra_a_lo_suyo_y_nada_truena(app_bd, rol):
     web = app_bd.test_client()
     iniciar_sesion(web, USUARIOS[rol])
@@ -76,7 +78,7 @@ def test_rnf003_cada_rol_solo_entra_a_lo_suyo_y_nada_truena(app_bd, rol):
 
 def test_rnf003_el_cliente_no_entra_a_pantallas_del_personal(app_bd, web):
     entrar_como_cliente(web)
-    for url in ('/cajero/', '/gerente/reportes', '/seguimiento/YP-0001', '/notificaciones/'):
+    for url in ('/cajero/', '/gerente/reportes', '/admin/auditoria', '/seguimiento/YP-0001', '/notificaciones/'):
         assert web.get(url).headers['Location'].startswith('/login')
 
 

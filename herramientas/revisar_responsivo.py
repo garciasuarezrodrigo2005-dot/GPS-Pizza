@@ -14,8 +14,8 @@ ANCHOS = [int(a) for a in (sys.argv[3] if len(sys.argv) > 3 else '320,360,390,41
 SALIDA.mkdir(parents=True, exist_ok=True)
 
 GRUPOS = {
-    None: ['/', '/login', '/no-existe'],
-    'cliente': ['/pedido', '/mi-pedido/YP-0224'],
+    None: ['/', '/login', '/crear-cuenta', '/no-existe'],
+    'cliente': ['/pedido', '/mi-pedido/YP-0224', '/mi-cuenta'],
     'cajero1.coyol': ['/cajero/', '/cajero/pedidos', '/cajero/pedidos?estado=En%20Camino', '/cajero/nuevo',
                       '/cajero/nuevo?telefono=2297654321', '/cajero/clientes', '/cajero/clientes/nuevo',
                       '/seguimiento/?q=YP-0224', '/seguimiento/YP-0224', '/notificaciones/', '/cambiar-contrasena'],
@@ -23,6 +23,7 @@ GRUPOS = {
     'gerente.coyol': ['/gerente/', '/gerente/pedidos', '/gerente/catalogo', '/gerente/clientes', '/gerente/clientes/1',
                       '/gerente/personal', '/gerente/descuentos', '/gerente/reportes', '/gerente/auditoria',
                       '/gerente/catalogo/etiquetas', '/seguimiento/YP-0224'],
+    'admin.yungla': ['/admin/', '/admin/sucursales', '/admin/gerentes', '/admin/auditoria'],
 }
 
 REVISAR = r"""() => {
@@ -89,7 +90,8 @@ def entrar(pagina, rol):
     if rol == 'cliente':
         pagina.goto(BASE + '/')
         pagina.fill('#telefono', '2298901234')
-        pagina.click('button[type=submit]')
+        pagina.fill('#contrasena', 'Pizza2026')
+        pagina.click('button:has-text("Entrar")')
     elif rol:
         pagina.goto(BASE + '/login')
         pagina.fill('#usuario', rol)

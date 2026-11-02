@@ -1,7 +1,7 @@
-"""Interfaz del cliente (bocetos, páginas 1 a 4): entra con su teléfono, arma su pedido y lo sigue.
+"""Interfaz del cliente (bocetos, páginas 1 a 4): entra a su cuenta, arma su pedido y lo sigue.
 
-El cliente no tiene contraseña (decisión 14): su teléfono queda en la cookie firmada de su
-navegador y solo puede ver los pedidos de ese teléfono.
+Decisión 18: el cliente tiene cuenta con su teléfono (único) y una contraseña. La sesión vive en la
+cookie firmada del navegador (id del cliente + huella de su contraseña) y solo ve sus propios pedidos.
 """
 from flask import (Blueprint, abort, flash, g, jsonify, redirect, render_template, request, session,
                    url_for)
@@ -9,9 +9,11 @@ from flask import (Blueprint, abort, flash, g, jsonify, redirect, render_templat
 from gpizza import reglas, reloj
 from gpizza.bd import fijar_contexto
 from gpizza.extensiones import db
-from gpizza.servicios import catalogo, ciclo, clientes, entregas, notificaciones, pedidos
+from gpizza.seguridad.acceso import destino_seguro
+from gpizza.servicios import catalogo, ciclo, clientes, cuentas_cliente, entregas, notificaciones, pedidos
 
 bp = Blueprint('cliente', __name__)
+CLAVES_SESION = ('id_cliente', 'huella_cliente', 'telefono')
 
 
 @bp.before_request
@@ -26,42 +28,99 @@ def _como_cliente():
         fijar_contexto(db.session, rol='Cliente', ahora=reloj.ahora() if reloj.simulada() else None)
 
 
-def _telefono_o_inicio():
-    telefono = session.get('telefono')
-    if not telefono:
-        flash('Escribe tu número de teléfono para continuar.', 'aviso')
-    return telefono
+def _iniciar_sesion_cliente(cliente):
+    session['id_cliente'] = cliente.id_cliente
+    session['huella_cliente'] = cuentas_cliente.huella(cliente)
+    session['telefono'] = cliente.telefono
+
+
+def _cerrar_sesion_cliente():
+    for clave in CLAVES_SESION:
+        session.pop(clave, None)
+
+
+def _cliente_actual():
+    """El cliente con sesión vigente, o None (y se borra una sesión que ya no vale)."""
+    cliente = cuentas_cliente.de_la_sesion(session.get('id_cliente'), session.get('huella_cliente'))
+    if cliente is None and session.get('id_cliente'):
+        _cerrar_sesion_cliente()
+        flash('Tu sesión se cerró: tu contraseña cambió o tu cuenta se bloqueó. Vuelve a entrar.', 'aviso')
+    return cliente
+
+
+def _pantalla_inicio(**datos):
+    return render_template('cliente/inicio.html', en_horario=reloj.en_horario(), apertura=reglas.HORA_APERTURA,
+                           cierre=reglas.HORA_CIERRE, **({'telefono': '', 'mensaje': ''} | datos))
 
 
 @bp.get('/')
 def inicio():
-    return render_template('cliente/inicio.html', en_horario=reloj.en_horario(),
-                           apertura=reglas.HORA_APERTURA, cierre=reglas.HORA_CIERRE,
-                           telefono=session.get('telefono', ''))
+    if session.get('id_cliente'):
+        return redirect(url_for('cliente.pedido'))
+    return _pantalla_inicio(telefono=request.args.get('telefono', ''))
 
 
-@bp.post('/continuar')
-def continuar():
+@bp.post('/entrar')
+def entrar():
     telefono = clientes.normalizar_telefono(request.form.get('telefono'))
     if not clientes.telefono_valido(telefono):
-        flash('El teléfono debe tener 10 dígitos, solo números.', 'error')
-        return redirect(url_for('cliente.inicio'))
-    session['telefono'] = telefono
-    return redirect(url_for('cliente.pedido'))
+        return _pantalla_inicio(telefono=telefono, mensaje='El teléfono debe tener 10 dígitos, solo números.'), 422
+    cliente, mensaje = cuentas_cliente.entrar(telefono, request.form.get('contrasena', ''))
+    if cliente is None:
+        return _pantalla_inicio(telefono=telefono, mensaje=mensaje), 401
+    _iniciar_sesion_cliente(cliente)
+    return redirect(destino_seguro(request.args.get('siguiente')) or url_for('cliente.pedido'))
 
 
-@bp.post('/cambiar-telefono')
-def cambiar_telefono():
-    session.pop('telefono', None)
+@bp.route('/crear-cuenta', methods=['GET', 'POST'])
+def crear_cuenta():
+    errores, valores = {}, {'telefono': clientes.normalizar_telefono(request.args.get('telefono', ''))}
+    if request.method == 'POST':
+        valores = request.form.to_dict()
+        cliente, errores = cuentas_cliente.crear_cuenta(
+            clientes.DatosCliente(nombre=valores.get('nombre', ''), telefono=valores.get('telefono', ''),
+                                  direccion=valores.get('direccion', ''), colonia=valores.get('colonia', ''),
+                                  codigo_postal=valores.get('codigo_postal', '')),
+            valores.get('contrasena', ''), valores.get('confirmacion', ''))
+        if cliente is not None:
+            _iniciar_sesion_cliente(cliente)
+            flash(f'¡Bienvenido, {cliente.nombre.split()[0]}! Tu cuenta quedó creada.', 'exito')
+            return redirect(url_for('cliente.pedido'))
+        valores.pop('contrasena', None)
+        valores.pop('confirmacion', None)
+    return render_template('cliente/crear_cuenta.html', errores=errores, valores=valores), 422 if errores else 200
+
+
+@bp.post('/mi-cuenta/salir')
+def salir():
+    _cerrar_sesion_cliente()
+    flash('Cerraste tu sesión.', 'exito')
     return redirect(url_for('cliente.inicio'))
+
+
+@bp.route('/mi-cuenta', methods=['GET', 'POST'])
+def mi_cuenta():
+    cliente = _cliente_actual()
+    if cliente is None:
+        return redirect(url_for('cliente.inicio'))
+    problema = None
+    if request.method == 'POST':
+        problema = cuentas_cliente.cambiar_contrasena(cliente, request.form.get('actual', ''),
+                                                      request.form.get('nueva', ''), request.form.get('confirmacion', ''))
+        if problema is None:
+            session['huella_cliente'] = cuentas_cliente.huella(cliente)
+            flash('Tu contraseña se cambió.', 'exito')
+            return redirect(url_for('cliente.pedido'))
+    return render_template('cliente/mi_cuenta.html', cliente=cliente, problema=problema), 422 if problema else 200
 
 
 @bp.route('/pedido', methods=['GET', 'POST'])
 def pedido():
-    telefono = _telefono_o_inicio()
-    if not telefono:
+    cliente = _cliente_actual()
+    if cliente is None:
+        flash('Entra a tu cuenta para hacer tu pedido.', 'aviso')
         return redirect(url_for('cliente.inicio'))
-    cliente = clientes.por_telefono(telefono)
+    telefono = cliente.telefono
     sucursales = pedidos.sucursales_activas()
     errores, valores = {}, {}
 
@@ -108,8 +167,8 @@ def revisar_codigo():
 
 
 def _pedido_propio(folio):
-    telefono = session.get('telefono')
-    pedido = pedidos.del_cliente(folio, telefono) if telefono else None
+    cliente = _cliente_actual()
+    pedido = pedidos.del_cliente(folio, cliente.telefono) if cliente else None
     if pedido is None:
         abort(404)
     return pedido

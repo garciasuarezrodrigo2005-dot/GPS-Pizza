@@ -6,7 +6,7 @@ Proyecto escolar del Instituto Tecnológico de Veracruz (Ingeniería en Sistemas
 Es una **app móvil progresiva (PWA)**: en el celular se instala en la pantalla de inicio como una app y en la PC
 funciona como página web. Tiene tres interfaces: **Cliente**, **Personal** (cajero y repartidor) y **Gerente**.
 
-> Estado: **completo (Fases 0 a 7)**. Guion de la presentación: [docs/guion_demo.md](docs/guion_demo.md) (ver [docs/trazabilidad.md](docs/trazabilidad.md)).
+> Estado: **completo (Fases 0 a 8)**. Guion de la presentación: [docs/guion_demo.md](docs/guion_demo.md) (ver [docs/trazabilidad.md](docs/trazabilidad.md)).
 
 ## Tecnologías
 
@@ -59,6 +59,7 @@ Contraseña de todos: **`Pizza2026`**
 
 | Usuario | Rol | Sucursal | Nota |
 |---|---|---|---|
+| `admin.yungla` | Administrador | toda la cadena | sucursales, gerentes y auditoría (`/admin`) |
 | `gerente.coyol` | Gerente | Coyol (matriz) | |
 | `cajero1.coyol` | Cajero | Coyol | |
 | `cajero2.coyol` | Cajero | Coyol | contraseña vencida (RN-018: pedirá cambiarla) |
@@ -68,7 +69,9 @@ Contraseña de todos: **`Pizza2026`**
 | `gerente.X`, `cajero1.X`, `repartidor1.X` con X = `tejeria`, `riviera`, `carranza` | | | |
 
 Los cocineros no inician sesión (RN-016); el cajero los asigna a cada pedido.
-Clientes de prueba (entran con su teléfono): `2295865835` (el del boceto), `2291234567`, `2297654321`…
+Clientes de prueba (entran con su teléfono y la misma contraseña `Pizza2026`): `2295865835` (el del boceto),
+`2291234567`, `2297654321`… El `2295678901` lo registró la sucursal por teléfono y **no tiene cuenta**: sirve para
+probar "Crear cuenta" con un teléfono que ya existía.
 Códigos de descuento: `BIENVENIDA10` (10 %) y `PROMO50` ($50) están vigentes; `VENCIDO20` está vencido y
 `USADO15` ya se usó (RN-008: cada código sirve una vez).
 
@@ -82,6 +85,7 @@ Códigos de descuento: `BIENVENIDA10` (10 %) y `PROMO50` ($50) están vigentes; 
 | Correr las pruebas | `pytest -v` | — |
 | Generar las alertas de 45 y 90 min a mano | `flask --app gpizza alertas` | — |
 | Desbloquear una cuenta (p. ej. la de un gerente) | `flask --app gpizza desbloquear gerente.coyol` | — |
+| Crear un administrador (no hay botón en la web) | `flask --app gpizza crear-admin --usuario admin.nuevo --nombre … --apellidos … --telefono …` | — |
 
 Las pruebas usan la base `gpizza_test`: la borran, la recrean y cargan los datos de demo en cada corrida,
 y cada prueba deshace sus cambios al terminar. La base `gpizza` nunca se toca.
@@ -232,6 +236,22 @@ y abre `https://IP-de-la-PC:5443` (la IP se ve con `ipconfig`). El certificado e
 "La conexión no es privada"; toca "Configuración avanzada → Continuar". Con eso funcionan la ubicación y la firma.
 Con un certificado autofirmado Chrome no instala la app como PWA; para eso hace falta un certificado real (por ejemplo,
 publicar la app con un túnel como `cloudflared` o en un servidor con HTTPS).
+
+## Cómo comprobar la Fase 8 (cuentas de cliente y Administración)
+
+1. **Cuenta del cliente:** en el inicio toca **Crear cuenta** con un teléfono nuevo (10 dígitos) y una contraseña con
+   letras y números. Entras directo a "Haz tu pedido". Intenta crear otra con el mismo teléfono: "Ya existe una cuenta".
+2. **Activar una cuenta:** entra con `2295678901` → "todavía no tiene cuenta"; créala con ese teléfono: conserva su perfil.
+3. **Bloqueo (RN-018):** escribe mal la contraseña de `2291234567` tres veces → bloqueada. Como `gerente.coyol`, en
+   Clientes → ese cliente → **Desbloquear** (o **Olvidó su contraseña**, que le permite crearla de nuevo).
+4. **Administración:** entra como `admin.yungla` → `/admin`. En **Sucursales** abre "Boca del Río"; el aviso te lleva a
+   **Gerentes** para darle uno (contraseña temporal). Ese gerente da de alta a su personal en su panel.
+5. **Auditoría solo del administrador:** el gerente ya no la ve (`/gerente/auditoria` → no existe); el administrador la
+   filtra por sucursal. En la base de datos, un gerente no puede crear gerentes ni sucursales:
+   ```sql
+   SELECT set_config('gpizza.rol', 'Gerente', false);
+   UPDATE sucursal SET hora_cierre = '23:00';   -- CU-011: rechazado
+   ```
 
 ## Cómo comprobar la Fase 0
 

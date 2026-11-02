@@ -44,12 +44,13 @@ CREATE TABLE sucursal (
 -- -------------------------------------------------------------------------------------
 CREATE TABLE empleado (
     id_empleado           INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    id_sucursal           INTEGER NOT NULL REFERENCES sucursal,
+    id_sucursal           INTEGER REFERENCES sucursal,           -- NULL solo para el Administrador
     nombre                VARCHAR(60) NOT NULL CHECK (btrim(nombre) <> ''),
     apellidos             VARCHAR(80) NOT NULL CHECK (btrim(apellidos) <> ''),
     telefono              VARCHAR(10) NOT NULL CHECK (telefono ~ '^[0-9]{10}$'),
     -- RN-016: una sola columna de puesto = exactamente un rol por usuario.
-    puesto                VARCHAR(12) NOT NULL CHECK (puesto IN ('Cajero', 'Cocinero', 'Repartidor', 'Gerente')),
+    puesto                VARCHAR(13) NOT NULL
+                          CHECK (puesto IN ('Cajero', 'Cocinero', 'Repartidor', 'Gerente', 'Administrador')),
     username              VARCHAR(40) UNIQUE CHECK (username ~ '^[a-z0-9._-]{4,40}$'),
     password_hash         VARCHAR(255),
     fecha_cambio_password DATE,
@@ -66,6 +67,8 @@ CREATE TABLE empleado (
         OR (puesto <> 'Cocinero' AND username IS NOT NULL AND password_hash IS NOT NULL
             AND fecha_cambio_password IS NOT NULL)),
     CONSTRAINT rn018_intentos CHECK (intentos_fallidos BETWEEN 0 AND 3),
+    -- Decisión 19: el Administrador es de toda la cadena (sin sucursal); los demás puestos, de una sucursal.
+    CONSTRAINT rn016_administrador_sin_sucursal CHECK ((puesto = 'Administrador') = (id_sucursal IS NULL)),
     -- La disponibilidad (interruptor del boceto) solo aplica al repartidor.
     CONSTRAINT ck_empleado_disponible CHECK ((puesto = 'Repartidor') = (disponible IS NOT NULL))
 );
@@ -108,7 +111,15 @@ CREATE TABLE cliente (
     codigo_postal  CHAR(5) CHECK (codigo_postal ~ '^[0-9]{5}$'),
     latitud        NUMERIC(9,6) CHECK (latitud BETWEEN -90 AND 90),
     longitud       NUMERIC(9,6) CHECK (longitud BETWEEN -180 AND 180),
-    fecha_registro TIMESTAMPTZ NOT NULL DEFAULT fn_ahora()
+    fecha_registro TIMESTAMPTZ NOT NULL DEFAULT fn_ahora(),
+    -- Decisión 18: cuenta del cliente. Un cliente dado de alta por el cajero (pedido por teléfono) no tiene
+    -- contraseña hasta que él mismo crea su cuenta con ese teléfono. RN-018 también aplica: 3 intentos.
+    password_hash      VARCHAR(255),
+    fecha_alta_cuenta  TIMESTAMPTZ,
+    intentos_fallidos  SMALLINT NOT NULL DEFAULT 0,
+    bloqueado          BOOLEAN NOT NULL DEFAULT false,
+    CONSTRAINT rn018_cliente_intentos CHECK (intentos_fallidos BETWEEN 0 AND 3),
+    CONSTRAINT ck_cliente_cuenta CHECK ((password_hash IS NULL) = (fecha_alta_cuenta IS NULL))
 );
 
 -- -------------------------------------------------------------------------------------

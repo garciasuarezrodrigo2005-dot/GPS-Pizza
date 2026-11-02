@@ -611,6 +611,70 @@ END $$;
 CREATE TRIGGER trg_empleado_bloqueo BEFORE UPDATE ON empleado
     FOR EACH ROW EXECUTE FUNCTION fn_empleado_bloqueo();
 
+-- RN-018 en la cuenta del cliente: al tercer intento fallido se bloquea; el gerente la desbloquea.
+CREATE FUNCTION fn_cliente_bloqueo() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    IF OLD.bloqueado AND NOT NEW.bloqueado THEN
+        NEW.intentos_fallidos := 0;
+    END IF;
+    IF NEW.intentos_fallidos >= 3 THEN
+        NEW.bloqueado := true;
+    END IF;
+    RETURN NEW;
+END $$;
+
+CREATE TRIGGER trg_cliente_bloqueo BEFORE UPDATE ON cliente
+    FOR EACH ROW EXECUTE FUNCTION fn_cliente_bloqueo();
+
+-- =====================================================================================
+-- ALTAS DE USUARIOS Y SUCURSALES (CU-009 y CU-011, decisión 19)
+-- El gerente administra cajeros, cocineros y repartidores de SU sucursal; los gerentes y las
+-- sucursales los administra el Administrador; un Administrador solo se crea desde la consola.
+-- El rol 'Sistema' (sin sesión: consola, carga de datos) no se restringe.
+-- =====================================================================================
+CREATE FUNCTION fn_empleado_permisos() RETURNS trigger LANGUAGE plpgsql AS $$
+DECLARE
+    v_rol text := fn_rol();
+    v_mi_sucursal integer;
+BEGIN
+    IF v_rol = 'Sistema' THEN
+        RETURN NEW;
+    END IF;
+    IF NEW.puesto = 'Administrador' AND (TG_OP = 'INSERT' OR OLD.puesto <> 'Administrador') THEN
+        PERFORM fn_error('CU-011: un administrador solo se crea desde la consola (flask crear-admin).');
+    END IF;
+    IF TG_OP = 'UPDATE' AND NEW.puesto <> OLD.puesto THEN
+        PERFORM fn_error('RN-016: el puesto de un empleado no cambia; da de alta un usuario nuevo.');
+    END IF;
+    IF v_rol = 'Gerente' THEN
+        SELECT id_sucursal INTO v_mi_sucursal FROM empleado WHERE id_empleado = fn_id_empleado();
+        IF NEW.puesto IN ('Gerente', 'Administrador') AND (TG_OP = 'INSERT' OR NEW.id_empleado <> fn_id_empleado()) THEN
+            PERFORM fn_error('CU-011: solo el administrador da de alta o modifica gerentes.');
+        ELSIF NEW.id_sucursal IS DISTINCT FROM v_mi_sucursal THEN
+            PERFORM fn_error('CU-009: el gerente solo administra al personal de su sucursal.');
+        END IF;
+    ELSIF v_rol = 'Administrador' THEN
+        IF NEW.puesto <> 'Gerente' AND (TG_OP = 'INSERT' OR NEW.id_empleado <> fn_id_empleado()) THEN
+            PERFORM fn_error('CU-011: el administrador da de alta gerentes; el resto del personal lo da de alta su gerente.');
+        END IF;
+    ELSIF TG_OP = 'INSERT' THEN
+        PERFORM fn_error(format('CU-009: el rol %s no da de alta empleados.', v_rol));
+    END IF;
+    RETURN NEW;
+END $$;
+
+CREATE TRIGGER trg_empleado_permisos BEFORE INSERT OR UPDATE ON empleado
+    FOR EACH ROW EXECUTE FUNCTION fn_empleado_permisos();
+
+CREATE FUNCTION fn_sucursal_permisos() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    PERFORM fn_exigir_rol(ARRAY['Administrador', 'Sistema'], 'CU-011 (sucursales)');
+    RETURN NEW;
+END $$;
+
+CREATE TRIGGER trg_sucursal_permisos BEFORE INSERT OR UPDATE ON sucursal
+    FOR EACH ROW EXECUTE FUNCTION fn_sucursal_permisos();
+
 -- =====================================================================================
 -- ALERTAS DE TIEMPO (RN-006, RN-014) Y VENCIMIENTO DE ASIGNACIONES (CU-002 FA-2)
 -- La app la llama en cada ciclo de actualización automática; no duplica alertas.

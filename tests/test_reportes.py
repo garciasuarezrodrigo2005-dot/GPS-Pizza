@@ -116,24 +116,6 @@ def test_cu008_fa2_si_falla_la_exportacion_se_conservan_los_filtros(app_bd, gere
 
 # ------------------------------------------------------------------------------ RN-019 auditoría
 
-def test_rn019_el_gerente_consulta_la_bitacora_de_su_sucursal(app_bd, gerente):
-    iniciar_sesion(app_bd.test_client(), 'cajero1.coyol')
-    iniciar_sesion(app_bd.test_client(), 'cajero1.pmoreno')          # otra sucursal
-    html = gerente.get('/gerente/auditoria?accion=LOGIN').get_data(as_text=True)
-    assert 'cajero1.coyol' in html and 'gerente.coyol' in html
-    assert 'cajero1.pmoreno' not in html
-    assert 'Editar' not in html and 'Borrar' not in html             # solo lectura
-    html = gerente.get('/gerente/auditoria?usuario=cajero1.coyol').get_data(as_text=True)
-    assert 'gerente.coyol</td>' not in html
-
-
-def test_rn019_muestra_los_cambios_de_estado_de_los_pedidos(app_bd, gerente):
-    with app_bd.app_context():
-        dia = db.session.scalar(select(func.min(Pedido.fecha_registro)).where(Pedido.id_sucursal == 1)).date()
-    html = gerente.get(f'/gerente/auditoria?desde={dia}&hasta={dia}&entidad=pedido').get_data(as_text=True)
-    assert 'estado: Por Confirmar → En Preparación' in html or 'estado: En Preparación → Listo para Entrega' in html
-
-
 def test_resumen_de_detalle():
     assert auditoria.resumen({'estado': {'antes': 'En Camino', 'despues': 'Entregado'}}) == 'estado: En Camino → Entregado'
     assert auditoria.resumen({'nuevo': {'folio': 'YP-0001', 'estado': 'Por Confirmar', 'otro': 1}}) == \

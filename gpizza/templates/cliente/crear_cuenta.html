@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{# Decisión 18 (CU-005): el cliente crea su cuenta. El teléfono es único; si el cajero ya lo había
+   registrado por un pedido telefónico, aquí elige su contraseña y conserva su historial. #}
+{% block titulo %}Crear cuenta{% endblock %}
+{% block encabezado %}Crear cuenta{% endblock %}
+{% block clase_contenido %}gp-contenido-medio{% endblock %}
+
+{% block contenido %}
+{% if errores.get('general') %}<div class="gp-mensaje gp-mensaje-error" role="alert">{{ errores.general }}</div>{% endif %}
+<form method="post" class="gp-tarjeta mb-3" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <h3 class="gp-paso mt-0">1. Tu teléfono</h3>
+  <input name="telefono" class="form-control mb-1" type="tel" inputmode="numeric" maxlength="10" pattern="[0-9]{10}"
+         placeholder="10 dígitos" autocomplete="username" value="{{ valores.get('telefono', '') }}" aria-label="Teléfono" required>
+  <p class="gp-error-campo">{{ errores.get('telefono', '') }}</p>
+  <p class="small gp-texto-suave">Es tu usuario: con él entras y te avisamos de tus pedidos. Solo puede haber una cuenta por teléfono.</p>
+
+  <h3 class="gp-paso">2. Tus datos de entrega</h3>
+  <input name="nombre" class="form-control mb-1" placeholder="Nombre completo" value="{{ valores.get('nombre', '') }}"
+         autocomplete="name" aria-label="Nombre completo" required>
+  <p class="gp-error-campo">{{ errores.get('nombre', '') }}</p>
+  <input name="direccion" class="form-control mb-1" placeholder="Dirección (calle y número)" value="{{ valores.get('direccion', '') }}"
+         autocomplete="street-address" aria-label="Dirección" required>
+  <p class="gp-error-campo">{{ errores.get('direccion', '') }}</p>
+  <div class="d-flex gap-2 mb-1">
+    <input name="colonia" class="form-control" placeholder="Colonia" value="{{ valores.get('colonia', '') }}" aria-label="Colonia">
+    <input name="codigo_postal" class="form-control gp-cp" placeholder="C.P." inputmode="numeric" maxlength="5"
+           value="{{ valores.get('codigo_postal', '') }}" aria-label="Código postal">
+  </div>
+  <p class="gp-error-campo">{{ errores.get('codigo_postal', '') }}</p>
+
+  <h3 class="gp-paso">3. Tu contraseña</h3>
+  <input name="contrasena" type="password" class="form-control mb-1" autocomplete="new-password" minlength="8"
+         placeholder="Contraseña" aria-label="Contraseña" aria-describedby="ayuda-contrasena" required>
+  <p class="gp-error-campo">{{ errores.get('contrasena', '') }}</p>
+  <input name="confirmacion" type="password" class="form-control mb-1" autocomplete="new-password"
+         placeholder="Repite la contraseña" aria-label="Repite la contraseña" required>
+  <p class="gp-error-campo">{{ errores.get('confirmacion', '') }}</p>
+  <p id="ayuda-contrasena" class="small gp-texto-suave">Mínimo 8 caracteres, con letras y números. Tras 3 intentos fallidos la cuenta se bloquea.</p>
+
+  <button class="btn btn-gp-principal w-100 mt-2">Crear mi cuenta</button>
+</form>
+<p class="text-center">¿Ya tienes cuenta? <a href="{{ url_for('cliente.inicio') }}">Entra aquí</a></p>
+{% endblock %}

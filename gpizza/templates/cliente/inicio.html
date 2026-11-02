@@ -20,18 +20,23 @@
 
 <div class="gp-portada-formulario">
 <h3 class="gp-portada-titulo">Bienvenido</h3>
-<p class="gp-texto-suave gp-portada-subtitulo">Escribe tu teléfono para empezar tu pedido.</p>
+<p class="gp-texto-suave gp-portada-subtitulo">Entra a tu cuenta para hacer tu pedido.</p>
 
-<form method="post" action="{{ url_for('cliente.continuar') }}" class="gp-tarjeta mb-3">
+{# Decisión 18: cuenta con teléfono (único) y contraseña. #}
+<form method="post" action="{{ url_for('cliente.entrar', siguiente=request.args.get('siguiente')) }}" class="gp-tarjeta mb-3" novalidate>
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  {% if mensaje %}<div class="gp-mensaje gp-mensaje-error" role="alert">{{ mensaje }}</div>{% endif %}
   <label for="telefono" class="form-label fw-semibold">Tu número de teléfono</label>
   {# RN-004 / decisión 14: solo 10 dígitos numéricos (el servidor lo vuelve a validar). #}
-  <input id="telefono" name="telefono" class="form-control mb-2" type="tel" inputmode="numeric"
-         pattern="[0-9]{10}" maxlength="10" placeholder="10 dígitos" autocomplete="tel" value="{{ telefono }}"
+  <input id="telefono" name="telefono" class="form-control mb-3" type="tel" inputmode="numeric"
+         pattern="[0-9]{10}" maxlength="10" placeholder="10 dígitos" autocomplete="username" value="{{ telefono }}"
          title="10 dígitos, solo números" required>
-  <p class="small gp-texto-suave mb-3">Con tu teléfono te reconocemos y te avisamos de tu pedido.</p>
-  <button type="submit" class="btn btn-gp-oscuro w-100">Continuar</button>
+  <label for="contrasena" class="form-label fw-semibold">Contraseña</label>
+  <input id="contrasena" name="contrasena" type="password" class="form-control mb-3" autocomplete="current-password" required>
+  <button type="submit" class="btn btn-gp-oscuro w-100">Entrar</button>
 </form>
+<a class="btn btn-gp-borde w-100 mb-1" href="{{ url_for('cliente.crear_cuenta') }}">Crear cuenta</a>
+<p class="small gp-texto-suave text-center mb-3">¿Olvidaste tu contraseña? Llama a tu sucursal y te ayudan a recuperarla.</p>
 
 {# RN-002: el horario de pedidos se le muestra al cliente. #}
 {% if en_horario %}

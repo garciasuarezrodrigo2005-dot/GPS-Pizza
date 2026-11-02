@@ -102,9 +102,10 @@ Convenciones: todas las fechas son `TIMESTAMPTZ DEFAULT now()`; todos los textos
 `id_sucursal` PK · `nombre` VARCHAR(80) UNIQUE · `direccion` · `ciudad` · `estado` · `radio_cobertura_km` NUMERIC(5,2) `CHECK > 0` (se guarda, pero no se valida; ver decisión 5) · `hora_apertura` TIME DEFAULT '11:00' · `hora_cierre` TIME DEFAULT '22:00' · `CHECK (hora_apertura < hora_cierre)` · `activa` BOOLEAN.
 
 ### empleado
-`id_empleado` PK · `id_sucursal` FK · `nombre` · `apellidos` · `telefono` `CHECK ~ '^[0-9]{10}$'` · `puesto` `CHECK IN ('Cajero','Cocinero','Repartidor','Gerente')` · `username` UNIQUE NULL · `password_hash` NULL · `fecha_cambio_password` DATE NULL · `intentos_fallidos` SMALLINT `CHECK 0..3` · `bloqueado` · `disponible` NULL · `latitud_actual`, `longitud_actual` · `fecha_alta` · `activo`.
+`id_empleado` PK · `id_sucursal` FK **NULL solo para el Administrador [F8]** · `nombre` · `apellidos` · `telefono` `CHECK ~ '^[0-9]{10}$'` · `puesto` `CHECK IN ('Cajero','Cocinero','Repartidor','Gerente','Administrador')` · `username` UNIQUE NULL · `password_hash` NULL · `fecha_cambio_password` DATE NULL · `intentos_fallidos` SMALLINT `CHECK 0..3` · `bloqueado` · `disponible` NULL · `latitud_actual`, `longitud_actual` · `fecha_alta` · `activo`.
 - `ck_acceso`: si es Cocinero, `username` y `password_hash` son NULL (no entra al sistema); si no, ambos son obligatorios, además de `fecha_cambio_password`.
 - `ck_disponible`: `disponible` tiene valor solo si es Repartidor.
+- **[F8]** `rn016_administrador_sin_sucursal`: el Administrador es de toda la cadena (sin sucursal) y ningún otro puesto queda sin sucursal.
 
 ### sesion
 `id_sesion` PK · `id_empleado` FK · `token_hash` CHAR(64) UNIQUE (SHA-256 del token) · `dispositivo` · `fecha_inicio` · `fecha_fin` · `activa`.
@@ -119,7 +120,9 @@ Convenciones: todas las fechas son `TIMESTAMPTZ DEFAULT now()`; todos los textos
 - Índice único parcial `(id_pedido, tipo_evento) WHERE tipo_evento IN ('ALERTA_45','ALERTA_90')`: la misma alerta no se repite.
 
 ### cliente
-`id_cliente` PK · `nombre` · `telefono` VARCHAR(10) UNIQUE **`CHECK ~ '^[0-9]{10}$'`** · `direccion` BYTEA cifrado · `colonia` · `codigo_postal` CHAR(5) `CHECK ~ '^[0-9]{5}$'` · `latitud`, `longitud` NULL · `fecha_registro`.
+`id_cliente` PK · `nombre` · `telefono` VARCHAR(10) UNIQUE **`CHECK ~ '^[0-9]{10}$'`** · `direccion` BYTEA cifrado · `colonia` · `codigo_postal` CHAR(5) `CHECK ~ '^[0-9]{5}$'` · `latitud`, `longitud` NULL · `fecha_registro` · **[F8]** `password_hash` NULL · `fecha_alta_cuenta` NULL · `intentos_fallidos` `CHECK 0..3` · `bloqueado`.
+- Sin contraseña = lo registró la sucursal por teléfono y aún no crea su cuenta (`ck_cliente_cuenta`: contraseña y fecha de alta van juntas).
+- `trg_cliente_bloqueo`: RN-018 también para el cliente (3 intentos).
 
 ### producto
 `id_producto` PK · `nombre` · `descripcion` · `categoria` `CHECK IN ('Pizza','Complemento')` · `tamano` `CHECK IN ('Personal','Mediana','Grande','Familiar')` · `CHECK ((categoria='Pizza') = (tamano IS NOT NULL))` · `precio` NUMERIC(8,2) `CHECK > 0` · `codigo_qr_barras` UNIQUE NULL · `disponible` · `activo` · `UNIQUE NULLS NOT DISTINCT (nombre, tamano)`.
@@ -238,8 +241,14 @@ Por Confirmar ──► En Preparación ──► Listo para Entrega ──► E
 | 15 | Horario del personal | El personal puede entrar antes de las 11:00. |
 | 16 | Horario de pedidos | Se bloquean fuera de 11:00–22:00 y el horario se le muestra al cliente. |
 | 17 | BD de pruebas | `gpizza_test`, separada de `gpizza`. |
+| 18 | Cuenta del cliente (2026-11-02) | El cliente crea su cuenta con su **teléfono (único) y una contraseña** (RN-018: 8+ con letras y números, bloqueo a los 3 intentos; sin vencimiento a 90 días). Sin cuenta no pide por la app; los pedidos por teléfono y en sucursal siguen sin cuenta. Si la sucursal ya lo había registrado, al crear su cuenta la "activa" y conserva su historial. El gerente desbloquea la cuenta o quita la contraseña olvidada. Sin SMS no se verifica que el teléfono sea suyo: mejora futura. |
+| 19 | Administrador (2026-11-02) | Nuevo actor y rol **Administrador**, de toda la cadena (sin sucursal). Nuevo **CU-011 Administrar Sucursales y Gerentes**: alta y edición de sucursales y alta, baja, desbloqueo y contraseña temporal de gerentes. El gerente sigue dando de alta a su propio personal (CU-009). Los empleados no se dan de alta solos. El primer administrador se crea por consola (`flask crear-admin`); no hay botón en la web. La BD lo garantiza con `trg_empleado_permisos` y `trg_sucursal_permisos`. |
+| 20 | Auditoría (2026-11-02) | La consulta **solo el Administrador**, de toda la cadena o por sucursal (separación de funciones: el gerente autoriza precios, devoluciones y altas, así que no revisa su propia bitácora). RN-019 no cambia: la bitácora sigue siendo inmutable. |
 
-## 8. Cambios a la documentación (2026-11-01)
+## 8. Cambios a la documentación (2026-11-01; Fase 8: 2026-11-02)
+
+**Fase 8 (decisiones 18–20):** ERS (2.3 Administrador; RF-005, RF-006, RF-012; RN-016, RN-018, RN-019; CU-005, CU-006,
+nuevo CU-011; matriz actor × CU) y diagrama de casos de uso (actor Administrador y CU-011; el Cliente participa en CU-006).
 
 Los documentos de `docs/` ya concuerdan con este diseño. Los originales de `Desktop/Proyecto Pizza/` y `Descargas/` **no se modificaron**, por si hace falta compararlos.
 

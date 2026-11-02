@@ -82,6 +82,29 @@ def registrar_comandos(app: Flask) -> None:
         click.echo(f'Gerente: {usuario_gerente.lower()} · contraseña temporal: {temporal} (la cambiará al entrar).')
         click.echo('El gerente da de alta a su personal en "Personal". No hubo que modificar ni reiniciar la app.')
 
+    @app.cli.command('crear-admin')
+    @click.option('--usuario', required=True, help='Usuario del administrador, p. ej. admin.yungla')
+    @click.option('--nombre', required=True)
+    @click.option('--apellidos', required=True)
+    @click.option('--telefono', required=True, help='10 dígitos.')
+    def crear_admin(usuario, nombre, apellidos, telefono):
+        """CU-011 (decisión 19): crea un Administrador. Es la única forma: no hay botón en la web, porque
+        es la cuenta con más permisos del sistema."""
+        from gpizza.modelos import Empleado
+        from gpizza.seguridad.contrasenas import generar_hash
+        from gpizza.servicios.personal import _vencida_desde_hoy, contrasena_temporal
+        temporal = contrasena_temporal()
+        db.session.add(Empleado(id_sucursal=None, nombre=nombre, apellidos=apellidos, telefono=telefono,
+                                puesto='Administrador', username=usuario.strip().lower(),
+                                password_hash=generar_hash(temporal), fecha_cambio_password=_vencida_desde_hoy()))
+        try:
+            db.session.commit()
+        except Exception as error:
+            db.session.rollback()
+            raise click.ClickException(f'No se pudo crear el administrador: {getattr(error, "orig", error)}')
+        click.echo(f'Administrador "{usuario.strip().lower()}" creado · contraseña temporal: {temporal}')
+        click.echo('Deberá cambiarla al entrar. Desde /admin da de alta sucursales y gerentes.')
+
     @app.cli.command('alertas')
     def alertas():
         """RN-006 / RN-014 y CU-002 FA-2: alertas, asignaciones vencidas y reasignación."""

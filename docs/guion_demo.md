@@ -4,7 +4,7 @@ Objetivo: demostrar en ~25 minutos que el sistema cumple **todos** los casos de 
 reglas de negocio (RN) y requisitos no funcionales (RNF) de la ERS. Cada paso indica qué se cumple; la matriz completa
 está en [trazabilidad.md](trazabilidad.md).
 
-Contraseña de todos los usuarios de demo: **`Pizza2026`**.
+Contraseña de todos los usuarios de demo, también de los clientes: **`Pizza2026`**.
 
 ---
 
@@ -15,8 +15,8 @@ Contraseña de todos los usuarios de demo: **`Pizza2026`**.
 | 1 | `flask --app gpizza db-reset --si` y `flask --app gpizza db-seed` | Datos limpios (229 pedidos, códigos sin usar, alertas listas) |
 | 2 | En `.env`: `GPIZZA_HORA_DEMO=14:00` (o la hora que diga el seed) | Los pedidos de "hoy" coinciden con el reloj; los pedidos se aceptan aunque se presente antes de las 11:00 |
 | 3 | `flask --app gpizza run --debug` (o `python run.py`) | Servidor |
-| 4 | Abrir 4 ventanas: **Cliente** (Chrome, modo celular con F12), **Cajero** (Edge), **Repartidor** (Chrome incógnito, modo celular), **Gerente** (Edge InPrivate) | Cada actor con su sesión |
-| 5 | `pytest -q` en una terminal visible | Mostrar las 168 pruebas en verde al inicio |
+| 4 | Abrir 5 ventanas: **Cliente** (Chrome, modo celular con F12), **Cajero** (Edge), **Repartidor** (Chrome incógnito, modo celular), **Gerente** (Edge InPrivate) y **Administrador** (Firefox o un perfil nuevo de Chrome) | Cada actor con su sesión |
+| 5 | `pytest -q` en una terminal visible | Mostrar las 198 pruebas en verde al inicio |
 | 6 | Tener abierto `psql -U gpizza_user -d gpizza` | Demostrar las reglas en la base de datos |
 
 **Plan B:** si no hay internet, los mapas no cargan sus mosaicos (todo lo demás funciona: Bootstrap, HTMX y Chart.js
@@ -33,7 +33,8 @@ están dentro del proyecto). Si el GPS falla, usar "Simular recorrido".
 ## 2. El cliente pide (CU-001, CU-010, CU-005) — 4 min
 
 Ventana **Cliente** (tamaño celular):
-1. Inicio: el horario de pedidos está a la vista (RN-002). Teléfono `2297654321` → continuar: sus datos se autocompletan (CU-005, RF-005).
+1. Inicio: el horario de pedidos está a la vista (RN-002). Teléfono `2297654321` y contraseña `Pizza2026` → "Entrar" (CU-006): sus datos se autocompletan (CU-005, RF-005).
+   *(Opcional, decisión 18)* "Crear cuenta" con un teléfono nuevo; volver a intentarlo con el mismo teléfono → "Ya existe una cuenta".
 2. Menú (CU-010, RF-002): pestañas Pizzas / Complementos; un producto agotado en gris (CU-001 FA-2).
 3. Agregar 1 Pepperoni Personal ($89): el total avisa "te faltan $11" (**RN-001**). Subir a 6 unidades: el "+" se apaga en 5 (**RN-003**).
 4. Código `BIENVENIDA10` → "Aplicar" (**RN-008**). Probar `VENCIDO20` → "no está vigente".
@@ -78,7 +79,19 @@ Ventana **Gerente** (`gerente.coyol`, escritorio):
 2. **Personal**: alta de un cajero → contraseña temporal; entrar con ella obliga a cambiarla (**CU-009a, RN-018**). Desbloquear `repartidor3.coyol`.
 3. **Descuentos y devoluciones**: emitir un código; registrar la devolución del pedido entregado en el paso 5 (**RF-011, RN-015**).
 4. **Reportes**: período de 14 días → tarjetas, gráfica y detalle por repartidor; filtrar por repartidor; **Exportar PDF** y **Exportar Excel** (**CU-004, CU-008**). "Generado en 0.1 s".
-5. **Auditoría**: filtrar por "CANCELAR" o por usuario `cajero1.coyol`; no existe forma de editar (**RN-019**).
+5. La **Auditoría** ya no está en su menú: la revisa el Administrador (decisión 20).
+
+## 7b. Administrador (CU-011, decisiones 19 y 20) — 3 min
+
+Ventana **Administrador** (`admin.yungla`, escritorio):
+1. Entra directo a `/admin`: "Toda la cadena", sucursales activas y gerentes.
+2. **Sucursales** → "+ Nueva sucursal" *Boca del Río* (12:00–23:00) → el aviso lleva a **Gerentes** para darle uno
+   con contraseña temporal (RN-018). En la ventana del cliente, *Boca del Río* ya aparece en la lista (**RNF-005**).
+3. **Auditoría**: filtrar por sucursal "Coyol (matriz)" y por "LOGIN"; quitar el filtro: se ve toda la cadena (**RN-019**).
+4. El gerente no da de alta gerentes y el administrador no da de alta cajeros: lo impide la base de datos
+   (`trg_empleado_permisos`). El primer administrador solo se crea por consola: `flask --app gpizza crear-admin …`.
+5. *(Cuenta del cliente)* Escribir mal 3 veces la contraseña de `2291234567` → bloqueada (**RN-018**); el gerente la
+   desbloquea en Clientes → ese cliente → "Desbloquear".
 
 ## 8. Seguridad y reglas en la base de datos (RNF-003, RN-016–RN-019) — 2 min
 

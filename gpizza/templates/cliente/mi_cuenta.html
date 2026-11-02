@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{# Cuenta del cliente: sus datos y el cambio de contraseña. #}
+{% block titulo %}Mi cuenta{% endblock %}
+{% block encabezado %}Mi cuenta{% endblock %}
+{% block encabezado_derecha %}
+  <form method="post" action="{{ url_for('cliente.salir') }}" class="d-inline">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="gp-boton-salir" title="Cerrar sesión">Salir</button>
+  </form>
+{% endblock %}
+{% block clase_contenido %}gp-contenido-medio{% endblock %}
+
+{% block contenido %}
+<div class="gp-tarjeta mb-3">
+  <div class="fw-semibold">{{ cliente.nombre }}</div>
+  <div class="small gp-texto-suave">Tel. {{ cliente.telefono|telefono }} · cliente desde {{ cliente.fecha_registro.strftime('%d/%m/%Y') }}</div>
+  <div class="small">{{ cliente.direccion }}{% if cliente.colonia %}, Col. {{ cliente.colonia }}{% endif %}</div>
+  <p class="small gp-texto-suave mb-0 mt-2">Tu nombre y dirección se actualizan cuando los cambias al hacer un pedido.</p>
+</div>
+
+<form method="post" class="gp-tarjeta mb-3" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <h3 class="gp-paso mt-0">Cambiar contraseña</h3>
+  {% if problema %}<div class="gp-mensaje gp-mensaje-error" role="alert">{{ problema }}</div>{% endif %}
+  <label for="actual" class="form-label fw-semibold">Contraseña actual</label>
+  <input id="actual" name="actual" type="password" class="form-control mb-3" autocomplete="current-password" required>
+  <label for="nueva" class="form-label fw-semibold">Nueva contraseña</label>
+  <input id="nueva" name="nueva" type="password" class="form-control mb-1" autocomplete="new-password" minlength="8" required>
+  <p class="small gp-texto-suave mb-3">Mínimo 8 caracteres, con letras y números.</p>
+  <label for="confirmacion" class="form-label fw-semibold">Confirma la nueva contraseña</label>
+  <input id="confirmacion" name="confirmacion" type="password" class="form-control mb-3" autocomplete="new-password" required>
+  <button class="btn btn-gp-oscuro w-100">Guardar contraseña</button>
+</form>
+<p class="text-center"><a href="{{ url_for('cliente.pedido') }}">← Volver a mi pedido</a></p>
+{% endblock %}

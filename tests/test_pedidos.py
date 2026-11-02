@@ -27,8 +27,15 @@ def id_sucursal(app, nombre='Coyol (matriz)'):
         return db.session.scalar(text('SELECT id_sucursal FROM sucursal WHERE nombre = :n'), {'n': nombre})
 
 
-def entrar_como_cliente(web, telefono=TEL_ANA):
-    web.post('/continuar', data={'telefono': telefono, 'csrf_token': token_csrf(web, '/')})
+def entrar_como_cliente(web, telefono=TEL_ANA, contrasena='Pizza2026'):
+    """Entra con la cuenta del cliente (decisión 18); si el teléfono aún no tiene cuenta, la crea."""
+    respuesta = web.post('/entrar', data={'telefono': telefono, 'contrasena': contrasena,
+                                          'csrf_token': token_csrf(web, '/crear-cuenta')})
+    if respuesta.status_code != 302:
+        web.post('/crear-cuenta', data={
+            'telefono': telefono, 'nombre': 'Cliente Prueba', 'direccion': 'Calle Prueba 1', 'colonia': 'Centro',
+            'codigo_postal': '91700', 'contrasena': contrasena, 'confirmacion': contrasena,
+            'csrf_token': token_csrf(web, '/crear-cuenta')})
 
 
 def formulario(app, web, **cambios):
@@ -158,7 +165,7 @@ def test_cliente_cancela_mientras_esta_por_confirmar(app_bd, web):
 
 
 def test_cliente_nuevo_queda_registrado_con_su_pedido(app_bd, web):
-    """CU-001 FA-1 / CU-005: el teléfono no existía; el perfil se crea junto con el pedido."""
+    """CU-001 FA-1 / CU-005: el teléfono no existía; crea su cuenta y su pedido actualiza su perfil."""
     entrar_como_cliente(web, TEL_NUEVO)
     folio = folio_de(web.post('/pedido', data=formulario(app_bd, web, nombre='Laura Prueba')))
     with app_bd.app_context():
@@ -168,8 +175,8 @@ def test_cliente_nuevo_queda_registrado_con_su_pedido(app_bd, web):
 
 
 def test_telefono_invalido_no_entra(web):
-    respuesta = web.post('/continuar', data={'telefono': '229-ABC', 'csrf_token': token_csrf(web, '/')},
-                         follow_redirects=True)
+    respuesta = web.post('/entrar', data={'telefono': '229-ABC', 'contrasena': 'Pizza2026',
+                                          'csrf_token': token_csrf(web, '/')})
     assert '10 dígitos' in respuesta.get_data(as_text=True)
 
 

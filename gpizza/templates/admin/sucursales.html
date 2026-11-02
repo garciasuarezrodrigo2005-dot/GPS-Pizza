@@ -1,0 +1,63 @@
+{% extends 'admin/base.html' %}
+{# CU-011: sucursales de la cadena. RNF-005: una sucursal nueva es solo un dato; no se toca el código. #}
+{% block titulo %}Sucursales{% endblock %}
+
+{% block contenido %}
+<h2 class="h3 fw-bold mb-3">Sucursales</h2>
+
+<details class="gp-tarjeta mb-3" {% if errores %}open{% endif %}>
+  <summary class="fw-semibold">+ Nueva sucursal</summary>
+  {% if errores.get('general') %}<div class="gp-mensaje gp-mensaje-error mt-2">{{ errores.general }}</div>{% endif %}
+  <form method="post" action="{{ url_for('admin.sucursal_nueva') }}" class="row g-2 mt-1">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% for campo, etiqueta, col in [('nombre', 'Nombre (p. ej. Boca del Río)', 'col-12 col-md-4'), ('direccion', 'Dirección', 'col-12 col-md-8'),
+                                     ('ciudad', 'Ciudad', 'col-6 col-md-4'), ('estado', 'Estado', 'col-6 col-md-4'), ('radio', 'Radio de cobertura (km)', 'col-12 col-md-4')] %}
+      <div class="{{ col }}"><input class="form-control" name="{{ campo }}" placeholder="{{ etiqueta }}" aria-label="{{ etiqueta }}"
+           value="{{ valores.get(campo, 'Veracruz' if campo == 'estado' else ('4' if campo == 'radio' else '')) }}"
+           {% if campo == 'radio' %}inputmode="decimal"{% endif %}>
+        <div class="gp-error-campo">{{ errores.get(campo, '') }}</div></div>
+    {% endfor %}
+    <div class="col-6 col-md-3"><label class="small fw-semibold" for="apertura">Abre</label>
+      <input class="form-control" type="time" id="apertura" name="apertura" value="{{ valores.get('apertura', '11:00') }}"></div>
+    <div class="col-6 col-md-3"><label class="small fw-semibold" for="cierre">Cierra</label>
+      <input class="form-control" type="time" id="cierre" name="cierre" value="{{ valores.get('cierre', '22:00') }}"></div>
+    <div class="col-12 col-md-6 d-flex align-items-end"><button class="btn btn-gp-oscuro w-100">Crear sucursal</button></div>
+    <div class="col-12"><div class="gp-error-campo">{{ errores.get('horario', '') }}</div></div>
+  </form>
+</details>
+
+<div class="gp-rejilla-simple">
+{% for s, empleados in lista %}
+  <div class="gp-tarjeta {{ 'gp-inactivo' if not s.activa }}" id="sucursal-{{ s.id_sucursal }}">
+    <div class="d-flex justify-content-between align-items-start gap-2">
+      <div>
+        <div class="fw-semibold">{{ s.nombre }}</div>
+        <div class="small gp-texto-suave">{{ s.direccion }}, {{ s.ciudad }}</div>
+        <div class="small">Pedidos de {{ s.hora_apertura.strftime('%H:%M') }} a {{ s.hora_cierre.strftime('%H:%M') }} h ·
+          {{ empleados }} empleado{{ 's' if empleados != 1 }} activo{{ 's' if empleados != 1 }}</div>
+      </div>
+      {% if not s.activa %}<span class="gp-estado">Inactiva</span>{% endif %}
+    </div>
+    <details class="mt-2">
+      <summary class="small fw-semibold">Editar</summary>
+      <form method="post" action="{{ url_for('admin.sucursal_accion', id_sucursal=s.id_sucursal, accion='editar') }}" class="row g-2 mt-1">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="col-12"><input class="form-control form-control-sm" name="nombre" value="{{ s.nombre }}" aria-label="Nombre"></div>
+        <div class="col-12"><input class="form-control form-control-sm" name="direccion" value="{{ s.direccion }}" aria-label="Dirección"></div>
+        <div class="col-6"><input class="form-control form-control-sm" name="ciudad" value="{{ s.ciudad }}" aria-label="Ciudad"></div>
+        <div class="col-6"><input class="form-control form-control-sm" name="estado" value="{{ s.estado }}" aria-label="Estado"></div>
+        <div class="col-4"><input class="form-control form-control-sm" name="radio" value="{{ s.radio_cobertura_km }}" inputmode="decimal" aria-label="Radio en km"></div>
+        <div class="col-4"><input class="form-control form-control-sm" type="time" name="apertura" value="{{ s.hora_apertura.strftime('%H:%M') }}" aria-label="Abre"></div>
+        <div class="col-4"><input class="form-control form-control-sm" type="time" name="cierre" value="{{ s.hora_cierre.strftime('%H:%M') }}" aria-label="Cierra"></div>
+        <div class="col-12"><button class="btn btn-gp-oscuro btn-sm w-100">Guardar</button></div>
+      </form>
+      <form method="post" class="mt-2" action="{{ url_for('admin.sucursal_accion', id_sucursal=s.id_sucursal, accion='desactivar' if s.activa else 'activar') }}"
+            {% if s.activa %}onsubmit="return confirm('¿Desactivar {{ s.nombre }}? Dejará de aparecer para los clientes.');"{% endif %}>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-gp-borde btn-sm">{{ 'Desactivar' if s.activa else 'Activar' }}</button>
+      </form>
+    </details>
+  </div>
+{% endfor %}
+</div>
+{% endblock %}

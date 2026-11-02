@@ -56,11 +56,11 @@ class Empleado(db.Model):
     __tablename__ = 'empleado'
     __mapper_args__ = {'eager_defaults': True}
     id_empleado: Mapped[int] = _pk()
-    id_sucursal: Mapped[int] = mapped_column(ForeignKey('sucursal.id_sucursal'))
+    id_sucursal: Mapped[int | None] = mapped_column(ForeignKey('sucursal.id_sucursal'))  # None: Administrador
     nombre: Mapped[str] = mapped_column(String(60))
     apellidos: Mapped[str] = mapped_column(String(80))
     telefono: Mapped[str] = mapped_column(String(10))
-    puesto: Mapped[str] = mapped_column(String(12))
+    puesto: Mapped[str] = mapped_column(String(13))
     username: Mapped[str | None] = mapped_column(String(40))
     password_hash: Mapped[str | None] = mapped_column(String(255))
     fecha_cambio_password: Mapped[date | None] = mapped_column(Date)
@@ -72,7 +72,7 @@ class Empleado(db.Model):
     fecha_alta: Mapped[date] = _servidor(Date)
     activo: Mapped[bool] = _servidor(Boolean)
 
-    sucursal: Mapped[Sucursal] = relationship()
+    sucursal: Mapped[Sucursal | None] = relationship()
 
     @property
     def nombre_completo(self) -> str:
@@ -118,6 +118,15 @@ class Cliente(db.Model):
     latitud: Mapped[Decimal | None] = mapped_column(Numeric(9, 6))
     longitud: Mapped[Decimal | None] = mapped_column(Numeric(9, 6))
     fecha_registro: Mapped[datetime] = _servidor(DateTime(timezone=True))
+    # Cuenta del cliente (decisión 18): sin contraseña si solo lo registró el cajero.
+    password_hash: Mapped[str | None] = mapped_column(String(255))
+    fecha_alta_cuenta: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    intentos_fallidos: Mapped[int] = _servidor(SmallInteger)
+    bloqueado: Mapped[bool] = _servidor(Boolean)
+
+    @property
+    def tiene_cuenta(self) -> bool:
+        return self.password_hash is not None
 
 
 class Producto(db.Model):

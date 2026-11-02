@@ -1,0 +1,37 @@
+{% extends 'admin/base.html' %}
+{% block titulo %}Administración{% endblock %}
+
+{% block contenido %}
+<h2 class="h3 fw-bold mb-1">Hola, {{ usuario.nombre }}</h2>
+<p class="gp-texto-suave mb-4">Administras toda la cadena: sucursales, gerentes y la auditoría.
+  Cada gerente da de alta a su propio personal (cajeros, cocineros y repartidores).</p>
+
+<div class="gp-indicadores mb-4">
+  {% for clave, texto, destino in [('sucursales', 'Sucursales activas', 'admin.sucursales_lista'), ('gerentes', 'Gerentes activos', 'admin.gerentes_lista'),
+                                    ('bloqueados', 'Empleados bloqueados', 'admin.gerentes_lista'), ('clientes_bloqueados', 'Clientes bloqueados', 'admin.auditoria_vista')] %}
+    <a class="gp-tarjeta gp-indicador text-reset text-decoration-none" href="{{ url_for(destino) }}">
+      <div class="small gp-texto-suave">{{ texto }}</div>
+      <div class="fs-2 fw-bold">{{ resumen[clave] }}</div>
+    </a>
+  {% endfor %}
+</div>
+
+{% if sin_gerente %}
+  <div class="gp-mensaje gp-mensaje-aviso">
+    {{ 'Esta sucursal no tiene' if sin_gerente|length == 1 else 'Estas sucursales no tienen' }} gerente:
+    {% for s in sin_gerente %}<a href="{{ url_for('admin.gerentes_lista', sucursal=s.id_sucursal) }}#alta">{{ s.nombre }}</a>{{ ', ' if not loop.last }}{% endfor %}.
+  </div>
+{% endif %}
+
+<div class="gp-rejilla-simple">
+  <a class="gp-tarjeta text-reset text-decoration-none" href="{{ url_for('admin.sucursales_lista') }}">
+    <div class="fw-semibold">Sucursales</div>
+    <div class="small gp-texto-suave">Abre una sucursal nueva o cambia su horario. Aparece para los clientes al instante (RNF-005).</div></a>
+  <a class="gp-tarjeta text-reset text-decoration-none" href="{{ url_for('admin.gerentes_lista') }}">
+    <div class="fw-semibold">Gerentes</div>
+    <div class="small gp-texto-suave">Alta, baja, desbloqueo y contraseña temporal de los gerentes de cada sucursal.</div></a>
+  <a class="gp-tarjeta text-reset text-decoration-none" href="{{ url_for('admin.auditoria_vista') }}">
+    <div class="fw-semibold">Auditoría</div>
+    <div class="small gp-texto-suave">Quién hizo qué y cuándo, en toda la cadena. De solo lectura (RN-019).</div></a>
+</div>
+{% endblock %}

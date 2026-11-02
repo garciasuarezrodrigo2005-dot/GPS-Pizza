@@ -1,5 +1,6 @@
 """CU-009 Gestionar Personal (RF-006), con sus especializaciones CU-009a (cajeros) y CU-009b
-(repartidores). El gerente administra cajeros, cocineros y repartidores de SU sucursal.
+(repartidores). El gerente administra cajeros, cocineros y repartidores de SU sucursal; los gerentes
+los administra el Administrador (CU-011, decisión 19) con estas mismas funciones.
 
 Contraseñas: al dar de alta o al reiniciar, se genera una temporal que nace vencida; así RN-018
 obliga al empleado a elegir la suya en su primer acceso y el gerente nunca conoce la definitiva.
@@ -31,6 +32,20 @@ def listar(id_sucursal: int, puesto: str | None = None) -> list[Empleado]:
     return db.session.scalars(consulta).all()
 
 
+def gerentes(id_sucursal: int | None = None) -> list[Empleado]:
+    """CU-011: los gerentes de toda la cadena (o de una sucursal), para el Administrador."""
+    consulta = (select(Empleado).where(Empleado.puesto == 'Gerente')
+                .order_by(Empleado.activo.desc(), Empleado.id_sucursal, Empleado.nombre))
+    if id_sucursal:
+        consulta = consulta.where(Empleado.id_sucursal == id_sucursal)
+    return db.session.scalars(consulta).all()
+
+
+def gerente(id_empleado: int) -> Empleado | None:
+    e = db.session.get(Empleado, id_empleado)
+    return e if e is not None and e.puesto == 'Gerente' else None
+
+
 def del_sucursal(id_empleado: int, id_sucursal: int) -> Empleado | None:
     e = db.session.get(Empleado, id_empleado)
     if e is None or e.id_sucursal != id_sucursal or e.puesto not in PUESTOS_ADMINISTRABLES:
@@ -57,7 +72,7 @@ class DatosEmpleado:
     username: str = ''
 
 
-def _validar(datos: DatosEmpleado, nuevo: bool) -> dict[str, str]:
+def _validar(datos: DatosEmpleado, nuevo: bool, puestos=PUESTOS_ADMINISTRABLES) -> dict[str, str]:
     errores = {}
     if not datos.nombre.strip():
         errores['nombre'] = 'Escribe el nombre.'
@@ -66,16 +81,17 @@ def _validar(datos: DatosEmpleado, nuevo: bool) -> dict[str, str]:
     if not re.fullmatch(r'[0-9]{10}', datos.telefono.strip()):
         errores['telefono'] = 'El teléfono debe tener 10 dígitos.'
     if nuevo:
-        if datos.puesto not in PUESTOS_ADMINISTRABLES:
-            errores['puesto'] = 'Elige el puesto: cajero, cocinero o repartidor.'
+        if datos.puesto not in puestos:
+            errores['puesto'] = 'Elige el puesto: ' + ', '.join(p.lower() for p in puestos) + '.'
         elif datos.puesto != 'Cocinero' and not PATRON_USUARIO.match(datos.username.strip().lower()):
             errores['username'] = 'Usuario de 4 a 40 caracteres: minúsculas, números, punto o guion.'
     return errores
 
 
-def crear(id_sucursal: int, datos: DatosEmpleado) -> tuple[Empleado | None, str | None, dict[str, str]]:
+def crear(id_sucursal: int, datos: DatosEmpleado,
+          puestos=PUESTOS_ADMINISTRABLES) -> tuple[Empleado | None, str | None, dict[str, str]]:
     """Devuelve (empleado, contraseña temporal o None si es cocinero, errores)."""
-    errores = _validar(datos, nuevo=True)
+    errores = _validar(datos, nuevo=True, puestos=puestos)
     if errores:
         return None, None, errores
     temporal = None if datos.puesto == 'Cocinero' else contrasena_temporal()

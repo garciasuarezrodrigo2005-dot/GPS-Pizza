@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{# Zona del Administrador (CU-011): mismo panel con menú lateral que el gerente, con sus propias secciones. #}
+{% block encabezado_completo %}{% endblock %}
+{% block clase_body %}gp-panel{% endblock %}
+
+{% block cuerpo %}
+<div class="gp-panel-contenedor">
+  <aside class="gp-menu-lateral">
+    <a class="gp-menu-titulo text-reset text-decoration-none" href="{{ url_for('admin.inicio') }}">
+      <img class="gp-encabezado-logo" src="{{ url_for('static', filename='img/icono-192.png') }}" alt="">
+      <span>Yungla Pizza<small>Administración</small></span></a>
+    <div class="gp-menu-seccion">Toda la cadena</div>
+    <nav aria-label="Secciones de administración">
+      {% for clave, nombre, destino in [('inicio', 'Resumen', 'admin.inicio'), ('sucursales', 'Sucursales', 'admin.sucursales_lista'),
+                                        ('gerentes', 'Gerentes', 'admin.gerentes_lista'), ('auditoria', 'Auditoría', 'admin.auditoria_vista')] %}
+        <a class="{{ 'activa' if activa == clave }}" href="{{ url_for(destino) }}">{{ nombre }}</a>
+      {% endfor %}
+    </nav>
+    <div class="gp-menu-usuario">
+      <div>
+        <div class="fw-semibold">{{ usuario.nombre }}</div>
+        <div class="small">Administrador · <a class="text-reset" href="{{ url_for('auth.cambiar_contrasena') }}">Contraseña</a></div>
+      </div>
+      <form method="post" action="{{ url_for('auth.salir') }}" class="mt-2">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="gp-boton-salir">Cerrar sesión</button>
+      </form>
+    </div>
+  </aside>
+  <main class="gp-panel-principal">
+    {% include 'parciales/mensajes.html' %}
+    {% block contenido %}{% endblock %}
+  </main>
+</div>
+{% endblock %}
+
+{% block navegacion %}{% endblock %}

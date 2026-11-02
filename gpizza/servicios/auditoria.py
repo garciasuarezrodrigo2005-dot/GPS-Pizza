@@ -1,8 +1,10 @@
 """RN-019: consulta de la bitácora de auditoría (solo lectura).
 
-El gerente ve lo que hizo su personal y lo que pasó con los pedidos de su sucursal (incluidas las
-acciones de los clientes, que no tienen empleado). La bitácora no se puede editar ni borrar: lo
-impiden un trigger y los permisos de la base de datos (db/03_auditoria.sql).
+Decisión 20: la consulta el Administrador, no el gerente (separación de funciones: quien autoriza
+precios, devoluciones y altas no revisa su propia bitácora). Ve toda la cadena o una sucursal: lo
+que hizo su personal y lo que pasó con sus pedidos (incluidas las acciones de los clientes, que no
+tienen empleado). La bitácora no se puede editar ni borrar: lo impiden un trigger y los permisos de
+la base de datos (db/03_auditoria.sql).
 """
 import json
 from dataclasses import dataclass
@@ -19,7 +21,8 @@ from gpizza.modelos import AsignacionEntrega, Auditoria, Devolucion, Empleado, P
 
 POR_PAGINA = 50
 ACCIONES = ('CREAR', 'MODIFICAR', 'CANCELAR', 'LOGIN', 'LOGOUT', 'LOGIN_FALLIDO', 'BLOQUEO')
-ENTIDADES = ('pedido', 'asignacion_entrega', 'devolucion', 'empleado', 'producto', 'codigo_descuento', 'sesion', 'cliente')
+ENTIDADES = ('pedido', 'asignacion_entrega', 'devolucion', 'empleado', 'producto', 'codigo_descuento', 'sesion', 'cliente',
+             'sucursal')
 
 
 @dataclass
@@ -30,6 +33,7 @@ class FiltrosAuditoria:
     entidad: str = ''
     usuario: str = ''
     pagina: int = 1
+    sucursal: int | None = None   # None: toda la cadena
 
 
 def leer_filtros(args) -> FiltrosAuditoria:
@@ -42,24 +46,31 @@ def leer_filtros(args) -> FiltrosAuditoria:
     return FiltrosAuditoria(min(desde, hasta), max(desde, hasta),
                             args.get('accion') if args.get('accion') in ACCIONES else '',
                             args.get('entidad') if args.get('entidad') in ENTIDADES else '',
-                            (args.get('usuario') or '').strip().lower()[:40], max(1, args.get('pagina', 1, type=int)))
+                            (args.get('usuario') or '').strip().lower()[:40], max(1, args.get('pagina', 1, type=int)),
+                            args.get('sucursal', type=int))
 
 
-def consultar(id_sucursal: int, f: FiltrosAuditoria) -> tuple[list[Auditoria], int]:
-    """Devuelve (registros de la página, total de registros)."""
-    zona = ZoneInfo(current_app.config['ZONA_HORARIA'])
-    inicio = datetime.combine(f.desde, datetime.min.time(), zona)
-    fin = datetime.combine(f.hasta + timedelta(days=1), datetime.min.time(), zona)
-
-    de_la_sucursal = or_(
+def _de_la_sucursal(id_sucursal: int):
+    return or_(
         Auditoria.id_empleado.in_(select(Empleado.id_empleado).where(Empleado.id_sucursal == id_sucursal)),
         and_(Auditoria.entidad == 'pedido',
              Auditoria.id_entidad.in_(select(Pedido.id_pedido).where(Pedido.id_sucursal == id_sucursal))),
         and_(Auditoria.entidad == 'asignacion_entrega', Auditoria.id_entidad.in_(
             select(AsignacionEntrega.id_asignacion).join(Pedido).where(Pedido.id_sucursal == id_sucursal))),
         and_(Auditoria.entidad == 'devolucion', Auditoria.id_entidad.in_(
-            select(Devolucion.id_devolucion).join(Pedido).where(Pedido.id_sucursal == id_sucursal))))
-    condiciones = [de_la_sucursal, Auditoria.fecha_hora >= inicio, Auditoria.fecha_hora < fin]
+            select(Devolucion.id_devolucion).join(Pedido).where(Pedido.id_sucursal == id_sucursal))),
+        and_(Auditoria.entidad == 'sucursal', Auditoria.id_entidad == id_sucursal))
+
+
+def consultar(f: FiltrosAuditoria) -> tuple[list[Auditoria], int]:
+    """Devuelve (registros de la página, total de registros)."""
+    zona = ZoneInfo(current_app.config['ZONA_HORARIA'])
+    inicio = datetime.combine(f.desde, datetime.min.time(), zona)
+    fin = datetime.combine(f.hasta + timedelta(days=1), datetime.min.time(), zona)
+
+    condiciones = [Auditoria.fecha_hora >= inicio, Auditoria.fecha_hora < fin]
+    if f.sucursal:
+        condiciones.append(_de_la_sucursal(f.sucursal))
     if f.accion:
         condiciones.append(Auditoria.accion == f.accion)
     if f.entidad:

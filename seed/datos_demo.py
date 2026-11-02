@@ -51,6 +51,10 @@ PERSONAL = [
     ('pmoreno', 'Repartidor', 'repartidor1.pmoreno', 'Ricardo', 'Flores Lara'),
     ('pmoreno', 'Repartidor', 'repartidor2.pmoreno', 'Omar', 'Jiménez Paz'),
 ]
+# Decisión 19: el Administrador es de toda la cadena (sin sucursal).
+ADMINISTRADOR = ('admin.yungla', 'Alejandra', 'Montes Rivera')
+# Decisión 18: este cliente lo registró el cajero por teléfono y todavía no crea su cuenta en la app.
+CLIENTE_SIN_CUENTA = '2295678901'
 for _clave in ('tejeria', 'riviera', 'carranza'):
     PERSONAL += [
         (_clave, 'Gerente', f'gerente.{_clave}', 'Gerente', _clave.capitalize()),
@@ -150,6 +154,14 @@ class Cargador:
             self.emp[usuario or f'{nombre}.{apellidos}'] = {
                 'id': id_emp, 'suc': clave, 'puesto': puesto, 'usable': not bloqueado}
 
+        usuario, nombre, apellidos = ADMINISTRADOR
+        self.emp[usuario] = {'id': self.sql(
+            "INSERT INTO empleado (id_sucursal, nombre, apellidos, telefono, puesto, username, password_hash, "
+            "fecha_cambio_password, fecha_alta) VALUES (NULL, :n, :a, '2290000001', 'Administrador', :u, :h, :fc, :alta) "
+            'RETURNING id_empleado', n=nombre, a=apellidos, u=usuario, h=generar_hash(CONTRASENA_DEMO),
+            fc=hoy - timedelta(days=10), alta=hoy - timedelta(days=200)).scalar_one(),
+            'suc': None, 'puesto': 'Administrador', 'usable': True}
+
         # RN-007: el catálogo lo da de alta el gerente.
         gerente = self.emp['gerente.coyol']['id']
         self.como('Gerente', t, gerente)
@@ -166,12 +178,16 @@ class Cargador:
             self.prod[id_prod] = {'precio': _dinero(precio), 'disponible': (nombre, tamano) not in AGOTADOS}
 
         self.como(None, t)
+        hash_clientes = generar_hash(CONTRASENA_DEMO)
         for tel, nombre, calle, colonia, cp, lat, lon in CLIENTES:
             direccion = f'{calle}, Col. {colonia}, C.P. {cp}'
+            con_cuenta = tel != CLIENTE_SIN_CUENTA
             self.cli[tel] = {'id': self.sql(
-                'INSERT INTO cliente (nombre, telefono, direccion, colonia, codigo_postal, latitud, longitud) '
-                'VALUES (:n, :tel, :d, :col, :cp, :lat, :lon) RETURNING id_cliente',
-                n=nombre, tel=tel, d=cifrar(calle), col=colonia, cp=cp, lat=lat, lon=lon).scalar_one(),
+                'INSERT INTO cliente (nombre, telefono, direccion, colonia, codigo_postal, latitud, longitud, '
+                'password_hash, fecha_alta_cuenta) VALUES (:n, :tel, :d, :col, :cp, :lat, :lon, :h, :alta) '
+                'RETURNING id_cliente',
+                n=nombre, tel=tel, d=cifrar(calle), col=colonia, cp=cp, lat=lat, lon=lon,
+                h=hash_clientes if con_cuenta else None, alta=t if con_cuenta else None).scalar_one(),
                 'direccion': direccion, 'lat': lat, 'lon': lon}
 
         # RN-008: códigos emitidos por el gerente.

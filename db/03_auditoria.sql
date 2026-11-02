@@ -39,7 +39,7 @@ BEGIN
     ELSIF TG_TABLE_NAME = 'sesion' THEN
         v_accion := CASE WHEN TG_OP = 'INSERT' THEN 'LOGIN' ELSE 'LOGOUT' END;
         v_usuario := (v_nuevo ->> 'id_empleado')::integer;
-    ELSIF TG_TABLE_NAME = 'empleado' AND TG_OP = 'UPDATE' THEN
+    ELSIF TG_TABLE_NAME IN ('empleado', 'cliente') AND TG_OP = 'UPDATE' THEN
         IF (v_nuevo ->> 'bloqueado')::boolean AND NOT (v_viejo ->> 'bloqueado')::boolean THEN
             v_accion := 'BLOQUEO';
         ELSIF (v_nuevo ->> 'intentos_fallidos')::int > (v_viejo ->> 'intentos_fallidos')::int THEN
@@ -59,7 +59,9 @@ CREATE TRIGGER trg_auditar AFTER INSERT OR UPDATE ON producto
 CREATE TRIGGER trg_auditar AFTER INSERT OR UPDATE ON empleado
     FOR EACH ROW EXECUTE FUNCTION fn_auditar('id_empleado', 'password_hash', 'latitud_actual', 'longitud_actual');
 CREATE TRIGGER trg_auditar AFTER INSERT OR UPDATE ON cliente
-    FOR EACH ROW EXECUTE FUNCTION fn_auditar('id_cliente', 'direccion');
+    FOR EACH ROW EXECUTE FUNCTION fn_auditar('id_cliente', 'direccion', 'password_hash');
+CREATE TRIGGER trg_auditar AFTER INSERT OR UPDATE ON sucursal
+    FOR EACH ROW EXECUTE FUNCTION fn_auditar('id_sucursal');
 CREATE TRIGGER trg_auditar AFTER INSERT OR UPDATE ON asignacion_entrega
     FOR EACH ROW EXECUTE FUNCTION fn_auditar('id_asignacion', 'firma_digital');
 CREATE TRIGGER trg_auditar AFTER INSERT ON devolucion

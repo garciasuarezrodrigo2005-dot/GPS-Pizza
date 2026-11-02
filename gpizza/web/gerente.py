@@ -4,7 +4,8 @@ from flask import Blueprint, Response, abort, current_app, flash, g, redirect, r
 from gpizza.extensiones import db
 from gpizza.modelos import Cliente, Producto
 from gpizza.seguridad.acceso import rol_requerido
-from gpizza.servicios import administracion, asignacion, auditoria, ciclo, clientes, exportar, personal, qr, reportes
+from gpizza.servicios import (administracion, asignacion, ciclo, clientes, cuentas_cliente, exportar, personal, qr,
+                              reportes)
 
 bp = Blueprint('gerente', __name__, url_prefix='/gerente')
 
@@ -122,6 +123,22 @@ def cliente(id_cliente):
     historial = ciclo.del_cliente_en_sucursal(id_cliente, g.usuario.id_sucursal)
     return render_template('gerente/cliente.html', cliente=registro, historial=historial, errores=errores,
                            activa='clientes'), 422 if errores else 200
+
+
+@bp.post('/clientes/<int:id_cliente>/cuenta/<accion>')
+@rol_requerido('Gerente')
+def cuenta_cliente(id_cliente, accion):
+    """Atención a la cuenta del cliente (decisión 18): desbloquearla (RN-018) o quitar la contraseña olvidada."""
+    registro = db.session.get(Cliente, id_cliente) or abort(404)
+    if accion == 'desbloquear':
+        problema, exito = cuentas_cliente.desbloquear(registro), 'Cuenta del cliente desbloqueada (RN-018).'
+    elif accion == 'quitar-contrasena':
+        problema = cuentas_cliente.quitar_contrasena(registro)
+        exito = 'Se quitó la contraseña. El cliente vuelve a crear su cuenta con su teléfono y elige una nueva.'
+    else:
+        abort(404)
+    flash(problema or exito, 'error' if problema else 'exito')
+    return redirect(url_for('gerente.cliente', id_cliente=id_cliente))
 
 
 # ------------------------------------------------------------------------------ personal (CU-009, 009a, 009b)
@@ -251,17 +268,7 @@ def exportar_reporte(formato):
         'Content-Disposition': f'attachment; filename="{exportar.nombre_archivo(g.usuario.sucursal, reporte, formato)}"'})
 
 
-# ------------------------------------------------------------------------------ auditoría (RN-019)
-
-@bp.get('/auditoria')
-@rol_requerido('Gerente')
-def auditoria_vista():
-    filtros = auditoria.leer_filtros(request.args)
-    registros, total = auditoria.consultar(g.usuario.id_sucursal, filtros)
-    paginas = max(1, -(-total // auditoria.POR_PAGINA))
-    return render_template('gerente/auditoria.html', registros=registros, total=total, f=filtros, paginas=paginas,
-                           acciones=auditoria.ACCIONES, entidades=auditoria.ENTIDADES, resumen=auditoria.resumen,
-                           activa='auditoria')
+# La auditoría (RN-019) la consulta el Administrador (decisión 20): web/admin.py.
 
 
 @bp.post('/pedidos/<int:id_pedido>/cancelar')

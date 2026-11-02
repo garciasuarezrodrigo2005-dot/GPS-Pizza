@@ -345,7 +345,17 @@ h2, h3, .gp-paso, .gp-portada-titulo { font-family: var(--gp-letra-titulos); }
                     linear-gradient(90deg, rgba(22, 101, 52, 0.07) 1px, transparent 1px);
   background-size: 26px 26px;
 }
-.gp-vista-gerente-auditoria_vista {           /* hoja de libro contable */
+/* Administración (decisión 19): plano azul pizarra, como los planos de la cadena completa. */
+.gp-zona-admin {
+  background-color: #eef1f5;
+  background-image: linear-gradient(rgba(30, 58, 95, 0.06) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(30, 58, 95, 0.06) 1px, transparent 1px),
+                    linear-gradient(rgba(30, 58, 95, 0.035) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(30, 58, 95, 0.035) 1px, transparent 1px);
+  background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+}
+.gp-zona-admin .gp-menu-lateral { background: linear-gradient(180deg, #1e2a3a, #111827); }
+.gp-vista-admin-auditoria_vista {             /* hoja de libro contable */
   background-color: #f1f3f6;
   background-image: repeating-linear-gradient(transparent 0 31px, rgba(37, 99, 235, 0.08) 31px 32px);
   background-size: auto;
@@ -375,7 +385,7 @@ h2, h3, .gp-paso, .gp-portada-titulo { font-family: var(--gp-letra-titulos); }
 
 @media (min-width: 992px) {
   .gp-zona-cliente, .gp-zona-cajero, .gp-zona-gerente, .gp-zona-repartidor, .gp-zona-auth,
-  .gp-zona-seguimiento, .gp-zona-notificaciones { background-attachment: fixed; }
+  .gp-zona-seguimiento, .gp-zona-notificaciones, .gp-zona-admin { background-attachment: fixed; }
 
   .gp-encabezado { padding: 0.8rem 2rem; }
   .gp-encabezado-logo { width: 40px; height: 40px; }
@@ -568,6 +578,8 @@ h2, h3, .gp-paso, .gp-portada-titulo { font-family: var(--gp-letra-titulos); }
 @media (min-width: 992px) {
   /* Los productos se acomodan según el espacio de la columna: dos si caben, una si no. */
   .gp-lista-productos:not([hidden]) { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+  /* Filtros de reportes y auditoría: en la PC, tantas columnas como quepan (en el celular son dos). */
+  .gp-filtros { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
 }
 
 /* PC angosta con menú lateral (cajero): el pedido en una sola columna para no apretar las tarjetas. */

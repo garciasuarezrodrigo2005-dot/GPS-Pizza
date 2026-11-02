@@ -20,6 +20,8 @@ MENSAJES_RESTRICCIONES = {
     'codigo_descuento_codigo_key': 'Ese código ya existe; usa otro.',
     'devolucion_id_pedido_key': 'Ese pedido ya tiene una devolución registrada.',
     'empleado_username_key': 'Ya existe un empleado con ese usuario; elige otro.',
+    'sucursal_nombre_key': 'Ya existe una sucursal con ese nombre.',
+    'rn002_sucursal_horario': 'La hora de apertura debe ser antes de la de cierre (RN-002).',
 }
 GENERICO = 'No se pudo guardar. Revisa los datos e inténtalo de nuevo.'
 

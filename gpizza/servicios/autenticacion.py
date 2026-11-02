@@ -19,7 +19,7 @@ from gpizza.seguridad import contrasenas
 # así responder "no existe" tarda lo mismo que "contraseña incorrecta" y no delata qué usuarios hay.
 _HASH_FICTICIO = contrasenas.generar_hash('Ficticia2026')
 
-MENSAJE_BLOQUEO = 'Tu cuenta se bloqueó tras 3 intentos fallidos. Contacta al gerente.'
+MENSAJE_BLOQUEO = 'Tu cuenta se bloqueó tras 3 intentos fallidos. Contacta a tu gerente (o al administrador, si eres gerente).'
 
 
 @dataclass

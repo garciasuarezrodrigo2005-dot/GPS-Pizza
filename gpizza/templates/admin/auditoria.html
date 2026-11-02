@@ -1,5 +1,6 @@
-{% extends 'gerente/base.html' %}
-{# RN-019: bitácora de solo lectura. No hay botones de editar ni borrar: la base de datos lo impide. #}
+{% extends 'admin/base.html' %}
+{# RN-019: bitácora de solo lectura. No hay botones de editar ni borrar: la base de datos lo impide.
+   Decisión 20: la consulta el Administrador, de toda la cadena o de una sucursal. #}
 {% block titulo %}Auditoría{% endblock %}
 
 {% block contenido %}
@@ -8,6 +9,9 @@
   la base de datos rechaza cualquier cambio o borrado (RN-019).</p>
 
 <form method="get" class="gp-filtros mb-3">
+  <div><label class="small fw-semibold" for="sucursal">Sucursal</label>
+    <select class="form-select" id="sucursal" name="sucursal"><option value="">Toda la cadena</option>
+      {% for s in sucursales %}<option value="{{ s.id_sucursal }}" {% if f.sucursal == s.id_sucursal %}selected{% endif %}>{{ s.nombre }}</option>{% endfor %}</select></div>
   <div><label class="small fw-semibold" for="desde">Desde</label><input class="form-control" type="date" id="desde" name="desde" value="{{ f.desde.isoformat() }}"></div>
   <div><label class="small fw-semibold" for="hasta">Hasta</label><input class="form-control" type="date" id="hasta" name="hasta" value="{{ f.hasta.isoformat() }}"></div>
   <div><label class="small fw-semibold" for="accion">Acción</label>
@@ -28,7 +32,7 @@
     {% for a in registros %}
       <tr>
         <td class="text-nowrap">{{ a.fecha_hora.strftime('%d/%m') }} {{ a.fecha_hora|hora }}</td>
-        <td class="text-nowrap">{{ a.empleado.username if a.empleado else ('cliente' if a.entidad == 'pedido' else 'sistema') }}</td>
+        <td class="text-nowrap">{{ a.empleado.username if a.empleado else ('cliente' if a.entidad in ('pedido', 'cliente') else 'sistema') }}</td>
         <td><span class="gp-estado">{{ a.accion }}</span></td>
         <td class="text-nowrap">{{ a.entidad.replace('_', ' ') }} #{{ a.id_entidad }}</td>
         <td class="small">{{ resumen(a.detalle) }}</td>
@@ -42,8 +46,8 @@
 {% if paginas > 1 %}
 <nav class="d-flex gap-2 mt-3" aria-label="Páginas">
   {% set consulta = request.args.to_dict() %}
-  {% if f.pagina > 1 %}<a class="btn btn-gp-borde btn-sm" href="{{ url_for('gerente.auditoria_vista', **(consulta | combine_pagina(f.pagina - 1))) }}">← Anterior</a>{% endif %}
-  {% if f.pagina < paginas %}<a class="btn btn-gp-borde btn-sm" href="{{ url_for('gerente.auditoria_vista', **(consulta | combine_pagina(f.pagina + 1))) }}">Siguiente →</a>{% endif %}
+  {% if f.pagina > 1 %}<a class="btn btn-gp-borde btn-sm" href="{{ url_for('admin.auditoria_vista', **(consulta | combine_pagina(f.pagina - 1))) }}">← Anterior</a>{% endif %}
+  {% if f.pagina < paginas %}<a class="btn btn-gp-borde btn-sm" href="{{ url_for('admin.auditoria_vista', **(consulta | combine_pagina(f.pagina + 1))) }}">Siguiente →</a>{% endif %}
 </nav>
 {% endif %}
 {% endblock %}
