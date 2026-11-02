@@ -11,7 +11,7 @@
   {% for t in tarjetas %}
   {% if t.agotado %}
     <div class="gp-producto gp-producto-agotado">
-      <div class="gp-producto-foto" aria-hidden="true">{{ '🍕' if categoria == 'Pizza' else '🥤' }}</div>
+      <div class="gp-producto-foto"><img src="{{ icono_producto(t.nombre, categoria) }}" alt="" width="56" height="56"></div>
       <div class="gp-producto-info">
         <div class="gp-producto-nombre">{{ t.nombre }}</div>
         <div class="small fw-semibold">Producto agotado</div>
@@ -20,7 +20,7 @@
     </div>
   {% else %}
     <div class="gp-producto" data-producto>
-      <div class="gp-producto-foto" aria-hidden="true">{{ '🍕' if categoria == 'Pizza' else '🥤' }}</div>
+      <div class="gp-producto-foto"><img src="{{ icono_producto(t.nombre, categoria) }}" alt="" width="56" height="56"></div>
       <div class="gp-producto-info">
         <div class="gp-producto-nombre">{{ t.nombre }}</div>
         <div class="small gp-texto-suave">{{ t.descripcion }}</div>

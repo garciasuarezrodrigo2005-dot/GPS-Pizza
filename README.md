@@ -263,6 +263,9 @@ gpizza/            código de la aplicación
   web/             rutas: sistema, cliente, auth, cajero, repartidor y gerente
   templates/       pantallas HTML (Jinja2)
   static/          CSS, JS, iconos y librerías (Bootstrap, HTMX) incluidas para funcionar sin internet
+    img/logo.svg   ícono de la app (los PNG de la PWA salen de él)
+    img/productos/ un dibujo SVG por producto; el nombre del archivo sale del nombre del producto
+herramientas/      generadores de los íconos: iconos_productos.py e icono_app.py (con "png" crea los PNG)
 tests/             pruebas automáticas (pytest)
 docs/              documentación del proyecto, diseño y matriz de trazabilidad
 run.py             arranque con waitress

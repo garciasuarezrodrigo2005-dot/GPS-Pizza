@@ -35,6 +35,7 @@
       class="gp-fila-producto {{ 'gp-inactivo' if not p.activo }}" id="producto-{{ p.id_producto }}">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="gp-fila-nombre">
+    <img class="gp-fila-icono" src="{{ icono_producto(p.nombre, p.categoria) }}" alt="" width="40" height="40">
     <strong>{{ p.nombre }}</strong>{% if p.tamano %} · {{ p.tamano }}{% endif %}
     <div class="small gp-texto-suave">{{ p.categoria }} · <a href="{{ url_for('gerente.qr_producto', id_producto=p.id_producto) }}" target="_blank">QR {{ p.codigo_qr_barras }}</a></div>
   </div>

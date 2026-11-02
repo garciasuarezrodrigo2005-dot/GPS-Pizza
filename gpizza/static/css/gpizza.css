@@ -176,9 +176,12 @@ body {
 .gp-producto-elegido { border-color: var(--gp-acento); box-shadow: 0 0 0 1px var(--gp-acento); }
 .gp-producto-agotado { background: #e7e5e4; color: var(--gp-texto-suave); }
 .gp-producto-foto {
-  width: 64px; height: 64px; flex-shrink: 0; border: 1px dashed var(--gp-borde); border-radius: 8px;
-  display: flex; align-items: center; justify-content: center; font-size: 2rem; background: #fafaf9;
+  width: 64px; height: 64px; flex-shrink: 0; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center; background: #faf5ec;
 }
+.gp-producto-foto img { width: 56px; height: 56px; }
+.gp-producto-agotado .gp-producto-foto img { filter: grayscale(1); opacity: 0.6; }
+.gp-fila-icono { width: 40px; height: 40px; vertical-align: middle; margin-right: 0.5rem; float: left; }
 .gp-producto-info { flex: 1; min-width: 0; }
 .gp-producto-nombre { font-weight: 800; text-transform: uppercase; font-size: 0.95rem; }
 .gp-precio { font-weight: 700; margin-top: 0.15rem; }
