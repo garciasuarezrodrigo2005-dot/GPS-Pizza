@@ -46,8 +46,10 @@
   {# Opcional: con la ubicación del navegador, el domicilio aparece en el mapa del repartidor y en el tuyo. #}
   <input type="hidden" name="latitud" value="{{ valores.get('latitud', '') }}">
   <input type="hidden" name="longitud" value="{{ valores.get('longitud', '') }}">
-  <button type="button" class="btn btn-link btn-sm p-0 mb-2" id="usar-ubicacion">📍 Usar mi ubicación (para el mapa)</button>
-  <span class="small gp-texto-suave" id="estado-ubicacion">{% if cliente and cliente.latitud %}Ya tenemos tu ubicación.{% endif %}</span>
+  <div class="gp-accion-con-estado mb-2">
+    <button type="button" class="btn btn-link btn-sm p-0" id="usar-ubicacion">📍 Usar mi ubicación (para el mapa)</button>
+    <span class="small gp-texto-suave" id="estado-ubicacion">{% if cliente and cliente.latitud %}Ya tenemos tu ubicación.{% endif %}</span>
+  </div>
   <label for="id_sucursal" class="form-label d-block small fw-semibold mt-2 mb-1">Sucursal que te atiende</label>
   <select id="id_sucursal" name="id_sucursal" class="form-select mb-1">
     {% for s in sucursales %}

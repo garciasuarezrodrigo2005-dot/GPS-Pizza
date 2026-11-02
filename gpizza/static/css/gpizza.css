@@ -484,3 +484,99 @@ h2, h3, .gp-paso, .gp-portada-titulo { font-family: var(--gp-letra-titulos); }
     padding-bottom: 0.6rem; border-bottom: 2px solid var(--gp-dorado); display: inline-block;
   }
 }
+
+/* =====================================================================================================
+   Ajustes por tamaño de pantalla (revisado de 320 px a 1366 px)
+   - Celular chico (< 576 px): encabezado compacto y filas que se acomodan en vez de encimarse.
+   - Tableta (768 a 991 px): columna más ancha y productos en dos columnas.
+   - PC angosta (992 a 1199 px): el pedido del cajero vuelve a una columna para no apretar las tarjetas.
+   ===================================================================================================== */
+
+/* Encabezado: el bloque de la marca se puede encoger; la parte derecha nunca se parte en renglones sueltos. */
+.gp-encabezado-marca > div { min-width: 0; }
+.gp-encabezado-empresa { white-space: nowrap; line-height: 1.25; }
+.gp-encabezado h1 { line-height: 1.2; overflow-wrap: anywhere; }
+.gp-encabezado-derecha {
+  display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 0.35rem 0.6rem;
+  flex-shrink: 0; max-width: 55%;
+}
+.gp-encabezado-derecha form { margin: 0 !important; }
+.gp-encabezado-derecha .gp-boton-salir { margin: 0 !important; }
+.gp-campana { margin-right: 0.2rem; }
+
+/* Botón con un texto de estado al lado: si no caben, el texto baja completo a la siguiente línea. */
+.gp-accion-con-estado { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.15rem 0.6rem; }
+
+/* Tamaños de pizza: siempre en una sola fila pareja (4 botones del mismo ancho). */
+.gp-tamanos { display: grid; grid-template-columns: repeat(auto-fit, minmax(54px, 1fr)); gap: 0.3rem; }
+.gp-tamanos[hidden] { display: none; }
+.gp-tamano { padding: 0.3rem 0.15rem; line-height: 1.15; white-space: nowrap; }
+.gp-tamano small { font-size: 0.68rem; }
+
+/* Pie de la tarjeta de producto: el precio se encoge antes que los botones de cantidad. */
+.gp-producto-pie > div:first-child { min-width: 0; }
+.gp-producto-info { min-width: 0; overflow-wrap: anywhere; }
+
+/* Filtros de reportes y auditoría: columnas que se encogen con la pantalla (antes se salían a la derecha). */
+.gp-filtros { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.gp-filtros > * { min-width: 0; }
+.gp-filtros .form-control, .gp-filtros .form-select { width: 100%; min-width: 0; }
+
+/* Tarjetas de indicadores y textos largos (montos, nombres): que bajen de línea en vez de salirse. */
+.gp-indicadores > * { min-width: 0; overflow-wrap: anywhere; }
+
+@media (max-width: 575.98px) {
+  .gp-encabezado { padding: 0.55rem 0.85rem; gap: 0.6rem; }
+  .gp-encabezado-logo { width: 30px; height: 30px; }
+  .gp-encabezado h1 { font-size: 1.05rem; }
+  .gp-encabezado-empresa { font-size: 0.62rem; }
+  .gp-encabezado small { font-size: 0.8rem; }
+  .gp-rol-encabezado { display: none; }          /* el rol ya se ve en el menú y en cada pantalla */
+  .gp-contenido { padding-left: 0.85rem; padding-right: 0.85rem; }
+
+  /* Barra inferior del personal: textos que caben en 320 px. */
+  .gp-navegacion > a { font-size: 0.8rem; padding: 0 0.15rem; text-align: center; line-height: 1.15; }
+
+  /* Panel del gerente en el celular: usuario y "Cerrar sesión" en una sola fila; el menú avisa que se desliza. */
+  .gp-menu-lateral { padding: 0.75rem 0.85rem; }
+  .gp-menu-titulo { margin-bottom: 0.5rem; }
+  .gp-menu-lateral nav { mask-image: linear-gradient(90deg, #000 85%, transparent); -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); scrollbar-width: none; }
+  .gp-menu-usuario { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
+  .gp-menu-usuario form { margin: 0 !important; }
+  .gp-panel-principal { padding: 1rem 0.85rem 2rem; }
+  .gp-pestanas-estado { scrollbar-width: none; }
+
+  /* Botones de opción (pago, tiempo): un poco más compactos para que quepan tres. */
+  .gp-segmentado { gap: 0.35rem; }
+  .gp-segmentado .btn { padding-left: 0.25rem; padding-right: 0.25rem; font-size: 0.95rem; }
+}
+
+@media (max-width: 359.98px) {
+  .gp-filtros { grid-template-columns: minmax(0, 1fr); }
+  .gp-indicadores { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Tableta: aprovecha el ancho sin pasar todavía a la distribución de PC. */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .gp-contenido { max-width: 720px; }
+  .gp-contenido-portada, .gp-contenido-medio { max-width: 600px; }
+  .gp-lista-productos:not([hidden]) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; margin-bottom: 0.75rem; }
+  .gp-lista-productos .gp-producto { margin-bottom: 0; align-content: start; }
+  .gp-panel-principal { padding: 1.5rem 2rem 2rem; }
+}
+
+@media (min-width: 992px) {
+  /* Los productos se acomodan según el espacio de la columna: dos si caben, una si no. */
+  .gp-lista-productos:not([hidden]) { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+}
+
+/* PC angosta con menú lateral (cajero): el pedido en una sola columna para no apretar las tarjetas. */
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .gp-con-navegacion .gp-pedido-rejilla { display: block; }
+  .gp-con-navegacion .gp-pedido-pegajoso { position: static; }
+  body.gp-con-navegacion { grid-template-columns: 210px minmax(0, 1fr); }
+  .gp-con-navegacion .gp-contenido { padding: 1.5rem 1.5rem; }
+  .gp-pedido-rejilla { grid-template-columns: minmax(0, 1fr) 340px; }
+  .gp-menu-lateral { width: 220px; }
+  .gp-panel-principal { padding: 2rem 2rem; }
+}

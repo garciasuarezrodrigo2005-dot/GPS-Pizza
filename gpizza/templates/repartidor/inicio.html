@@ -56,8 +56,10 @@
         {% endif %}
       </div>
       <p class="small mt-2 mb-1 {{ 'gp-texto-alerta fw-semibold' if minutos > 90 }}">Tiempo en camino: {{ minutos }} min · alerta a los 90 (RN-014)</p>
-      <button type="button" class="btn btn-link btn-sm p-0" data-simular>Simular recorrido (demo sin GPS)</button>
-      <span class="small gp-texto-suave ms-1" data-estado-gps></span>
+      <div class="gp-accion-con-estado">
+        <button type="button" class="btn btn-link btn-sm p-0" data-simular>Simular recorrido (demo sin GPS)</button>
+        <span class="small gp-texto-suave" data-estado-gps></span>
+      </div>
 
       {# ---------- RN-013: entrega en dos pasos ---------- #}
       <div class="gp-confirmar-entrega mt-3">
@@ -71,7 +73,7 @@
             <button type="button" class="btn btn-link btn-sm p-0" data-borrar-firma>Borrar firma</button>
             <div class="text-center small gp-texto-suave my-1">— o —</div>
             <input class="form-control mb-2" name="codigo" inputmode="numeric" maxlength="4" pattern="[0-9]{4}"
-                   placeholder="Código de confirmación del cliente" aria-label="Código de confirmación del cliente">
+                   placeholder="Código del cliente (4 dígitos)" aria-label="Código de confirmación del cliente">
             <button class="btn btn-gp-oscuro w-100">Registrar confirmación del cliente</button>
           </form>
           <button class="btn btn-gp-principal w-100 mt-2" disabled>Marcar como entregado</button>

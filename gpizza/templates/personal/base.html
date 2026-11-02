@@ -4,8 +4,8 @@
 {% block clase_body %}gp-con-navegacion{% endblock %}
 {% block encabezado_derecha %}
   {% include 'parciales/_campana.html' %}
-  {{ usuario.rol }}
-  <form method="post" action="{{ url_for('auth.salir') }}" class="d-inline ms-2">
+  <span class="gp-rol-encabezado">{{ usuario.rol }}</span>
+  <form method="post" action="{{ url_for('auth.salir') }}" class="d-inline">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <button class="gp-boton-salir" title="Cerrar sesión">Salir</button>
   </form>

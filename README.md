@@ -265,7 +265,8 @@ gpizza/            código de la aplicación
   static/          CSS, JS, iconos y librerías (Bootstrap, HTMX) incluidas para funcionar sin internet
     img/logo.svg   ícono de la app (los PNG de la PWA salen de él)
     img/productos/ un dibujo SVG por producto; el nombre del archivo sale del nombre del producto
-herramientas/      generadores de los íconos: iconos_productos.py e icono_app.py (con "png" crea los PNG)
+herramientas/      generadores de los íconos (iconos_productos.py, icono_app.py) y revisar_responsivo.py,
+                   que busca elementos encimados o fuera de la pantalla de 320 px a 1366 px
 tests/             pruebas automáticas (pytest)
 docs/              documentación del proyecto, diseño y matriz de trazabilidad
 run.py             arranque con waitress

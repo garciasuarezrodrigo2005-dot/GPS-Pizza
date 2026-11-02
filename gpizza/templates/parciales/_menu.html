@@ -29,7 +29,7 @@
         {% for o in t.opciones %}
           <button type="button" class="gp-tamano" data-id="{{ o.id_producto }}" data-precio="{{ o.precio }}" data-qr="{{ o.codigo or '' }}"
                   data-nombre="{{ t.nombre }}{{ ' ' ~ o.tamano if o.tamano }}"
-                  {% if not o.disponible %}disabled title="Agotado"{% endif %}>{{ o.tamano or 'Único' }}{% if not o.disponible %} (agotado){% endif %}</button>
+                  {% if not o.disponible %}disabled title="Agotado"{% endif %}>{{ o.tamano or 'Único' }}{% if not o.disponible %}<small class="d-block">agotado</small>{% endif %}</button>
         {% endfor %}
       </div>
       <div class="gp-producto-pie">
