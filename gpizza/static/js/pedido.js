@@ -224,6 +224,7 @@
       form.querySelector('[name="longitud"]').value = pos.coords.longitude.toFixed(6);
       estado.textContent = 'Ubicación guardada: tu casa aparecerá en el mapa.';
       guardarBorrador();
+      form.dispatchEvent(new CustomEvent('gp:ubicacion'));   // el mapa de sucursales recalcula la más cercana
     }, () => { estado.textContent = 'No pudimos leer tu ubicación; tu dirección basta.'; });
   });
 

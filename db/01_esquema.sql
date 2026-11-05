@@ -35,10 +35,14 @@ CREATE TABLE sucursal (
     ciudad             VARCHAR(60)  NOT NULL CHECK (btrim(ciudad) <> ''),
     estado             VARCHAR(60)  NOT NULL CHECK (btrim(estado) <> ''),
     radio_cobertura_km NUMERIC(5,2) NOT NULL CHECK (radio_cobertura_km > 0),  -- dato para RNF-009 (futuro)
+    -- Decisión 22: ubicación de la sucursal para el mapa del pedido (se recomienda la abierta más cercana).
+    latitud            NUMERIC(9,6) CHECK (latitud BETWEEN -90 AND 90),
+    longitud           NUMERIC(9,6) CHECK (longitud BETWEEN -180 AND 180),
     hora_apertura      TIME NOT NULL DEFAULT '11:00',
     hora_cierre        TIME NOT NULL DEFAULT '22:00',
     activa             BOOLEAN NOT NULL DEFAULT true,
-    CONSTRAINT rn002_sucursal_horario CHECK (hora_apertura < hora_cierre)
+    CONSTRAINT rn002_sucursal_horario CHECK (hora_apertura < hora_cierre),
+    CONSTRAINT ck_sucursal_coordenadas CHECK ((latitud IS NULL) = (longitud IS NULL))
 );
 
 -- -------------------------------------------------------------------------------------

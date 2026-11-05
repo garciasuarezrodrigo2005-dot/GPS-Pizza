@@ -21,8 +21,13 @@
       <input class="form-control" type="time" id="apertura" name="apertura" value="{{ valores.get('apertura', '11:00') }}"></div>
     <div class="col-6 col-md-3"><label class="small fw-semibold" for="cierre">Cierra</label>
       <input class="form-control" type="time" id="cierre" name="cierre" value="{{ valores.get('cierre', '22:00') }}"></div>
-    <div class="col-12 col-md-6 d-flex align-items-end"><button class="btn btn-gp-oscuro w-100">Crear sucursal</button></div>
-    <div class="col-12"><div class="gp-error-campo">{{ errores.get('horario', '') }}</div></div>
+    <div class="col-6 col-md-3"><label class="small fw-semibold" for="latitud">Latitud</label>
+      <input class="form-control" id="latitud" name="latitud" inputmode="decimal" placeholder="19.156300" value="{{ valores.get('latitud', '') }}"></div>
+    <div class="col-6 col-md-3"><label class="small fw-semibold" for="longitud">Longitud</label>
+      <input class="form-control" id="longitud" name="longitud" inputmode="decimal" placeholder="-96.159000" value="{{ valores.get('longitud', '') }}"></div>
+    <div class="col-12 small gp-texto-suave">Ubicación para el mapa del cliente: en Google Maps, clic derecho sobre la sucursal → copia las coordenadas.</div>
+    <div class="col-12"><div class="gp-error-campo">{{ errores.get('horario', '') }}{{ errores.get('ubicacion', '') }}</div></div>
+    <div class="col-12"><button class="btn btn-gp-oscuro w-100">Crear sucursal</button></div>
   </form>
 </details>
 
@@ -33,7 +38,7 @@
       <div>
         <div class="fw-semibold">{{ s.nombre }}</div>
         <div class="small gp-texto-suave">{{ s.direccion }}, {{ s.ciudad }}</div>
-        <div class="small">Pedidos de {{ s.hora_apertura.strftime('%H:%M') }} a {{ s.hora_cierre.strftime('%H:%M') }} h ·
+        <div class="small">{% if s.latitud is none %}<span class="gp-texto-alerta">Sin ubicación en el mapa</span> · {% endif %}Pedidos de {{ s.hora_apertura.strftime('%H:%M') }} a {{ s.hora_cierre.strftime('%H:%M') }} h ·
           {{ empleados }} empleado{{ 's' if empleados != 1 }} activo{{ 's' if empleados != 1 }}</div>
       </div>
       {% if not s.activa %}<span class="gp-estado">Inactiva</span>{% endif %}
@@ -49,6 +54,8 @@
         <div class="col-4"><input class="form-control form-control-sm" name="radio" value="{{ s.radio_cobertura_km }}" inputmode="decimal" aria-label="Radio en km"></div>
         <div class="col-4"><input class="form-control form-control-sm" type="time" name="apertura" value="{{ s.hora_apertura.strftime('%H:%M') }}" aria-label="Abre"></div>
         <div class="col-4"><input class="form-control form-control-sm" type="time" name="cierre" value="{{ s.hora_cierre.strftime('%H:%M') }}" aria-label="Cierra"></div>
+        <div class="col-6"><input class="form-control form-control-sm" name="latitud" value="{{ s.latitud if s.latitud is not none else '' }}" inputmode="decimal" placeholder="Latitud" aria-label="Latitud"></div>
+        <div class="col-6"><input class="form-control form-control-sm" name="longitud" value="{{ s.longitud if s.longitud is not none else '' }}" inputmode="decimal" placeholder="Longitud" aria-label="Longitud"></div>
         <div class="col-12"><button class="btn btn-gp-oscuro btn-sm w-100">Guardar</button></div>
       </form>
       <form method="post" class="mt-2" action="{{ url_for('admin.sucursal_accion', id_sucursal=s.id_sucursal, accion='desactivar' if s.activa else 'activar') }}"

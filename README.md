@@ -242,6 +242,8 @@ publicar la app con un túnel como `cloudflared` o en un servidor con HTTPS).
 1. **Cuenta del cliente:** en el inicio toca **Crear cuenta** con un teléfono nuevo (10 dígitos), tu nombre y una
    contraseña con letras y números (sin dirección). Entras directo a "Haz tu pedido". Intenta crear otra con el mismo
    teléfono: "Ya existe una cuenta".
+1. **Sucursal en el mapa:** en "Haz tu pedido" la sucursal abierta más cercana a tu ubicación aparece preseleccionada
+   ("Recomendada"); toca otra en el mapa para elegirla. El administrador captura la ubicación de cada sucursal.
 1. **Destino y confirmación:** en "¿A dónde lo llevamos?" escribe la dirección (la del primer pedido se guarda en tu
    cuenta). "Revisar pedido" muestra **Confirma tu pedido** con todos los datos; confírmalo y en "Tu pedido" verás el
    comprobante con folio y fecha.

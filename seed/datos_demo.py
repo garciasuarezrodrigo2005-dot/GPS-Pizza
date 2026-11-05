@@ -131,9 +131,9 @@ class Cargador:
         self.como(None, t)
         for clave, nombre, direccion, ciudad, radio, lat, lon, _ in SUCURSALES:
             self.suc[clave] = {'id': self.sql(
-                'INSERT INTO sucursal (nombre, direccion, ciudad, estado, radio_cobertura_km) '
-                "VALUES (:n, :d, :c, 'Veracruz', :r) RETURNING id_sucursal",
-                n=nombre, d=direccion, c=ciudad, r=radio).scalar_one(), 'lat': lat, 'lon': lon}
+                'INSERT INTO sucursal (nombre, direccion, ciudad, estado, radio_cobertura_km, latitud, longitud) '
+                "VALUES (:n, :d, :c, 'Veracruz', :r, :lat, :lon) RETURNING id_sucursal",
+                n=nombre, d=direccion, c=ciudad, r=radio, lat=lat, lon=lon).scalar_one(), 'lat': lat, 'lon': lon}
 
         hoy = self.base.date()
         for clave, puesto, usuario, nombre, apellidos in PERSONAL:

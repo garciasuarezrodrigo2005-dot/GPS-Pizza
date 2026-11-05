@@ -154,11 +154,21 @@ def pedido():
         valores = {'nombre': cliente.nombre, 'direccion': cliente.direccion or '', 'colonia': cliente.colonia or '',
                    'codigo_postal': cliente.codigo_postal or ''}
 
+    # Decisión 22: datos del mapa de sucursales (la recomendación de la más cercana se calcula en el navegador).
+    horario = {s.id_sucursal: pedidos.en_horario(s) for s in sucursales}
+    mapa_sucursales = {
+        'sucursales': [{'id': s.id_sucursal, 'nombre': s.nombre, 'direccion': f'{s.direccion}, {s.ciudad}',
+                        'horario': f'{s.hora_apertura:%H:%M} a {s.hora_cierre:%H:%M} h', 'abierta': horario[s.id_sucursal],
+                        'lat': float(s.latitud) if s.latitud is not None else None,
+                        'lng': float(s.longitud) if s.longitud is not None else None} for s in sucursales],
+        'cliente': [float(cliente.latitud), float(cliente.longitud)] if cliente.latitud is not None else None,
+        'elegida': bool(valores.get('id_sucursal')),   # si ya eligió (al modificar o por un error), se respeta
+    }
     return render_template(
-        'cliente/pedido.html', telefono=telefono, cliente=cliente, sucursales=sucursales,
+        'cliente/pedido.html', telefono=telefono, cliente=cliente, sucursales=sucursales, mapa_sucursales=mapa_sucursales,
         menu=catalogo.menu(), errores=errores, valores=valores, editando=editando,
         cantidades=pedidos.leer_renglones(valores), en_curso=pedidos.en_curso_del_cliente(telefono),
-        sucursal_horario={s.id_sucursal: pedidos.en_horario(s) for s in sucursales}), 422 if errores else 200
+        sucursal_horario=horario), 422 if errores else 200
 
 
 @bp.post('/pedido/codigo')

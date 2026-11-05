@@ -16,7 +16,7 @@ Contraseña de todos los usuarios de demo, también de los clientes: **`Pizza202
 | 2 | En `.env`: `GPIZZA_HORA_DEMO=14:00` (o la hora que diga el seed) | Los pedidos de "hoy" coinciden con el reloj; los pedidos se aceptan aunque se presente antes de las 11:00 |
 | 3 | `flask --app gpizza run --debug` (o `python run.py`) | Servidor |
 | 4 | Abrir 5 ventanas: **Cliente** (Chrome, modo celular con F12), **Cajero** (Edge), **Repartidor** (Chrome incógnito, modo celular), **Gerente** (Edge InPrivate) y **Administrador** (Firefox o un perfil nuevo de Chrome) | Cada actor con su sesión |
-| 5 | `pytest -q` en una terminal visible | Mostrar las 206 pruebas en verde al inicio |
+| 5 | `pytest -q` en una terminal visible | Mostrar las 210 pruebas en verde al inicio |
 | 6 | Tener abierto `psql -U gpizza_user -d gpizza` | Demostrar las reglas en la base de datos |
 
 **Plan B:** si no hay internet, los mapas no cargan sus mosaicos (todo lo demás funciona: Bootstrap, HTMX y Chart.js
@@ -35,7 +35,9 @@ están dentro del proyecto). Si el GPS falla, usar "Simular recorrido".
 Ventana **Cliente** (tamaño celular):
 1. Inicio: el horario de pedidos está a la vista (RN-002). Teléfono `2297654321` y contraseña `Pizza2026` → "Entrar" (CU-006): sus datos se autocompletan (CU-005, RF-005).
    *(Opcional, decisión 18)* "Crear cuenta" con un teléfono nuevo; volver a intentarlo con el mismo teléfono → "Ya existe una cuenta".
-2. Menú (CU-010, RF-002): pestañas Pizzas / Complementos; un producto agotado en gris (CU-001 FA-2).
+2. **Sucursal en el mapa** (decisión 22): la abierta más cercana aparece preseleccionada como "Recomendada" con su
+   distancia; toca otra en el mapa para elegirla (las cerradas se ven en gris).
+3. Menú (CU-010, RF-002): pestañas Pizzas / Complementos; un producto agotado en gris (CU-001 FA-2).
 3. Agregar 1 Pepperoni Personal ($89): el total avisa "te faltan $11" (**RN-001**). Subir a 6 unidades: el "+" se apaga en 5 (**RN-003**).
 4. Código `BIENVENIDA10` → "Aplicar" (**RN-008**). Probar `VENCIDO20` → "no está vigente".
 5. Efectivo, "¿Con cuánto pagas?" 500 → el cambio se calcula solo (**RN-009, RN-010**).

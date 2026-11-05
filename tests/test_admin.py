@@ -155,3 +155,15 @@ def test_rn019_muestra_los_cambios_de_estado_de_los_pedidos(app_bd, admin):
         dia = db.session.scalar(select(func.min(Pedido.fecha_registro)).where(Pedido.id_sucursal == 1)).date()
     html = admin.get(f'/admin/auditoria?desde={dia}&hasta={dia}&entidad=pedido').get_data(as_text=True)
     assert 'estado: Por Confirmar → En Preparación' in html or 'estado: En Preparación → Listo para Entrega' in html
+
+
+def test_la_sucursal_guarda_su_ubicacion_para_el_mapa(app_bd, admin):
+    """Decisión 22: latitud y longitud opcionales; si se escriben, deben ser válidas."""
+    html = _post(admin, '/admin/sucursales/nueva', nombre='Mocambo', direccion='Calz. Mocambo 1', ciudad='Boca del Río',
+                 radio='4', apertura='11:00', cierre='22:00', latitud='200', longitud='-96.1').get_data(as_text=True)
+    assert 'latitud y longitud válidas' in html
+    _post(admin, '/admin/sucursales/nueva', nombre='Mocambo', direccion='Calz. Mocambo 1', ciudad='Boca del Río',
+          radio='4', apertura='11:00', cierre='22:00', latitud='19.1350', longitud='-96.1020')
+    with app_bd.app_context():
+        nueva = db.session.scalar(select(Sucursal).where(Sucursal.nombre == 'Mocambo'))
+        assert (float(nueva.latitud), float(nueva.longitud)) == (19.135, -96.102)

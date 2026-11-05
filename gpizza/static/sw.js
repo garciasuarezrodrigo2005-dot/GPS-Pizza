@@ -4,7 +4,7 @@
 // - Las páginas sin red muestran /offline. Nunca se guardan datos de pedidos ni respuestas de la API.
 // Al cambiar esta estrategia o la lista de archivos, sube el número de CACHE para borrar la anterior.
 
-const CACHE = 'gpizza-v9';
+const CACHE = 'gpizza-v10';
 const ARCHIVOS_FIJOS = [
   '/offline',
   '/static/css/gpizza.css',

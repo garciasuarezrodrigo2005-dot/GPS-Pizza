@@ -40,7 +40,8 @@ def _datos_sucursal(formulario) -> sucursales.DatosSucursal:
     return sucursales.DatosSucursal(
         nombre=formulario.get('nombre', ''), direccion=formulario.get('direccion', ''),
         ciudad=formulario.get('ciudad', ''), estado=formulario.get('estado', '') or 'Veracruz',
-        radio=formulario.get('radio', ''), apertura=formulario.get('apertura', ''), cierre=formulario.get('cierre', ''))
+        radio=formulario.get('radio', ''), apertura=formulario.get('apertura', ''), cierre=formulario.get('cierre', ''),
+        latitud=formulario.get('latitud', ''), longitud=formulario.get('longitud', ''))
 
 
 def _pantalla_sucursales(errores=None, valores=None, codigo=200):

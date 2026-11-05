@@ -13,6 +13,7 @@ from sqlalchemy.exc import DBAPIError
 
 from gpizza.extensiones import db
 from gpizza.modelos import Empleado, Sucursal
+from gpizza.servicios import geo
 from gpizza.servicios.errores import mensaje_bd
 
 
@@ -25,6 +26,8 @@ class DatosSucursal:
     radio: str = '4'
     apertura: str = '11:00'
     cierre: str = '22:00'
+    latitud: str = ''     # decisión 22: opcionales; sin ellas la sucursal no aparece en el mapa
+    longitud: str = ''
 
 
 def listar() -> list[tuple[Sucursal, int]]:
@@ -67,6 +70,13 @@ def _validar(datos: DatosSucursal) -> tuple[dict, dict[str, str]]:
     elif apertura >= cierre:
         errores['horario'] = 'La hora de apertura debe ser antes de la de cierre (RN-002).'
     limpios['hora_apertura'], limpios['hora_cierre'] = apertura, cierre
+    latitud, longitud = datos.latitud.strip(), datos.longitud.strip()
+    if not latitud and not longitud:
+        limpios['latitud'] = limpios['longitud'] = None
+    elif geo.coordenadas_validas(latitud, longitud):
+        limpios['latitud'], limpios['longitud'] = round(Decimal(latitud), 6), round(Decimal(longitud), 6)
+    else:
+        errores['ubicacion'] = 'Escribe latitud y longitud válidas (p. ej. 19.156300 y -96.159000), o deja ambas vacías.'
     return limpios, errores
 
 

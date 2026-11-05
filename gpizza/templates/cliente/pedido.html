@@ -63,10 +63,17 @@
     <button type="button" class="btn btn-link btn-sm p-0" id="usar-ubicacion">📍 Usar mi ubicación (para el mapa)</button>
     <span class="small gp-texto-suave" id="estado-ubicacion">{% if cliente and cliente.latitud %}Ya tenemos tu ubicación.{% endif %}</span>
   </div>
+  {# Decisión 22: las sucursales en un mapa. Se preselecciona la abierta más cercana a tu ubicación y puedes
+     elegir otra tocándola (por ejemplo, si la cercana está cerrada). Es una sugerencia: no limita la distancia. #}
   <label for="id_sucursal" class="form-label d-block small fw-semibold mt-2 mb-1">Sucursal que te atiende</label>
-  <select id="id_sucursal" name="id_sucursal" class="form-select mb-1">
+  <p class="small gp-texto-suave mb-2" id="sucursal-ayuda">Toca «📍 Usar mi ubicación» y te recomendamos la sucursal abierta más cercana.</p>
+  <div class="gp-mapa gp-mapa-sucursales mb-2" id="mapa-sucursales" aria-label="Mapa de sucursales: toca una para elegirla"></div>
+  <script type="application/json" id="datos-sucursales">{{ mapa_sucursales|tojson }}</script>
+  <div id="sucursal-elegida" class="gp-sucursal-elegida mb-2" aria-live="polite" hidden></div>
+  <select id="id_sucursal" name="id_sucursal" class="form-select mb-1" aria-describedby="sucursal-ayuda">
     {% for s in sucursales %}
-      <option value="{{ s.id_sucursal }}" {% if valores.get('id_sucursal')|string == s.id_sucursal|string %}selected{% endif %}>
+      <option value="{{ s.id_sucursal }}" data-nombre="{{ s.nombre }}{% if not sucursal_horario[s.id_sucursal] %} (cerrada ahora){% endif %}"
+              {% if valores.get('id_sucursal')|string == s.id_sucursal|string %}selected{% endif %}>
         {{ s.nombre }}{% if not sucursal_horario[s.id_sucursal] %} (cerrada ahora){% endif %}</option>
     {% endfor %}
   </select>
@@ -99,4 +106,9 @@
 </div>
 {% endblock %}
 
-{% block scripts %}<script src="{{ url_for('static', filename='js/pedido.js') }}"></script>{% endblock %}
+{% block cabeza %}<link rel="stylesheet" href="{{ url_for('static', filename='vendor/leaflet/leaflet.css') }}">{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/pedido.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}"></script>
+<script src="{{ url_for('static', filename='js/sucursales.js') }}"></script>
+{% endblock %}

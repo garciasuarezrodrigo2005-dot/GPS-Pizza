@@ -47,6 +47,8 @@ class Sucursal(db.Model):
     ciudad: Mapped[str] = mapped_column(String(60))
     estado: Mapped[str] = mapped_column(String(60))
     radio_cobertura_km: Mapped[Decimal] = mapped_column(Numeric(5, 2))
+    latitud: Mapped[Decimal | None] = mapped_column(Numeric(9, 6))    # decisión 22: mapa del pedido
+    longitud: Mapped[Decimal | None] = mapped_column(Numeric(9, 6))
     hora_apertura: Mapped[time] = _servidor(Time)
     hora_cierre: Mapped[time] = _servidor(Time)
     activa: Mapped[bool] = _servidor(Boolean)

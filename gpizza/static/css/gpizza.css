@@ -784,3 +784,28 @@ h2, h3, .gp-paso, .gp-portada-titulo { font-family: var(--gp-letra-titulos); }
 .gp-desplegable > summary::after { content: "›"; font-size: 1.4rem; transition: transform 0.25s ease; color: var(--gp-texto-suave); }
 .gp-desplegable[open] > summary::after { transform: rotate(90deg); }
 .gp-desplegable[open] > form { animation: gp-bajar 0.3s ease; padding-bottom: 0.75rem; }
+
+/* =====================================================================================================
+   Mapa de sucursales del pedido (decisión 22): la recomendada (abierta más cercana) y la elegida resaltan;
+   las cerradas en este momento se ven en gris.
+   ===================================================================================================== */
+.gp-mapa-sucursales { height: 260px; }
+@media (min-width: 992px) { .gp-mapa-sucursales { height: 320px; } }
+.gp-pin-sucursal {
+  position: relative; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: #fff; border: 3px solid var(--gp-oscuro); font-size: 20px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s ease;
+}
+.gp-pin-sucursal.cerrada { filter: grayscale(1); opacity: 0.55; border-color: #78716c; }
+.gp-pin-sucursal.recomendada { border-color: var(--gp-dorado); box-shadow: 0 0 0 4px rgba(184, 137, 59, 0.35), 0 4px 10px rgba(0, 0, 0, 0.35); }
+.gp-pin-sucursal.elegida { background: var(--gp-acento); border-color: #fff; transform: scale(1.18); animation: gp-pulso 1.6s ease-out infinite; }
+.gp-pin-etiqueta {
+  position: absolute; top: -22px; left: 50%; transform: translateX(-50%); white-space: nowrap;
+  background: var(--gp-dorado); color: #fff; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 999px;
+}
+.gp-sucursal-elegida {
+  display: flex; gap: 0.75rem; align-items: flex-start; padding: 0.65rem 0.8rem; border-radius: var(--gp-radio);
+  background: #fff7ed; border: 1px solid #fdba74; animation: gp-bajar 0.3s ease;
+}
+.gp-sucursal-elegida.cerrada { background: #fef2f2; border-color: #fca5a5; }
+.gp-sucursal-icono { font-size: 1.6rem; line-height: 1; }

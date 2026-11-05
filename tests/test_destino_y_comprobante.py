@@ -1,4 +1,5 @@
 """Decisión 21: dirección de destino en cada pedido, confirmación antes de enviar y comprobante del pedido."""
+import pytest
 from sqlalchemy import func, select
 
 from gpizza.extensiones import db
@@ -121,3 +122,27 @@ def test_la_pantalla_que_se_actualiza_sola_es_un_solo_bloque(app_bd, web):
         lector.feed(parcial)
         assert lector.raices == 1 and lector.nivel == 0, 'el parcial debe ser un único <div id="estado-pedido">'
     assert web.get(f'/mi-pedido/{folio}').get_data(as_text=True).count('Cancelar pedido') == 1
+
+
+# ------------------------------------------------------------------------------ decisión 22: mapa de sucursales
+
+def test_el_pedido_trae_el_mapa_de_sucursales_con_su_ubicacion(app_bd, web):
+    import json
+    import re
+    entrar_como_cliente(web)
+    html = web.get('/pedido').get_data(as_text=True)
+    datos = json.loads(re.search(r'<script type="application/json" id="datos-sucursales">(.*?)</script>', html, re.S).group(1))
+    coyol = next(s for s in datos['sucursales'] if s['nombre'] == 'Coyol (matriz)')
+    assert coyol['lat'] == 19.1563 and coyol['lng'] == -96.159 and coyol['abierta'] is True   # 15:00 de la demo
+    assert datos['cliente'] == [19.1571, -96.1605]          # Ana: la recomendación se calcula en el navegador
+    assert datos['elegida'] is False and 'js/sucursales.js' in html
+
+
+@pytest.mark.hora_demo('09:00')
+def test_fuera_de_horario_las_sucursales_salen_cerradas_en_el_mapa(app_bd, web):
+    import json
+    import re
+    entrar_como_cliente(web)
+    html = web.get('/pedido').get_data(as_text=True)
+    datos = json.loads(re.search(r'id="datos-sucursales">(.*?)</script>', html, re.S).group(1))
+    assert not any(s['abierta'] for s in datos['sucursales'])
