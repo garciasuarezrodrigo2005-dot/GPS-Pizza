@@ -11,6 +11,13 @@
   const CLAVE_BORRADOR = 'gpizza-borrador-' + form.dataset.borrador;
   const pesos = (n) => '$ ' + n.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+  // Reinicia una animación CSS (para que "salte" otra vez aunque ya tuviera la clase).
+  const animar = (elemento, clase) => {
+    if (!elemento) return;
+    elemento.classList.remove(clase);
+    void elemento.offsetWidth;
+    elemento.classList.add(clase);
+  };
   const campoCantidad = (id) => form.querySelector(`[data-cantidad-de="${id}"]`);
   const cantidad = (id) => Number(campoCantidad(id)?.value || 0);
   const precios = {};
@@ -63,6 +70,13 @@
     campoCantidad(id).value = nueva;
     mostrarError('');
     actualizar();
+    if (nueva !== actual) {
+      animar(tarjeta.querySelector('[data-cantidad]'), 'gp-pop');
+      if (nueva > actual) {
+        animar(tarjeta, 'gp-agregado');
+        animar(document.querySelector('#barra-carrito .gp-barra-icono'), 'gp-rebote');
+      }
+    }
   }
 
   tarjetas.forEach((tarjeta) => {
@@ -103,7 +117,9 @@
     const { subtotal, descuento, total } = totales();
     document.getElementById('resumen-subtotal').textContent = pesos(subtotal);
     document.getElementById('resumen-descuento').textContent = '− ' + pesos(descuento);
-    document.getElementById('resumen-total').textContent = pesos(total);
+    const celdaTotal = document.getElementById('resumen-total');
+    if (celdaTotal.textContent !== pesos(total)) animar(celdaTotal, 'gp-pop');
+    celdaTotal.textContent = pesos(total);
     const minimoOk = subtotal >= MINIMO;
     const aviso = document.getElementById('aviso-minimo');
     aviso.textContent = minimoOk ? 'Pedido mínimo $100 cubierto.' : `Pedido mínimo $100 (RN-001): te faltan ${pesos(MINIMO - subtotal)}.`;
@@ -117,8 +133,24 @@
     const filaCambio = document.getElementById('fila-cambio');
     filaCambio.hidden = !(efectivo && recibido >= total && total > 0);
     document.getElementById('resumen-cambio').textContent = pesos(Math.max(0, recibido - total)); // RN-010
+    pintarBarra(subtotal, total, minimoOk);
     guardarBorrador();
   }
+
+  // ---------------------------------------------------------------- barra de carrito (celular)
+  // Como en las apps de reparto: siempre a la vista el número de productos, el total y el botón para seguir.
+  const barra = document.getElementById('barra-carrito');
+  function pintarBarra(subtotal, total, minimoOk) {
+    if (!barra) return;
+    const unidades = [...form.querySelectorAll('[data-cantidad-de]')].reduce((s, c) => s + Number(c.value), 0);
+    barra.classList.toggle('visible', unidades > 0);
+    barra.querySelector('[data-unidades]').textContent = `${unidades} producto${unidades === 1 ? '' : 's'}`;
+    barra.querySelector('[data-total]').textContent = pesos(total);
+    const boton = barra.querySelector('button');
+    boton.disabled = !minimoOk;
+    boton.textContent = minimoOk ? 'Revisar pedido' : `Faltan ${pesos(MINIMO - subtotal)}`;
+  }
+  if (barra) barra.querySelector('button').addEventListener('click', () => document.getElementById('enviar-pedido').click());
 
   form.addEventListener('input', actualizar);
   form.addEventListener('change', actualizar);

@@ -88,3 +88,36 @@ def test_tu_pedido_muestra_el_comprobante_completo(app_bd, web):
     for texto in ('Comprobante de pedido', folio, 'Enviar a', 'Calle Pino Suárez 120', 'Desde', 'Coyol (matriz)',
                   'Pepperoni Mediana', 'Total', '$ 298.00', 'Efectivo', 'Tu cambio', '$ 202.00'):
         assert texto in html, texto
+
+
+def test_la_pantalla_que_se_actualiza_sola_es_un_solo_bloque(app_bd, web):
+    """Regresión: un </div> de más dejaba "¿Necesitas cancelar?" fuera del bloque que HTMX reemplaza
+    cada 10 s, y se agregaba una copia nueva en cada actualización."""
+    from html.parser import HTMLParser
+
+    class Raices(HTMLParser):
+        VACIOS = {'input', 'br', 'img', 'hr', 'meta', 'link'}
+
+        def __init__(self):
+            super().__init__()
+            self.nivel, self.raices = 0, 0
+
+        def handle_starttag(self, etiqueta, _atributos):
+            if etiqueta in self.VACIOS:
+                return
+            if self.nivel == 0:
+                self.raices += 1
+            self.nivel += 1
+
+        def handle_endtag(self, etiqueta):
+            if etiqueta not in self.VACIOS:
+                self.nivel -= 1
+
+    entrar_como_cliente(web)
+    folio = folio_de(web.post('/pedido', data=formulario(app_bd, web)))
+    for _ in range(2):
+        parcial = web.get(f'/mi-pedido/{folio}/estado').get_data(as_text=True)
+        lector = Raices()
+        lector.feed(parcial)
+        assert lector.raices == 1 and lector.nivel == 0, 'el parcial debe ser un único <div id="estado-pedido">'
+    assert web.get(f'/mi-pedido/{folio}').get_data(as_text=True).count('Cancelar pedido') == 1

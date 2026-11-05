@@ -625,6 +625,7 @@ h2, h3, .gp-paso, .gp-portada-titulo { font-family: var(--gp-letra-titulos); }
 }
 .gp-comprobante-productos td { border-bottom: 1px dashed #e7e1d8; padding: 0.4rem 0.25rem; vertical-align: top; }
 .gp-comprobante-productos td:first-child { width: 2.5rem; font-weight: 700; }
+.gp-comprobante-productos .text-end { white-space: nowrap; }   /* "$ 209.00" nunca se parte en dos líneas */
 .gp-comprobante-totales {
   display: grid; grid-template-columns: 1fr auto; gap: 0.2rem 0; margin: 0.75rem 1rem 0; font-size: 0.95rem;
 }
@@ -645,3 +646,141 @@ h2, h3, .gp-paso, .gp-portada-titulo { font-family: var(--gp-letra-titulos); }
   .gp-comprobante-folio { font-size: 1.1rem; }
   .gp-comprobante-cabeza > div:last-child { max-width: 42%; }
 }
+
+
+/* =====================================================================================================
+   Animaciones e interacción (como en las apps de reparto, con el estilo de Yungla Pizza)
+   - Botones que responden al toque: se levantan al pasar el cursor, se hunden al tocarlos y dejan una onda.
+   - Al agregar un producto la cantidad "salta" y la tarjeta brilla; la barra de carrito aparece abajo.
+   - "Tu pedido": un ícono animado por estado y el paso actual pulsando.
+   - Todo se apaga con "reducir movimiento" del sistema (al final de esta sección).
+   ===================================================================================================== */
+
+/* ---------- Botones ---------- */
+.btn, .gp-chip, .gp-tamano, .gp-boton-cantidad, .gp-segmentado .btn {
+  /* clip (no hidden): recorta la onda del toque sin que el botón pueda encogerse más que su texto en una fila flex */
+  position: relative; overflow: clip;
+  transition: transform 0.12s ease, box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.btn:active:not(:disabled), .gp-chip:active, .gp-tamano:active:not(:disabled), .gp-boton-cantidad:active:not(:disabled) {
+  transform: scale(0.96);
+}
+@media (hover: hover) {
+  .btn:hover:not(:disabled), .gp-chip:hover { transform: translateY(-1px); box-shadow: 0 6px 16px -8px rgba(31, 27, 24, 0.45); }
+  .gp-boton-cantidad:hover:not(:disabled), .gp-tamano:hover:not(:disabled):not(.activa) { border-color: var(--gp-acento); color: var(--gp-acento); }
+}
+.btn-gp-principal { background-image: linear-gradient(135deg, #d9531a, var(--gp-acento) 55%, #a8380b); border: 0; }
+.btn-gp-principal::after {             /* brillo que cruza el botón principal al pasar el cursor */
+  content: ""; position: absolute; top: 0; left: -60%; width: 40%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: skewX(-20deg); pointer-events: none;
+}
+@media (hover: hover) { .btn-gp-principal:hover::after { animation: gp-brillo 0.8s ease; } }
+.btn:disabled { filter: grayscale(0.4); }
+
+/* Onda del toque (la crea gpizza.js) */
+.gp-onda {
+  position: absolute; border-radius: 50%; pointer-events: none; transform: scale(0);
+  background: currentColor; opacity: 0.18; animation: gp-onda 0.55s ease-out;
+}
+
+/* Campos: anillo de enfoque con el color de la marca en lugar del azul de Bootstrap */
+.form-control, .form-select { transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+.form-control:focus, .form-select:focus, .form-check-input:focus {
+  border-color: var(--gp-acento); box-shadow: 0 0 0 0.22rem rgba(194, 65, 12, 0.18);
+}
+.form-check-input:checked { background-color: var(--gp-acento); border-color: var(--gp-acento); }
+
+/* ---------- Menú del pedido ---------- */
+.gp-producto { transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; }
+.gp-producto-foto img { transition: transform 0.35s cubic-bezier(.34, 1.56, .64, 1); }
+@media (hover: hover) { .gp-producto[data-producto]:hover .gp-producto-foto img { transform: rotate(-12deg) scale(1.08); } }
+.gp-producto.gp-agregado { animation: gp-agregado 0.6s ease; }
+.gp-producto.gp-agregado .gp-producto-foto img { animation: gp-girar 0.6s ease; }
+.gp-pop { display: inline-block; animation: gp-pop 0.35s cubic-bezier(.34, 1.56, .64, 1); }
+.gp-tamano.activa { animation: gp-pop 0.25s ease; }
+.gp-chip.activa { box-shadow: 0 4px 12px -6px rgba(31, 27, 24, 0.6); }
+
+/* Barra de carrito (solo celular y tableta; en la PC el resumen ya está fijo a la derecha) */
+.gp-barra-carrito {
+  position: fixed; left: 0.75rem; right: 0.75rem; bottom: calc(0.75rem + env(safe-area-inset-bottom)); z-index: 20;
+  display: flex; align-items: center; gap: 0.75rem; padding: 0.55rem 0.55rem 0.55rem 0.9rem;
+  background: var(--gp-oscuro); color: #fff; border-radius: 16px; box-shadow: 0 14px 30px -10px rgba(0, 0, 0, 0.55);
+  transform: translateY(140%); opacity: 0; visibility: hidden; pointer-events: none;
+  transition: transform 0.35s cubic-bezier(.34, 1.4, .64, 1), opacity 0.25s ease, visibility 0s linear 0.35s;
+}
+.gp-barra-carrito.visible { transform: none; opacity: 1; visibility: visible; pointer-events: auto; transition-delay: 0s; }
+.gp-barra-icono { font-size: 1.5rem; display: inline-block; }
+.gp-barra-texto { display: flex; flex-direction: column; line-height: 1.15; margin-right: auto; font-size: 0.85rem; }
+.gp-barra-texto strong { font-size: 1.1rem; }
+.gp-barra-carrito .btn { min-height: 44px; padding: 0.4rem 1rem; white-space: nowrap; }
+.gp-rebote { animation: gp-rebote 0.5s ease; }
+.gp-vista-cliente-pedido .gp-contenido { padding-bottom: 6.5rem; }
+@media (min-width: 992px) {
+  .gp-barra-carrito { display: none; }
+  .gp-vista-cliente-pedido .gp-contenido { padding-bottom: 2rem; }
+}
+
+/* ---------- Entrada suave de las tarjetas al abrir una pantalla (clase que pone gpizza.js) ---------- */
+.gp-entrada .gp-contenido .gp-tarjeta, .gp-entrada .gp-seccion, .gp-entrada .gp-comprobante:not(.gp-imprimir),
+.gp-entrada .gp-portada-rejilla, .gp-entrada .gp-mensaje {
+  animation: gp-subir 0.45s ease both;
+}
+.gp-entrada .gp-contenido > :nth-child(2) .gp-tarjeta, .gp-entrada .gp-seccion:nth-of-type(2) { animation-delay: 0.06s; }
+.gp-entrada .gp-lista-productos .gp-producto { animation: gp-subir 0.4s ease both; }
+.gp-entrada .gp-lista-productos .gp-producto:nth-child(2) { animation-delay: 0.05s; }
+.gp-entrada .gp-lista-productos .gp-producto:nth-child(3) { animation-delay: 0.1s; }
+.gp-entrada .gp-lista-productos .gp-producto:nth-child(4) { animation-delay: 0.15s; }
+.gp-entrada .gp-lista-productos .gp-producto:nth-child(n+5) { animation-delay: 0.2s; }
+.gp-mensaje { animation: gp-bajar 0.35s ease; }
+
+/* ---------- Confirmación: el comprobante "se imprime" como un ticket ---------- */
+.gp-imprimir { animation: gp-imprimir 0.9s cubic-bezier(.22, .9, .3, 1) both; }
+.gp-latido { animation: gp-latido 2.2s ease-in-out 1s infinite; }
+
+/* ---------- "Tu pedido": ícono por estado y paso actual ---------- */
+.gp-icono-estado { display: inline-block; line-height: 1.1; margin-bottom: 0.5rem; }  /* aire para que el ícono animado no toque el título */
+.gp-anim-reloj { animation: gp-reloj 2.4s ease-in-out infinite; }
+.gp-anim-horno { animation: gp-horno 1.6s ease-in-out infinite; }
+.gp-anim-rebote { animation: gp-rebote 1.4s ease-in-out infinite; }
+.gp-anim-moto { animation: gp-moto 1.8s ease-in-out infinite; }
+.gp-anim-pop { animation: gp-pop 0.6s cubic-bezier(.34, 1.56, .64, 1); }
+.gp-progreso li::before { transition: background-color 0.3s ease, border-color 0.3s ease; }
+.gp-progreso li.actual::before { animation: gp-pulso 1.6s ease-out infinite; }
+.gp-codigo-entrega { animation: gp-brillo-borde 2.5s ease-in-out infinite; }
+
+/* ---------- Animaciones ---------- */
+@keyframes gp-onda { to { transform: scale(1); opacity: 0; } }
+@keyframes gp-brillo { to { left: 130%; } }
+@keyframes gp-pop { 0% { transform: scale(1); } 45% { transform: scale(1.35); } 100% { transform: scale(1); } }
+@keyframes gp-agregado {
+  0% { box-shadow: 0 0 0 0 rgba(194, 65, 12, 0.45); }
+  100% { box-shadow: 0 0 0 14px rgba(194, 65, 12, 0); }
+}
+@keyframes gp-girar { 0% { transform: rotate(0); } 60% { transform: rotate(200deg) scale(1.1); } 100% { transform: rotate(360deg); } }
+@keyframes gp-rebote { 0%, 100% { transform: translateY(0); } 30% { transform: translateY(-8px); } 55% { transform: translateY(0); } 75% { transform: translateY(-3px); } }
+@keyframes gp-subir { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes gp-bajar { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
+@keyframes gp-imprimir { from { clip-path: inset(0 0 100% 0); transform: translateY(-12px); } to { clip-path: inset(0 0 0 0); transform: none; } }
+@keyframes gp-latido { 0%, 100% { box-shadow: 0 0 0 0 rgba(194, 65, 12, 0.45); } 50% { box-shadow: 0 0 0 10px rgba(194, 65, 12, 0); } }
+@keyframes gp-reloj { 0%, 40% { transform: rotate(0); } 50%, 90% { transform: rotate(180deg); } 100% { transform: rotate(360deg); } }
+@keyframes gp-horno { 0%, 100% { transform: scale(1) rotate(0); } 50% { transform: scale(1.12) rotate(-8deg); filter: drop-shadow(0 0 8px rgba(234, 88, 12, 0.6)); } }
+@keyframes gp-moto { 0%, 100% { transform: translateX(-10px); } 50% { transform: translateX(10px) rotate(-4deg); } }
+@keyframes gp-pulso { 0% { box-shadow: 0 0 0 0 rgba(194, 65, 12, 0.5); } 100% { box-shadow: 0 0 0 10px rgba(194, 65, 12, 0); } }
+@keyframes gp-brillo-borde { 0%, 100% { border-color: var(--gp-acento); } 50% { border-color: var(--gp-dorado); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .gp-barra-carrito { transform: none; }
+}
+
+/* Desplegables del cliente ("¿Necesitas cancelar?"): una fila clara que se puede tocar, con flecha que gira. */
+.gp-desplegable { background: var(--gp-tarjeta); border: 1px solid var(--gp-borde); border-radius: var(--gp-radio); padding: 0.25rem 1rem; }
+.gp-desplegable > summary {
+  list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+  min-height: 44px; font-weight: 600;
+}
+.gp-desplegable > summary::-webkit-details-marker { display: none; }
+.gp-desplegable > summary::after { content: "›"; font-size: 1.4rem; transition: transform 0.25s ease; color: var(--gp-texto-suave); }
+.gp-desplegable[open] > summary::after { transform: rotate(90deg); }
+.gp-desplegable[open] > form { animation: gp-bajar 0.3s ease; padding-bottom: 0.75rem; }

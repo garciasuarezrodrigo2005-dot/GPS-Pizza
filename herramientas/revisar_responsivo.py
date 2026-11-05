@@ -114,7 +114,7 @@ with sync_playwright() as p:
             entrar(pg, rol)
             for ruta in rutas:
                 pg.goto(BASE + ruta, wait_until='load')
-                pg.wait_for_timeout(500)
+                pg.wait_for_timeout(1500)   # deja terminar las animaciones de entrada
                 problemas = pg.evaluate(REVISAR)
                 clave = f'{ancho} {rol or "publico"} {ruta}'
                 if problemas:

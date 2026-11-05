@@ -1,7 +1,7 @@
 {# Decisión 21: comprobante del pedido, como una confirmación de envío. Se usa en "Confirma tu pedido"
    (antes de enviarlo, sin folio) y en "Tu pedido" (ya registrado, con folio y fecha).
    Variable: c (servicios.pedidos.Comprobante). #}
-<article class="gp-comprobante mb-3" aria-label="Comprobante del pedido">
+<article class="gp-comprobante mb-3 {{ 'gp-imprimir' if not c.folio }}" aria-label="Comprobante del pedido">
   <header class="gp-comprobante-cabeza">
     <div>
       <div class="gp-comprobante-rotulo">{{ 'Comprobante de pedido' if c.folio else 'Confirmación de envío' }}</div>

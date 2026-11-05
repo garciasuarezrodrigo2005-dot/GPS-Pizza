@@ -31,7 +31,7 @@
 
 {% if pedido.estado == 'Por Confirmar' %}
   <div class="gp-tarjeta text-center mb-3">
-    <div class="gp-icono-estado" aria-hidden="true">⏳</div>
+    <div class="gp-icono-estado gp-anim-reloj" aria-hidden="true">⏳</div>
     <h2 class="h4 fw-bold">Pedido enviado</h2>
     <p class="gp-texto-suave mb-0">Estamos esperando que el cajero confirme tu pedido. Esta pantalla se actualiza sola.</p>
   </div>
@@ -52,7 +52,11 @@
                   ('Entregado', pedido.fecha_entrega)] %}
   {% set actual = {'En Preparación': 1, 'Listo para Entrega': 2, 'En Camino': 3, 'Entregado': 4}[pedido.estado] %}
   {% set restante = pedido.tiempo_estimado_min - (pedido.fecha_preparacion|minutos_desde) %}
+  {# Un ícono animado por estado, como en los rastreadores de pedidos: horno, caja lista, moto y palomita. #}
+  {% set icono, animacion = {'En Preparación': ('🍕', 'horno'), 'Listo para Entrega': ('📦', 'rebote'),
+                             'En Camino': ('🛵', 'moto'), 'Entregado': ('✅', 'pop')}[pedido.estado] %}
   <div class="gp-tarjeta mb-3">
+    <div class="gp-icono-estado gp-anim-{{ animacion }}" aria-hidden="true">{{ icono }}</div>
     <h2 class="h4 fw-bold mb-1">{{ 'Pedido entregado' if pedido.estado == 'Entregado' else 'Pedido confirmado' }}</h2>
     <p class="gp-texto-suave">{{ {'En Preparación': 'Tu pizza se está preparando.', 'Listo para Entrega': 'Tu pedido está listo y espera repartidor.',
         'En Camino': 'Tu pedido va en camino.', 'Entregado': '¡Buen provecho!'}[pedido.estado] }}</p>
@@ -92,7 +96,6 @@
 
 {# Decisión 21: comprobante completo del pedido, como una confirmación de envío. #}
 {% include 'parciales/_comprobante.html' %}
-</div>
 
 {% if pedido.estado == 'Por Confirmar' %}
   <p class="small gp-texto-suave">Si el cajero no puede confirmarlo, aquí verás el motivo del rechazo y podrás volver a pedir.</p>
@@ -102,8 +105,8 @@
     <button class="btn btn-gp-borde w-100">Cancelar pedido</button>
   </form>
 {% elif pedido.estado == 'En Preparación' and not pedido.cancelacion_solicitada_por %}
-  <details>
-    <summary class="small">¿Necesitas cancelar?</summary>
+  <details class="gp-desplegable">
+    <summary>¿Necesitas cancelar?</summary>
     <form method="post" action="{{ url_for('cliente.cancelacion', folio=pedido.folio) }}" class="mt-2">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="accion" value="solicitar">
       <input class="form-control mb-2" name="motivo" placeholder="¿Por qué quieres cancelar?" required minlength="5" maxlength="200" aria-label="Motivo">

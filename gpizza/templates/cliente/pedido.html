@@ -90,6 +90,13 @@
   </div></aside>
   </div>
 </form>
+
+{# Barra de carrito del celular (como en las apps de reparto): aparece al agregar el primer producto. #}
+<div id="barra-carrito" class="gp-barra-carrito" aria-live="polite">
+  <span class="gp-barra-icono" aria-hidden="true">🛒</span>
+  <div class="gp-barra-texto"><span data-unidades>0 productos</span><strong data-total>$ 0.00</strong></div>
+  <button type="button" class="btn btn-gp-principal">Revisar pedido</button>
+</div>
 {% endblock %}
 
 {% block scripts %}<script src="{{ url_for('static', filename='js/pedido.js') }}"></script>{% endblock %}

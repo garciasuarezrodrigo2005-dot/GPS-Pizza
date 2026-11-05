@@ -15,7 +15,7 @@
 <form method="post" action="{{ url_for('cliente.pedido') }}" class="gp-confirmar-acciones">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   {% for nombre, valor in valores.items() %}<input type="hidden" name="{{ nombre }}" value="{{ valor }}">{% endfor %}
-  <button name="paso" value="enviar" class="btn btn-gp-principal w-100" id="confirmar-pedido">Confirmar y enviar pedido</button>
+  <button name="paso" value="enviar" class="btn btn-gp-principal w-100 gp-latido" id="confirmar-pedido">Confirmar y enviar pedido</button>
   <button name="paso" value="editar" class="btn btn-gp-borde w-100">Modificar pedido</button>
 </form>
 {% endblock %}

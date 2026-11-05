@@ -8,6 +8,31 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// Animaciones de la interfaz (se apagan solas si el sistema pide "reducir movimiento").
+const SIN_MOVIMIENTO = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Al abrir una pantalla, sus tarjetas entran suavemente. La clase dura solo la carga inicial: así lo que
+// HTMX actualiza cada 10 s no vuelve a "entrar" cada vez.
+document.addEventListener('DOMContentLoaded', () => {
+  if (SIN_MOVIMIENTO) return;
+  document.body.classList.add('gp-entrada');
+  setTimeout(() => document.body.classList.remove('gp-entrada'), 1400);
+});
+
+// Onda al tocar un botón, como en las apps de celular: confirma que el toque se registró.
+document.addEventListener('pointerdown', (evento) => {
+  if (SIN_MOVIMIENTO) return;
+  const boton = evento.target.closest('.btn, .gp-chip, .gp-tamano, .gp-boton-cantidad, .gp-segmentado label');
+  if (!boton || boton.disabled) return;
+  const caja = boton.getBoundingClientRect();
+  const onda = document.createElement('span');
+  const lado = Math.max(caja.width, caja.height) * 2;
+  onda.className = 'gp-onda';
+  onda.style.cssText = `width:${lado}px;height:${lado}px;left:${evento.clientX - caja.left - lado / 2}px;top:${evento.clientY - caja.top - lado / 2}px`;
+  boton.appendChild(onda);
+  onda.addEventListener('animationend', () => onda.remove());
+});
+
 // Menús que se deslizan a lo ancho en el celular: lleva la opción activa a la vista.
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.gp-menu-lateral nav a.activa, .gp-pestanas-estado .activa').forEach((activa) => {
