@@ -1,6 +1,6 @@
 # GPizza: diseño técnico
 
-> Documento de diseño previo al código. Fuente: `ANALISIS_2.docx` (ERS), `Modelo_Datos_Yungla_Pizza_Simplificado.drawio`,
+> Documento de diseño previo al código. Fuente: `1_Analisis_GPS.docx` (análisis y ERS), `Modelo_Datos_Yungla_Pizza_Simplificado.drawio`,
 > `Diagrama_CasosUso_YunglaPizza.drawio`, `Boceto_Yungla_Pizza2.pdf` y `Modelo_Negocios.docx`.
 > Versión 2 (2026-11-01): incorpora las decisiones del equipo de la sección 7. Estado: **aprobado**.
 
@@ -271,7 +271,8 @@ Los documentos de `docs/` ya concuerdan con este diseño. Los originales de `Des
 ### BPMN_Proceso_GPizza.drawio (nuevo)
 Rediseño del BPMN con 5 carriles (Cliente, Sistema, Cajero, Cocina, Repartidor) y el flujo acordado: confirmación o rechazo del cajero, cocinero, "Listo para Entrega" marcado por el cajero, aceptación del repartidor y entrega en dos pasos. El BPMN anterior solo existía como imagen.
 
-### ANALISIS_2.docx (ERS)
+### 1_Analisis_GPS.docx (antes ANALISIS_2.docx)
+- **2026-11-06, rúbrica del Tema 1:** criterios de aceptación (3.5); reporte de entrevista con objetivo, datos, necesidades y conclusiones (4); carta compromiso con alcance, restricciones, responsabilidades, entregables y aceptación (5); actores (6.1); planteamiento con contexto, proceso actual, interesados, necesidades y propuesta (8); factibilidad temporal y costos recalculados para 4 integrantes de septiembre a noviembre (9 y 10); modelo de dominio (11, `Modelo_Dominio_GPS.drawio`); metodología incremental (12). Nombre oficial: Gestor Pizza System (GPS).
 - 1.2, 3.1.1, 3.1.3, 3.1.4 y 9.1: app móvil progresiva (PWA) también accesible por web; notificaciones dentro de la app; stack.
 - 2.3: nueva línea "Cocinero"; el gerente solo ve su sucursal; actualizados Cajero, Repartidor y Cliente.
 - RF-001, 003, 004, 005, 006, 007, 008 y 010: descripciones y RN asociadas.
