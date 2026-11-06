@@ -6,12 +6,12 @@ Proyecto escolar del Instituto Tecnológico de Veracruz (Ingeniería en Sistemas
 Es una **app móvil progresiva (PWA)**: en el celular se instala en la pantalla de inicio como una app y en la PC
 funciona como página web. Tiene tres interfaces: **Cliente**, **Personal** (cajero y repartidor) y **Gerente**.
 
-> Estado: **completo (Fases 0 a 8)**. Guion de la presentación: [docs/guion_demo.md](docs/guion_demo.md) (ver [docs/trazabilidad.md](docs/trazabilidad.md)).
+> Estado: **completo (Fases 0 a 8)**. Guion de la presentación: [docs/3_Desarrollo/guion_demo.md](docs/3_Desarrollo/guion_demo.md) (ver [docs/trazabilidad.md](docs/trazabilidad.md)).
 
 ## Tecnologías
 
 Python 3.14 · Flask 3 · Jinja2 + HTMX · Bootstrap 5 · PostgreSQL 18 · SQLAlchemy 2 + psycopg 3 · pytest.
-El porqué de cada elección está en [docs/diseno.md](docs/diseno.md).
+El porqué de cada elección está en [docs/2_Diseno/diseno.md](docs/2_Diseno/diseno.md).
 
 ## Instalación en una computadora nueva (Windows)
 
@@ -218,7 +218,7 @@ Las pruebas están en `tests/test_gerente.py` y `tests/test_reportes.py`.
 | RNF-001 Rendimiento | `pytest -s tests/test_rendimiento.py` (20 pedidos, máximo ~0.03 s; límite 3 s). Cada respuesta trae `Server-Timing` y queda en `logs/rendimiento.log`. Los reportes muestran "Generado en X s" |
 | RNF-002 Disponibilidad | `/salud`. Con PowerShell como administrador: `Stop-Service postgresql-x64-18` → `/salud` responde 503 y el inicio sigue abriendo; `Start-Service postgresql-x64-18` → se recupera sola. Ninguna ruta responde 500 (`tests/test_rnf.py`) |
 | RNF-003 Seguridad | `pytest -v tests/test_rnf.py tests/test_auth.py`: 50 rutas × 4 perfiles; Argon2id, Fernet, CSRF, sesión única, inyección SQL, auditoría inmutable |
-| RNF-004 Usabilidad / RNF-007 Compatibilidad | [docs/evidencias/](docs/evidencias/README.md): capturas en Chrome y Edge a 375 px y 1366 px, sin desborde horizontal |
+| RNF-004 Usabilidad / RNF-007 Compatibilidad | [docs/4_Pruebas_Implantacion/evidencias/](docs/4_Pruebas_Implantacion/evidencias/README.md): capturas en Chrome y Edge a 375 px y 1366 px, sin desborde horizontal |
 | RNF-005 Escalabilidad | `flask --app gpizza nueva-sucursal --nombre "Boca del Río" --direccion "…" --ciudad "Boca del Río" --gerente gerente.bocadelrio --gerente-nombre Laura --gerente-apellidos "Mendoza Ruiz" --gerente-telefono 2291234500`, o `db/ejemplo_nueva_sucursal.sql` |
 | RNF-006 Mantenibilidad | Estructura por capas (abajo), cada módulo documentado (`test_rnf006_*`), reglas centralizadas en `gpizza/reglas.py` |
 | RNF-008 Portabilidad | Esta guía se probó clonando el repositorio en una carpeta vacía: venv, `pip install`, `.env`, `db-reset`, `db-seed`, waitress y `pytest` |
@@ -294,6 +294,7 @@ gpizza/            código de la aplicación
 herramientas/      generadores de los íconos (iconos_productos.py, icono_app.py) y revisar_responsivo.py,
                    que busca elementos encimados o fuera de la pantalla de 320 px a 1366 px
 tests/             pruebas automáticas (pytest)
-docs/              documentación del proyecto, diseño y matriz de trazabilidad
+docs/              documentación por etapa: 1_Analisis, 2_Diseno, 3_Desarrollo, 4_Pruebas_Implantacion
+                   (cada una con su documento Word y sus diagramas) y la matriz de trazabilidad
 run.py             arranque con waitress
 ```
