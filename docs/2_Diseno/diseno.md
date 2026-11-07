@@ -1,4 +1,4 @@
-# GPizza: diseño técnico
+# GPS: diseño técnico
 
 > Documento de diseño previo al código. Fuente: `1_Analisis_GPS.docx` (análisis y ERS), `Modelo_Datos_Yungla_Pizza_Simplificado.drawio`,
 > `Diagrama_CasosUso_YunglaPizza.drawio`, `Boceto_Yungla_Pizza2.pdf` y `Modelo_Negocios.docx`.

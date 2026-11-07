@@ -1,4 +1,4 @@
-# Guion de la demostración · GPizza
+# Guion de la demostración · GPS
 
 Objetivo: demostrar en ~25 minutos que el sistema cumple **todos** los casos de uso (CU), requisitos funcionales (RF),
 reglas de negocio (RN) y requisitos no funcionales (RNF) de la ERS. Cada paso indica qué se cumple; la matriz completa

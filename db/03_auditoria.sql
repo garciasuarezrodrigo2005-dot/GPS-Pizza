@@ -1,5 +1,5 @@
 -- =====================================================================================
--- GPizza · 03_auditoria.sql
+-- GPS · 03_auditoria.sql
 -- RN-019: cada acción relevante queda registrada automáticamente con usuario, fecha y hora,
 -- y el historial no se puede editar ni borrar.
 -- =====================================================================================

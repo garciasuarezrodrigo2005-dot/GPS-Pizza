@@ -1,4 +1,4 @@
-# Matriz de trazabilidad: GPizza
+# Matriz de trazabilidad: GPS
 
 > Relaciona cada caso de uso (CU), requisito funcional (RF), requisito no funcional (RNF) y regla de negocio (RN)
 > con el lugar donde se implementa y la forma de demostrarlo. Se actualiza al cerrar cada fase.
@@ -107,3 +107,4 @@ La columna "En la BD" está terminada desde la Fase 1 (`db/*.sql`) y probada con
 | Doc-2 Diseño | 2026-11-06 | `docs/` organizado en una carpeta por etapa (`1_Analisis`, `2_Diseno`, `3_Desarrollo`, `4_Pruebas_Implantacion`). `docs/2_Diseno/2_Diseno_GPS.docx` (34 págs.): BPMN TO-BE actualizado, arquitectura en capas y despliegue (`Arquitectura_GPS.drawio`), modelo ER y diccionario generados del esquema real (`Modelo_Datos_GPS.drawio`), 7 diagramas de secuencia (`Secuencias_GPS.drawio`), 10 láminas boceto → pantalla, herramienta CASE y matriz de consistencia | Validación del .docx y revisión página por página |
 | Doc-3 Desarrollo | 2026-11-07 | `docs/3_Desarrollo/3_Desarrollo_GPS.docx` (27 págs.): selección del lenguaje y del DBMS con comparación, implementación de la BD (tablas, restricciones, triggers y datos de prueba), repositorio y estrategia de ramas, casos de uso implementados con pantallas y código, validaciones y manejo de errores, documentación técnica (instalación, configuración, comandos, problemas) y guion de la demostración | `pytest`: 210 pasan |
 | Doc-4 Pruebas e Implantación | 2026-11-07 | `docs/4_Pruebas_Implantacion/4_Pruebas_Implantacion_GPS.docx` (27 págs.): plan de pruebas, 48 casos de prueba con su prueba automática, reporte de componentes (JUnit y cobertura 94 %), reporte del sistema (RF, RN y RNF), 7 defectos corregidos, plan de implantación con piloto, migración y contingencia, capacitación por rol, manuales técnico y de usuario, notas de la versión 1.0 y acta de aceptación | `pytest`: 210 pasan; cobertura 94 % |
+| v1.0.1 | 2026-11-07 | Nombre oficial "Gestor Pizza System (GPS)" en la app (títulos, pie, manifest, PDF) y versión 1.0.0 en el pie | `pytest`: 210 pasan |

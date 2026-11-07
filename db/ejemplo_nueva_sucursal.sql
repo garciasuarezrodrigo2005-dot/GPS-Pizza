@@ -1,5 +1,5 @@
 -- =====================================================================================
--- GPizza · ejemplo_nueva_sucursal.sql  (RNF-005 Escalabilidad)
+-- GPS · ejemplo_nueva_sucursal.sql  (RNF-005 Escalabilidad)
 --
 -- Una sucursal nueva se agrega SOLO CON DATOS: no se modifica el código ni se reinicia la app.
 -- Su horario, su radio de cobertura y su personal también son datos.
