@@ -1,4 +1,4 @@
-# GPizza
+# Gestor Pizza System (GPS)
 
 Sistema de Gestión de Pedidos a Domicilio para **Yungla Pizza S.A. de C.V.**
 Proyecto escolar del Instituto Tecnológico de Veracruz (Ingeniería en Sistemas Computacionales).

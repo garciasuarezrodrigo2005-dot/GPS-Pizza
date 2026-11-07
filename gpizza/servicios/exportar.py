@@ -51,7 +51,7 @@ def nombre_archivo(sucursal: str, r: Reporte, extension: str) -> str:
 def pdf(r: Reporte, sucursal: str, repartidor: str | None = None) -> bytes:
     salida = io.BytesIO()
     documento = SimpleDocTemplate(salida, pagesize=A4, leftMargin=1.8 * cm, rightMargin=1.8 * cm,
-                                  topMargin=1.5 * cm, bottomMargin=1.5 * cm, title='Reporte de desempeño GPizza')
+                                  topMargin=1.5 * cm, bottomMargin=1.5 * cm, title='Reporte de desempeño · GPS')
     estilos = getSampleStyleSheet()
     titulo, subtitulo = _titulo(sucursal, r, repartidor)
     estilo_tabla = TableStyle([
@@ -87,7 +87,7 @@ def pdf(r: Reporte, sucursal: str, repartidor: str | None = None) -> bytes:
                       colWidths=[6 * cm, 2.5 * cm, 4.5 * cm, 3 * cm])
         tabla.setStyle(estilo_tabla)
         contenido.append(tabla)
-    contenido += [Spacer(1, 0.5 * cm), Paragraph('Generado por GPizza · Yungla Pizza S.A. de C.V.', estilos['Italic'])]
+    contenido += [Spacer(1, 0.5 * cm), Paragraph('Generado por Gestor Pizza System (GPS) · Yungla Pizza S.A. de C.V.', estilos['Italic'])]
     documento.build(contenido)
     return salida.getvalue()
 

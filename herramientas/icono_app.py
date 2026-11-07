@@ -1,4 +1,4 @@
-"""Ícono de GPizza: rebanada de pizza al frente de hojas de selva ("Yungla"), sobre el terracota de la marca.
+"""Ícono de GPS: rebanada de pizza al frente de hojas de selva ("Yungla"), sobre el terracota de la marca.
 Genera el SVG (favicon y logotipo) y los PNG que pide la PWA (192, 512, maskable y apple-touch).
 Uso: python herramientas/icono_app.py       -> solo logo.svg
      python herramientas/icono_app.py png   -> también los PNG (requiere playwright y Chrome)"""

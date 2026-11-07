@@ -1,4 +1,4 @@
-// JavaScript común a todas las pantallas de GPizza.
+// JavaScript común a todas las pantallas de GPS.
 
 // Registra el service worker para que la app se pueda instalar en el celular (PWA, RNF-007).
 if ('serviceWorker' in navigator) {

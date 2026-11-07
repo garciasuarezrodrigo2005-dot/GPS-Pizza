@@ -1,5 +1,5 @@
 -- =====================================================================================
--- GPizza · 01_esquema.sql
+-- GPS · 01_esquema.sql
 -- Tablas, llaves y restricciones (modelo de datos v2, docs/diseno.md §4).
 -- Las restricciones que implementan una regla de negocio llevan el código de la regla
 -- en su nombre (p. ej. rn001_...), así el error que devuelve PostgreSQL dice qué regla falló.

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block titulo %}Yungla Pizza{% endblock %} · GPizza</title>
+  <title>{% block titulo %}Yungla Pizza{% endblock %} · GPS</title>
   <meta name="theme-color" content="#1f1b18">
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
@@ -37,7 +37,7 @@
   {% endblock %}
 
   {% block navegacion %}
-  <footer class="gp-pie">© 2026 Yungla Pizza S.A. de C.V. · Veracruz, México · GPizza v{{ version }}</footer>
+  <footer class="gp-pie">© 2026 Yungla Pizza S.A. de C.V. · Veracruz, México · Gestor Pizza System (GPS) v{{ version }}</footer>
   {% endblock %}
 
   <script src="{{ url_for('static', filename='vendor/bootstrap.bundle.min.js') }}"></script>

@@ -1,4 +1,4 @@
-"""Configuración de GPizza.
+"""Configuración de GPS.
 
 Todos los valores salen de variables de entorno (archivo .env), para que la app se pueda
 levantar en otra computadora o servidor sin tocar el código (RNF-008).

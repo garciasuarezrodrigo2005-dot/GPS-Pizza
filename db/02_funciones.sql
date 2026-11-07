@@ -1,5 +1,5 @@
 -- =====================================================================================
--- GPizza · 02_funciones.sql
+-- GPS · 02_funciones.sql
 -- Triggers que hacen cumplir las reglas de negocio dentro de la base de datos.
 -- La app valida lo mismo antes (para dar mensajes claros); esto es la segunda capa:
 -- aunque alguien se salte el código Python y escriba SQL directo, la regla se respeta.

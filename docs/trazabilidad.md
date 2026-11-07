@@ -1,4 +1,4 @@
-# Matriz de trazabilidad: GPizza
+# Matriz de trazabilidad: GPS
 
 > Relaciona cada caso de uso (CU), requisito funcional (RF), requisito no funcional (RNF) y regla de negocio (RN)
 > con el lugar donde se implementa y la forma de demostrarlo. Se actualiza al cerrar cada fase.

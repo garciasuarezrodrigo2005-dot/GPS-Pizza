@@ -1,10 +1,10 @@
-// Service worker de GPizza (PWA, RNF-007).
+// Service worker de GPS (PWA, RNF-007).
 // - Todo se pide primero a la red, así siempre llega la versión más nueva de la app.
 // - Los archivos fijos (estilos, scripts, iconos) se guardan en caché para que la app abra sin conexión.
 // - Las páginas sin red muestran /offline. Nunca se guardan datos de pedidos ni respuestas de la API.
 // Al cambiar esta estrategia o la lista de archivos, sube el número de CACHE para borrar la anterior.
 
-const CACHE = 'gpizza-v10';
+const CACHE = 'gpizza-v11';
 const ARCHIVOS_FIJOS = [
   '/offline',
   '/static/css/gpizza.css',

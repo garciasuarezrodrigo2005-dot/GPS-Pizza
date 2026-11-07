@@ -1,4 +1,4 @@
-"""GPizza: Sistema de Gestión de Pedidos a Domicilio de Yungla Pizza S.A. de C.V."""
+"""Gestor Pizza System (GPS): Sistema de Gestión de Pedidos a Domicilio de Yungla Pizza S.A. de C.V."""
 from flask import Flask
 
 from gpizza.bd import registrar_contexto_automatico
@@ -7,7 +7,7 @@ from gpizza.config import Config
 from gpizza.extensiones import csrf, db
 from gpizza.monitoreo import configurar_logs, registrar_medicion
 
-__version__ = '0.1.0'
+__version__ = '1.0.0'
 
 
 def create_app(config_class: type[Config] = Config) -> Flask:

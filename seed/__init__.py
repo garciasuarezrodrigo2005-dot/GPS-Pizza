@@ -1,1 +1,1 @@
-"""Datos de demostración de GPizza."""
+"""Datos de demostración de GPS."""
