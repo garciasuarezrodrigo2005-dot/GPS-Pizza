@@ -6,6 +6,8 @@ Proyecto escolar del Instituto Tecnológico de Veracruz (Ingeniería en Sistemas
 Es una **app móvil progresiva (PWA)**: en el celular se instala en la pantalla de inicio como una app y en la PC
 funciona como página web. Tiene tres interfaces: **Cliente**, **Personal** (cajero y repartidor) y **Gerente**.
 
+> Repositorio: https://github.com/garciasuarezrodrigo2005-dot/GPS-Pizza (rama `main` = versión liberada, `desarrollo` = trabajo en curso).
+>
 > Estado: **completo (Fases 0 a 8)**. Guion de la presentación: [docs/3_Desarrollo/guion_demo.md](docs/3_Desarrollo/guion_demo.md) (ver [docs/trazabilidad.md](docs/trazabilidad.md)).
 
 ## Tecnologías
@@ -19,7 +21,7 @@ Requisitos: Python 3.14, PostgreSQL 18 y Git.
 
 1. **Clonar y crear el entorno virtual**
    ```powershell
-   git clone <url-del-repositorio> Aplicacion
+   git clone https://github.com/garciasuarezrodrigo2005-dot/GPS-Pizza.git Aplicacion
    cd Aplicacion
    python -m venv .venv
    .venv\Scripts\activate
