@@ -35,6 +35,12 @@
 <script>
   // El pedido ya se envió: se borra el borrador guardado en este dispositivo.
   try { localStorage.removeItem('gpizza-borrador-cliente-{{ pedido.cliente.telefono }}'); } catch {}
+  // Si la pantalla se abrió antes de que saliera el repartidor, el mapa no existe todavía: en cuanto la
+  // actualización de cada 10 s trae "En Camino", se recarga la página para mostrar el mapa en vivo.
+  document.body.addEventListener('htmx:afterSwap', () => {
+    const estado = document.getElementById('estado-pedido')?.dataset.estado;
+    if (estado === 'En Camino' && !document.getElementById('mapa')) location.reload();
+  });
 </script>
 {% if pedido.estado == 'En Camino' %}
 <script src="{{ url_for('static', filename='vendor/leaflet/leaflet.js') }}"></script>
