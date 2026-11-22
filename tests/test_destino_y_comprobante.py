@@ -146,3 +146,16 @@ def test_fuera_de_horario_las_sucursales_salen_cerradas_en_el_mapa(app_bd, web):
     html = web.get('/pedido').get_data(as_text=True)
     datos = json.loads(re.search(r'id="datos-sucursales">(.*?)</script>', html, re.S).group(1))
     assert not any(s['abierta'] for s in datos['sucursales'])
+
+
+def test_al_salir_el_repartidor_la_pantalla_se_recarga_con_el_mapa(app_bd, web):
+    """Regresión: si el cliente abría "Tu pedido" antes de "En Camino", la actualización de cada 10 s solo
+    cambiaba el estado y el mapa no aparecía hasta recargar. Ahora el bloque trae su estado y la página
+    se recarga sola cuando ese estado es "En Camino" y todavía no hay mapa."""
+    entrar_como_cliente(web)
+    folio = folio_de(web.post('/pedido', data=formulario(app_bd, web)))
+    pagina = web.get(f'/mi-pedido/{folio}').get_data(as_text=True)
+    assert 'id="mapa"' not in pagina
+    assert "htmx:afterSwap" in pagina and "location.reload()" in pagina
+    parcial = web.get(f'/mi-pedido/{folio}/estado').get_data(as_text=True)
+    assert 'data-estado="Por Confirmar"' in parcial

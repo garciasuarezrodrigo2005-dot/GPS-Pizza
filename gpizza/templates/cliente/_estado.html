@@ -1,7 +1,7 @@
 {# Estado del pedido para el cliente (CU-003, RF-004). HTMX lo vuelve a pedir cada 10 s mientras
    el pedido siga en curso, así la pantalla "se actualiza sola" como dice el boceto. #}
 {% set en_curso = pedido.estado in ('Por Confirmar', 'En Preparación', 'Listo para Entrega', 'En Camino') %}
-<div id="estado-pedido"
+<div id="estado-pedido" data-estado="{{ pedido.estado }}"
      {% if en_curso %}hx-get="{{ url_for('cliente.estado_parcial', folio=pedido.folio) }}"
      hx-trigger="every 10s [!document.querySelector('#estado-pedido :focus, #estado-pedido details[open]')]" hx-swap="outerHTML"{% endif %}>
 
